@@ -1,0 +1,15 @@
+#include "vely.h"
+
+void add_item()
+{
+    out-header use content-type "application/json"
+
+    input-param name
+    input-param description
+    // Add an item to inventory SQL
+    run-query @db_shopping ="insert into items (name, description) \
+        values ('%s', '%s') returning itemID" output itemID : name, description
+        query-result itemID to define item_id
+        @"<<p-out item_id>>"
+    end-query
+}

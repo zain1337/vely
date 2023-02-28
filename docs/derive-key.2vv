@@ -1,0 +1,57 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+derive-key \-  (encryption)
+.SH PURPOSE
+Derive a key.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+derive-key [ define ] <key> from <source> length <length> \\
+    [ binary ] \\
+    [ from-length <source length> ] \\
+    [ digest <digest algorithm> ] \\
+    [ salt <salt> [ salt-length <salt length> ] ] \\
+    [ iterations <iterations> ] 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+derive-key derives <key> (which can be created with optional "define") from string <source> in "from" clause. <key> is \fBallocated memory\fP. If <source length> in "from-length" clause is specified, exactly <source length> bytes of <source> are used, regardless of null bytes. Otherwise, the length of a null-terminated <source> string is used as the number of bytes. 
+
+The length of derived key is given by <length> in "length" clause. The method for key generation is PBKDF2. By default the digest used is "SHA256". You can use a different <digest algorithm> in "digest" clause (for example "SHA3-256"). To see a list of available digests:
+
+.RS 4
+.EX
+
+\[char35]get digests
+openssl list -digest-algorithms
+
+.EE
+.RE
+
+The optional salt for key derivation can be given with <salt> in "salt" clause. If "salt-length" clause is not used, then the salt is null-terminated, otherwise its length is <salt length>.
+
+The number of iterations is given by <iterations> in "iterations" clause. The default is 1000 per \fBRFC 8018\fP, though depending on your needs and the quality of <source> you may choose a different value.
+
+By default, the derived key is produced as a null-terminated string in a hexadecimal form, where each byte is encoded as two-character hexadecimal characters, so its length is 2*<length>. If "binary" clause is used, the output is a binary string of <length> bytes, and a null byte is placed after it.
+
+Key derivation is often used when storing password-derivatives in the database (with salt), and also for symmetrical key generation.
+
+.SH EXAMPLES
+Derived key is in variable "mk":
+
+.RS 4
+.EX
+
+random-string to define rs9 length 16
+derive-key define mk from "clave secreta" digest "sha-256" salt rs9 salt-length 10 iterations 2000 length 16
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIEncryption\fP ( \fBdecrypt-data\fP   \fBderive-key\fP   \fBencrypt-data\fP   \fBhash-string\fP   \fBrandom-crypto\fP   \fBrandom-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

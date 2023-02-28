@@ -1,0 +1,90 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+deploying_application \- Vely documentation (general)
+.SH DESCRIPTION
+You can deploy Vely applications in different ways.
+
+.LP
+.B CONTAINERS
+.LP
+
+Using containers (such as with \fBdocker\fP or \fBpodman\fP) is an easy, reliable and portable way of deploying a Vely application. See  \fBcontainerize_application\fP.
+
+This method is also applicable for deployment to \fBInternet of Things\fP (IOT) systems, such as for example \fBFedora IOT\fP or with \fBRaspberry PI\fP Operating Systems often used for devices. For IOT, Vely can be deployed both on servers and devices.
+
+.LP
+.B INSTALLING FROM SOURCE
+.LP
+
+You can also deploy a Vely application by installing it from source; see \fBapplication_setup\fP. After installation, you may delete the source code and remove generated C code:
+
+.RS 4
+.EX
+
+vv -c
+
+.EE
+.RE
+
+
+.LP
+.B INSTALLING FROM BINARY
+.LP
+
+The binary for your application can be copied to another computer with the same Operating System and with Vely installed, provided the Operating System has compatible libraries; in practice this means the same major Operating System version and the same or higher minor version. The same is true for Vely version; you must have the same major Vely version and the same or higher minor version.
+
+You must install Vely first on the target machine and then create the application, for instance:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) <app name>
+
+.EE
+.RE
+
+Next you must copy the binaries for your application from source to target, to the same location. Assuming application name is <app name>, the binaries are:
+
+.RS 4
+.EX
+
+\[char35]Fast CGI binary:
+/var/lib/vv/bld/<app name>.fcgi
+
+\[char35]command line and CGI binary:
+/var/lib/vv/bld/<app name>
+
+.EE
+.RE
+
+For an application that does not use any database(s) and does not need any additional files, this is enough to deploy the application to a target machine.
+
+If you use database(s), you must install such database(s) and migrate any needed data, and copy the \fBdatabase_config_file\fPs, meaning the following directory:
+
+.RS 4
+.EX
+
+/var/lib/vv/<app name>/app/db
+
+.EE
+.RE
+
+If you use SQLite, you can just copy the database file as it is portable; generally such file would be in the application's home directory. Since the application's home directory is:
+
+.RS 4
+.EX
+
+/var/lib/vv/<app name>/app
+
+.EE
+.RE
+
+you would copy any custom files and directories you have created and that your application may need. Note that all files and directories copied must be owned by the application owner, i.e. the user used in application creation command above (see \fBvf\fP).
+
+.LP
+.B MULTI-USER AND MULTI-APPLICATION ENVIRONMENT
+.LP
+
+Each application owner (i.e. the user used in application creation with -u flag, see \fBvf\fP) can have any number of applications. At the same time, different application owners can create any number of applications of their own; the application directory for each application is owned by its respective owner with 700 permissions, meaning different users cannot access application files of other owners (see \fBhow_vely_works\fP). Similarly, application servers (i.e. FastCGI servers) run under the application owner permissions, and can only be managed by its owner.
+.SH SEE ALSO
+ \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

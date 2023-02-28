@@ -1,0 +1,213 @@
+#!/bin/bash
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC.
+
+
+# Set variables for building and installing a Vely application. 
+# If your system doesn't conform, you can change these variables to fit
+
+#do not do all twice if already done
+if [ "$VV_SYSTEM_DONE" != "1" ]; then
+
+#determine operating system
+    . /etc/os-release
+#check if lsb-release present, and use it to override os-release, as it is generally more accurate
+    if [ -f "/etc/lsb-release" ]; then
+        . /etc/lsb-release
+    fi
+#get the leading part in case of split (such as OSNAME-xxx)
+    export SUBID=$(echo $ID|awk -F "-" '{print $2}')
+    export ID=$(echo $ID|awk -F "-" '{print $1}')
+    export VV_PLATFORM_ID=$ID
+    if [[ "$ID" == "opensuse" && "$SUBID" == "tumbleweed" ]]; then
+#no version really for tumbleweed as it's just a date of build, not a designation of features
+        export VERSION_ID="tumbleweed"
+    fi
+    if [ "$VV_PLATFORM_ID" == "sles" ]; then
+        export VV_PLATFORM_ID="opensuse"
+    fi
+    if [ "$VV_PLATFORM_ID" == "ol" ]; then
+        export VV_PLATFORM_ID="oracle_linux"
+    fi
+    if [ "$VV_PLATFORM_ID" == "rhel" ]; then
+        export VV_PLATFORM_ID="redhat"
+    fi
+#version is always whatever comes prior to the first dot (usually just a number), even for Ubuntu (where version is technically 20.04 for instance, it's 20) to make things simpler. The actual version is always the lowest one for any release, so if the latest version of RH is 8.3, it's 8.1 that we try to use if available (to ensure compatibility), and thus we just call it "8".
+    if [ "$VERSION_ID" == "" ]; then
+#if VERSION_ID not available, try DISTRIB_RELEASE , typically in lsb-release
+        export VERSION_ID="$DISTRIB_RELEASE"
+    fi
+    if [ "$VERSION_ID" == "" ]; then
+#if VERSION_ID still empty, make it "rolling"
+        export VERSION_ID="rolling"
+    fi
+    export VV_PLATFORM_VERSION=$(sed 's/\([^\.]\+\)\..*/\1/g'<<<$VERSION_ID)
+    export VV_VERSION_ID="$VERSION_ID"
+    if [[ "$VV_PLATFORM_ID" == "fedora" || "$VV_PLATFORM_ID" == "redhat" || "$VV_PLATFORM_ID" == "opensuse" || "$VV_PLATFORM_ID" == "mageia" ]]; then
+        export VV_ISFEDORA=1
+    elif [ "$VV_PLATFORM_ID" == "arch" ]; then
+        export VV_PLATFORM_ID="archlinux"
+        export VV_ISARCH=1
+    elif [[ "$VV_PLATFORM_ID" == "ubuntu" || "$VV_PLATFORM_ID" == "debian" || "$VV_PLATFORM_ID" == "raspbian" ]]; then
+        export VV_ISDEBIAN=1
+        if [ "$UBUNTU_CODENAME" != "" ]; then
+            export VV_DEBIAN_DISTRIBUTION=$UBUNTU_CODENAME
+        else
+            export VV_DEBIAN_DISTRIBUTION=$VERSION_CODENAME
+        fi
+#DISTRIB_CODENAME would come from lsb-release, if present, take it if not available yet
+        if [[ "$VV_DEBIAN_DISTRIBUTION" == "" && "$DISTRIB_CODENAME" != "" ]]; then
+            export VV_DEBIAN_DISTRIBUTION=$DISTRIB_CODENAME
+        fi
+    else
+#try to figure out what this system may be, and use that
+        for i in $(echo "$ID_LIKE"); do
+            if [ "$i" == "fedora" ]; then
+                export VV_ISFEDORA=1
+                export VV_PLATFORM_ID="fedora"
+                break
+            elif [ "$i" == "arch" ]; then
+                export VV_PLATFORM_ID="archlinux"
+                export VV_ISARCH=1
+                break
+            elif [ "$i" == "debian" ]; then
+                export VV_ISDEBIAN=1
+                export VV_PLATFORM_ID="debian"
+                break
+            elif [[ "$i" == "redhat" || "$i" == "rhel" ]]; then
+                export VV_ISFEDORA=1
+                export VV_PLATFORM_ID="redhat"
+                break
+            elif [ "$i" == "ubuntu" ]; then
+                export VV_ISDEBIAN=1
+                export VV_PLATFORM_ID="ubuntu"
+                break
+            elif [[ "$i" == "opensuse" || "$i" == "sles" ]]; then
+                export VV_ISFEDORA=1
+                export VV_PLATFORM_ID="opensuse"
+                break
+            elif [ "$i" == "mageia" ]; then
+                export VV_ISFEDORA=1
+                export VV_PLATFORM_ID="mageia"
+                break
+            fi
+        done
+    fi
+
+#
+#At this  point, the system should have been recognized, or the closest possible established based on ID_LIKE, since the
+#order of space-separated entires in ID_LIKE is that of likeness (the first being the most like)
+#
+
+#the following three should not be changed manually, make tools set them
+    export VV_LIBRARY_PATH=/usr/lib64/vely
+    export VV_INCLUDE_PATH=/usr/include/vely
+    export VV_VERSION=100.100
+
+    if [ "$VV_ISFEDORA" == "1" ]; then
+        if [ "$VV_PLATFORM_ID" == "opensuse" ]; then
+            export VV_PKG="zypper"
+            export VV_PKG_NONINTERACTIVE="-n"
+        elif [ "$VV_PLATFORM_ID" == "mageia" ]; then
+            export VV_PKG="dnf"
+            export VV_PKG_NONINTERACTIVE="-y"
+        else
+            export VV_PKG="dnf"
+            export VV_PKG_NONINTERACTIVE="-y"
+         fi
+    elif [ "$VV_ISDEBIAN" == "1" ]; then
+        export VV_PKG="apt"
+        export VV_PKG_NONINTERACTIVE="-y"
+    elif [ "$VV_ISARCH" == "1" ]; then
+        export VV_PKG="pacman"
+        export VV_PKG_NONINTERACTIVE="--noconfirm"
+    else
+        echo "Unknown Operating System [$VV_PLATFORM_ID]"
+        exit -4
+    fi
+
+#do not execute again if already done
+    export VV_SYSTEM_DONE=1
+fi 
+
+
+#
+#
+#
+#From here on, only system requests are allowed, each exiting with 'exit'
+#
+#
+#
+
+if [ "$1" == "pgconf" ]; then
+    ECODE="0"
+    which pg_config 2>/dev/null 1>/dev/null || ECODE=$?
+    if [ "$ECODE" == "0" ]; then
+        echo "yes"
+    else
+        echo "no"
+    fi
+    exit 0
+fi
+
+if [ "$1" == "showid" ]; then
+    echo $VV_PLATFORM_ID
+    exit 0
+fi
+
+if [ "$1" == "showtype" ]; then
+    if [ "$VV_ISFEDORA" == "1" ]; then
+        echo "fedora"
+    elif [ "$VV_ISDEBIAN" == "1" ]; then
+        echo "debian"
+    elif [ "$VV_ISARCH" == "1" ]; then
+        echo "archlinux"
+    else
+        echo "unknown"
+    fi
+    exit 0
+fi
+
+function lowest_version() { 
+    echo "$@" | sed 's/ /\n/g'| sort -V | head -n 1 
+}
+
+
+#
+#
+#The following is a hack due to the bug in RH annobin (annotation for binaries)
+#Set HASANNOBIN to nothing (default) to let Vely figure it out, or set it to
+#override: 0 if annobin is enabled and 1 if annobin is disabled (right now we 
+#disable it). This only applies to fedora and such.
+#
+#
+HASANNOBIN=
+if [[ "$1" == "annobin" && "$HASANNOBIN" == "" ]]; then
+    HASANNOBIN="1"
+    if [ "$VV_ISFEDORA" == "1" ]; then
+       if [[ "$VV_PLATFORM_ID" == "redhat" || "$VV_PLATFORM_ID" == "centos" || "$VV_PLATFORM_ID" == "oracle_linux" ]]; then
+           LO=$(lowest_version $VV_PLATFORM_VERSION "7.999999")
+#VV_PLATFORM_VERSION lt 8
+           if [ "$LO" == "$VV_PLATFORM_VERSION" ]; then
+               HASANNOBIN="0"
+           fi
+        fi
+       if [ "$VV_PLATFORM_ID" == "fedora" ]; then
+#VV_PLATFORM_VERSION lt 27
+           LO=$(lowest_version $VV_PLATFORM_VERSION "26.999999")
+           if [ "$LO" == "$VV_PLATFORM_VERSION" ]; then
+               HASANNOBIN="0"
+           fi
+        fi
+        if [[ "$VV_PLATFORM_ID" == "opensuse"  || "$VV_PLATFORM_ID" == "mageia" ]]; then
+            HASANNOBIN="0"
+        fi
+    else
+        HASANNOBIN="0"
+    fi
+    if [ "$HASANNOBIN" == "1" ]; then
+        echo "-Wc,-fplugin=annobin -Wc,-fplugin-arg-annobin-disable"
+    fi
+    exit 0
+fi
+

@@ -1,0 +1,38 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+current-row \-  (database)
+.SH PURPOSE
+Get or print out the row number of a current row in the result-set of a query.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+current-row [ to [ define ] <current row> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+Without "to" clause, current-row will print out the current row number. First row is numbered 1. With "to" clause, the row number is stored into variable <current row>, which is created if "define" is used. current-row must be within a \fBrun-query\fP loop, and it always refers to the most inner one.
+
+.SH EXAMPLES
+Display row number before a line with first and last name for each employee:
+
+.RS 4
+.EX
+
+run-query @mydb="select firstName, lastName from employee"
+    @Row #<<current-row>><br/>
+    query-result firstName 
+    @,
+    query-result lastName
+    @<br/>
+end-query
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

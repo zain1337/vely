@@ -1,0 +1,36 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+request-body \-  (request_information)
+.SH PURPOSE
+Get the body of an HTTP request.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+request-body <request body> [ length [ define ] <body length> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+request-body stores the request body of an HTTP request into string <request body> which can hold text or binary data and which is created for that purpose. In either case, optional "length" clause provides the length in bytes of the body in <body length> variable, which can be created with optional "define".
+
+If the content type of the request is "multipart/form-data", the request body is empty because all the data (including any attached files) can be obtained by using \fBinput-param\fP (see \fBfile_uploading\fP for files). In all other cases, request body is available.
+
+Typical use of request-body is when some text or binary information is attached to the request, such as JSON for example, though it can be anything else, for example an image, some text, or a PDF document. Usually request body is present for POST, PUT or PATCH requests, but you can also obtain it for GET or DELETE requests, if supplied (for instance identifying a resource may require more information than can fit in a query string), or for any custom request method.
+
+.SH EXAMPLES
+String variable "reqb" will hold request body of a request and "reqb_length" will be its length in bytes:
+
+.RS 4
+.EX
+
+request-body reqb length define reqb_length
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

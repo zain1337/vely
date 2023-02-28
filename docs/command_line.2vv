@@ -1,0 +1,173 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+command_line \- Vely documentation (running_application)
+.SH DESCRIPTION
+
+.LP
+.B COMMAND-LINE PROGRAMS
+.LP
+
+A Vely application can run as a web application or a command line program, or both - such as when some requests can be either fulfilled through web interface or the command line. Note that Vely produces two separate executables: a \fBFastCGI\fP server one and a command-line one - they are different because command-line program does not need the FastCGI library and thus is smaller. 
+
+The name of the command-line executable is the same as the application name, and its path is (assuming <app name> is the application name):
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/<app name>/<app name>
+
+.EE
+.RE
+
+
+.LP
+.B OUTPUT
+.LP
+
+A command line program works the same way as a FastCGI executable, and the output is the same, except that it is directed to stdout (standard output) and stderr (standard error). 
+
+.LP
+.B EXIT CODE
+.LP
+
+To specify the exit code of a command line program, use \fBexit-code\fP. To exit the program, use \fBexit-request\fP, or otherwise the program will exit when it reaches the end of a \fBrequest\fP.
+
+.LP
+.B EXECUTING A REQUEST
+.LP
+
+A command line program must obtain its request URL via environment variables, for example if the application name is "stock", here is how to execute a request "add-stock" with \fBinput-param\fPeters "name" having a value of "ABC" and "price" a value of "300":
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/stock"
+export PATH_INFO="/add-stock"
+export QUERY_STRING="name=ABC&price=300"
+
+/var/lib/vv/bld/stock/stock
+
+.EE
+.RE
+
+Note that you if specify parameters as part of the path, you could write the above the same way as in a URL:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/stock"
+export PATH_INFO="/add-stock/name/ABC"
+export QUERY_STRING="price=300"
+
+/var/lib/vv/bld/stock/stock
+
+.EE
+.RE
+
+
+.LP
+.B INCLUDING A REQUEST BODY
+.LP
+
+You can include a request body when executing a command-line program. It is always included as the standard input (stdin) to the program. 
+
+You must provide the length of this input (as CONTENT_LENGTH environment variable), the type of input (as CONTENT_TYPE), as well as REQUEST_METHOD (such as POST, PUT, PATCH, GET, DELETE or any other).
+
+Here is an example of using a request body to make a POST request on the command line - the application name is "json" and request name is "process". File "prices.json" is sent as request body:
+
+.RS 4
+.EX
+
+\[char35]length of the request body (of file prices.json). Use ${#VAR} for length if the content is in bash variable $VAR. 
+export CONTENT_LENGTH=$(stat -c%s prices.json)
+
+\[char35]content type (in this case application/json)
+export CONTENT_TYPE="application/json"
+
+\[char35]state the URL
+export SCRIPT_NAME="/json"
+export PATH_INFO="/process"
+export QUERY_STRING="act=get_total&period=YTD"
+
+\[char35]request method (POST, PUT, PATCH, GET, DELETE...)
+export REQUEST_METHOD=POST
+
+\[char35]provide request body as the standard input to the command-line program by piping a file into it
+cat prices.json | /var/lib/vv/bld/ordering/ordering
+
+.EE
+.RE
+
+Note that you can also include any other headers as environment variables by using the "HTTP_" convention, where custom headers are capitalized with use of underscore for dashes and prefixed with "HTTP_", for example header "Vely-Header" would be set as:
+
+.RS 4
+.EX
+
+export HTTP_VELY_HEADER="some value"
+
+.EE
+.RE
+
+
+.LP
+.B SUPPRESSING HTTP HEADER OUTPUT FOR THE ENTIRE APPLICATION
+.LP
+
+If you wish to suppress the output of HTTP headers for all requests, set environment variable VV_SILENT_HEADER to "yes" before executing the program:
+
+.RS 4
+.EX
+
+export VV_SILENT_HEADER=yes
+
+.EE
+.RE
+
+This will suppress the effect of \fBout-header\fP, or for any other case where headers are output. This has the same effect as \fBsilent-header\fP, the only difference is that it applies to the entire application.
+
+.LP
+.B URL-ENCODING THE INPUT
+.LP
+
+Any data in QUERY_STRING or PATH_INFO must be formatted to be a valid URL; for example, data that contains special characters (like "&" or "?") must be URL-encoded, for instance:
+
+.RS 4
+.EX
+
+export QUERY_STRING="action=show&data=a%3Fb"
+
+.EE
+.RE
+
+In this case, field "data" has value of "a?b", where special character "?" is encoded as "%3F". 
+
+To make sure all your input parameters are properly URL-encoded, use Vely's v1 code processor:
+
+.RS 4
+.EX
+
+$($(vv -l)/v1 -urlencode '<your data>')
+
+.EE
+.RE
+
+For instance, to encode "a?=b" as a parameter:
+
+.RS 4
+.EX
+
+export QUERY_STRING="act=show&data=$($(vv -l)/v1 -urlencode 'a?=b')"
+
+.EE
+.RE
+
+
+.LP
+.B CGI
+.LP
+
+You can also use a command line program with \fBCGI\fP (Common Gateway Interface). Note that CGI programs generally exhibit much lower performance; use CGI only when warranted by a specific situation.
+.SH SEE ALSO
+ \fIRunning application\fP ( \fBapplication_setup\fP   \fBCGI\fP   \fBClient_API\fP   \fBcommand_line\fP   \fBcontainerize_application\fP   \fBFastCGI\fP   \fBFastCGI_client\fP   \fBplain_C_FCGI\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,14 @@
+#include "vely.h"
+
+void create_order()
+{
+    out-header use content-type "application/json"
+
+    input-param customer_id
+    // SQL to create an order
+    run-query @db_shopping ="insert into orders (customerId) \
+        values ('%s') returning orderID" output orderID : customer_id
+        query-result orderID to define order_id
+        @"<<p-out order_id>>"
+    end-query
+}

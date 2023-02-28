@@ -1,0 +1,47 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+memory_handling \- Vely documentation (memory)
+.SH DESCRIPTION
+
+.LP
+.B MEMORY AND AUTOMATIC FREEING
+.LP
+
+Some Vely statements allocate memory for their results. Each statement's documentation specifies the clause(s) that allocate memory. Those that have not been so specified do not allocate memory. If memory cannot be allocated, your request will error out (see \fBerror_handling\fP); this does not affect other requests.
+
+All such memory is automatically freed at the end of each \fBrequest\fP, so in general you may not need to free memory at all. If needed, you can free memory with \fBdelete-mem\fP. However, unless your program uses lots of memory for longer, it may make sense to not release the memory using \fBdelete-mem\fP and let Vely release it at the end of the request. The reasons for this are:
+
+.RS 4
+\[bu]    
+releasing memory programmatically is in some cases error prone and may lead to malfunctions and crashes,
+
+.RE
+
+.RS 4
+\[bu]    
+releasing memory programmatically in some cases prolongs the duration of the request, making some of the allocated memory stay so for longer. Having requests of shorter duration and releasing memory all at once at the end may have a similar effect.
+.RE
+
+In the end, it is up to you whether to release memory explicitly, let Vely do it, or a bit of both. 
+
+All Vely memory created is freed even if it is no longer accessible to the program, thus preventing memory leaks; this is important for stability of long-running processes. 
+
+Memory needed for cross-request purposes, such as prepared database statements or process configuration data, is kept for the life of the process.
+
+.LP
+.B MEMORY REUSE
+.LP
+
+Any of the Vely \fBstatement_APIs\fP that return allocated memory will always create it new. In other words, the previously allocated memory will not be reused by default.
+
+This is so that common and hard-to-track bugs relating to memory reuse, proper sizing and re-allocation can be avoided, such as passing non-Vely allocated pointers, bad pointers or memory of insufficient allocation. In addition, this approach increases the performance because allocating memory is generally faster than reallocating; given requests are short and frequent by nature, it means increased productivity and performance.
+
+Either way, you can always explicitly reuse memory during request processing by freeing previously allocated memory of any statement that does so, see \fBdelete-mem\fP.
+
+.LP
+.B OPEN FILE DESCRIPTORS
+.LP
+
+Any files opened by \fBopen-file\fP statement are automatically closed by Vely at the end of the request. This enhances stability of long-running server processes because Linux system by default offers only about 1000 open files to a process. A bug can quickly exhaust this pool and cause a malfunction or a crash - Vely prevents this by closing any such open files when the request ends.
+.SH SEE ALSO
+ \fIMemory\fP ( \fBdelete-mem\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

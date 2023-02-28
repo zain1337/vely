@@ -1,0 +1,56 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+silent-header \-  (web)
+.SH PURPOSE
+Do not output HTTP headers.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+silent-header
+
+.EE
+.RE
+
+.SH DESCRIPTION
+silent-header will suppress the output of HTTP headers, such as with \fBout-header\fP, or in any other case where headers are output. The effect applies to current \fBrequest\fP only; if you use it conditionally, then you can have it on or off dynamically. If you want to suppres the headers across the entire command-line application, use VV_SILENT_HEADER environment variable; see \fBcommand_line\fP.
+
+Note that you still have to use \fBout-header\fP regardless, as it is expected to be there if you output anything; however its actual output will be suppressed.
+
+There are many uses for silent-header, among them:
+
+.RS 4
+\[bu]    
+A command line program may use it to produce generic output, without any headers,
+
+.RE
+
+.RS 4
+\[bu]    
+the output from command line program may be redirected to a web file (such as html), in case of dynamic content that rarely changes,
+
+.RE
+
+.RS 4
+\[bu]    
+a web program may output a completely different (non-HTTP) set of headers, etc.
+.RE
+
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+silent-header 
+out-header
+
+// No headers output 
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

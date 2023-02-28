@@ -1,0 +1,405 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_create_table \- Vely documentation (examples)
+.SH DESCRIPTION
+Example of manipulating tables via SQL. Table is 
+
+.RS 4
+\[bu]    
+dropped, 
+
+.RE
+
+.RS 4
+\[bu]    
+created, 
+
+.RE
+
+.RS 4
+\[bu]    
+data inserted, 
+
+.RE
+
+.RS 4
+\[bu]    
+then queried, 
+
+.RE
+
+.RS 4
+\[bu]    
+and finally the table is dropped.
+.RE
+
+
+In a nutshell: 2 source files, 44 lines of code; PostgreSQL; command line; web browser; Nginx; Unix sockets;
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+The web output from creating a table, inserting data, selecting and dropping it:
+(Image create_table_web.png not available in man page, see web page documentation)
+The same output, only when the program runs from the command line. Set VV_SILENT_HEADER to yes to skip the header output:
+(Image create_table_command.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because they are used in this example, you will need to install \fBNginx\fP as a web server and \fBPostgreSQL\fP as a database.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/create_table.tar.gz
+cd create_table
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "create_table", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) create_table
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/create_table") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Before any coding, you need some place to store the information used by the application. First, you will create PostgreSQL database "db_create_table". You can change the database name, but remember to change it everywhere here. And then, you will create database objects in the database. 
+
+Note the example here uses peer-authentication, which is the default on all modern PostgreSQL installations - this means the database user name is the same as the Operating System user name.
+
+Execute the following in PostgreSQL database as root (using \fBpsql\fP utility):
+
+.RS 4
+.EX
+
+echo "create user $(whoami);
+create database db_create_table with owner=$(whoami);
+grant all on database db_create_table to $(whoami);
+\eq
+" | sudo -u postgres psql
+
+.EE
+.RE
+
+Next, login to database db_create_table and create the database objects for the application:
+
+.RS 4
+.EX
+
+psql -d db_create_table -f setup.sql
+
+.EE
+.RE
+
+
+.LP
+.B CONNECT VELY TO A DATABASE
+.LP
+
+In order to let Vely know where your database is and how to log into it, you will create \fBdatabase_config_file\fP named "db_create_table". This name doesn't have to be "db_create_table", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
+
+.RS 4
+.EX
+
+echo "user=$(whoami) dbname=db_create_table"  > db_create_table
+
+.EE
+.RE
+
+The above is a standard \fBpostgres connection string\fP that describes the login to the database you created. Since Vely uses native PostgreSQL connectivity, you can specify any connection string that your database lets you.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q --db=postgres:db_create_table 
+
+.EE
+.RE
+
+Note usage of --db option to specify PostgreSQL database and the database configuration file name.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 create_table
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf create_table
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+To stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit create_table
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
+
+- Step 1:
+You will need to edit the Nginx configuration file. For Ubuntu and similar:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/sites-enabled/default
+
+.EE
+.RE
+
+while on Fedora and other systems it might be at:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/nginx.conf
+
+.EE
+.RE
+
+
+Add the following in the "server {}" section ("/create_table" is the application path (see \fBrequest_URL\fP) and "create_table" is your application name):
+
+.RS 4
+.EX
+
+location /create_table { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/create_table/sock/sock; }
+
+.EE
+.RE
+
+- Step 2:
+Finally, restart Nginx:
+
+.RS 4
+.EX
+
+sudo systemctl restart nginx
+
+.EE
+.RE
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35]Create, use and drop table, show output 
+http://127.0.0.1/create_table/create_table
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.LP
+.B ACCESS APPLICATION SERVER FROM COMMAND LINE
+.LP
+
+To access your application server from command line (instead through web browser/web server), use "cgi-fcgi" to see the application response:
+
+.RS 4
+.EX
+
+\[char35]Create, use and drop table, show output 
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/create_table'
+export PATH_INFO='/create_table'
+export QUERY_STRING=''
+cgi-fcgi -connect /var/lib/vv/create_table/sock/sock /
+
+.EE
+.RE
+
+Note: to suppress output of HTTP headers, add this before running "cgi-fcgi":
+
+.RS 4
+.EX
+
+export VV_SILENT_HEADER=yes
+
+.EE
+.RE
+
+If you need to, you can also run your application as a \fBCGI\fP program. 
+
+.LP
+.B RUN PROGRAM FROM COMMAND LINE
+.LP
+
+Execute the following to run your application from command line (as a command-line utility):
+
+.RS 4
+.EX
+
+\[char35]Create, use and drop table, show output 
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/create_table'
+export PATH_INFO='/create_table'
+export QUERY_STRING=''
+/var/lib/vv/bld/create_table/create_table
+
+.EE
+.RE
+
+Note: to suppress output of HTTP headers, add this before running /var/lib/vv/bld/create_table/create_table program:
+
+.RS 4
+.EX
+
+export VV_SILENT_HEADER=yes
+
+.EE
+.RE
+
+Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
+
+.SH FILES
+You are now done with the example! What follows are the source files in this project so you can examine how it works:
+
+.LP
+.B SETUP DATABASE OBJECTS (SETUP.SQL)
+.LP
+
+Create a table used in the example:
+
+.RS 4
+.EX
+
+create table if not exists my_table (col1 bigint);
+
+.EE
+.RE
+
+
+.LP
+.B CREATING, USING AND DROPPING A TABLE (CREATE_TABLE.VELY)
+.LP
+
+DDL (Data Definition Language), DML (Data Definition Language) and SELECT SQL is used in this example. A table is dropped (if it exists), created, data inserted, queried, and then table is dropped again:
+
+.RS 4
+.EX
+
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+\[char35]include "vely.h" 
+
+void create_table()
+{
+
+    out-header default
+
+    // Drop existing table
+    run-query @db_create_table = "drop table if exists my_table"  error define err error-text define err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble dropping table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+
+    // Create table
+    run-query @db_create_table =  "create table if not exists my_table (my_number bigint)"  error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table created!<br/>
+
+    // Insert data into table
+    run-query @db_create_table="insert into my_table (my_number) values ('%s'), ('%s'), ('%s')" : "100", "200", "400" affected-rows define nrows
+    end-query
+    @Added <<pf-out "%lld", nrows>> rows!<br/>
+
+    // Select data we just inserted
+    @Getting data we inserted:<br/>
+    run-query @db_create_table="select my_number from my_table" output my_number
+        @I got number <<query-result my_number>>!<br/>
+    end-query
+
+    // Drop the table again
+    run-query @db_create_table =  "drop table if exists my_table" error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+    
+}
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

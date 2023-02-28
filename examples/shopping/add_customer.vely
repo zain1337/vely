@@ -1,0 +1,15 @@
+#include "vely.h"
+
+void add_customer()
+{
+    out-header use content-type "application/json"
+
+    input-param first_name
+    input-param last_name
+    // Add a customer SQL
+    run-query @db_shopping ="insert into customers (firstName, lastName) \
+            values ('%s', '%s') returning customerID" output define customerID : \
+            first_name, last_name
+        @"<<p-out customerID>>"
+    end-query
+}

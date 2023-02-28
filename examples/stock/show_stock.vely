@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h"
+
+void show_stock()
+{
+    out-header default
+    @<html>
+        @<body>
+        // Show stock names and values
+            @<table>
+                @<tr>
+                    @<td>Stock name</td>
+                    @<td>Stock price</td>
+                @</tr>
+                run-query @db_stock = "select stock_name, stock_price from stock" output stock_name, stock_price
+                    @<tr>
+                        @<td>
+                        query-result  stock_name
+                        @</td>
+                        @<td>
+                        query-result  stock_price
+                        @</td>
+                    @</tr>
+                end-query
+            @</table>
+        @</body>
+    @</html>
+}
+

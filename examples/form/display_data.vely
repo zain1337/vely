@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h" 
+
+
+// 
+// Display table data
+//
+void display_data ()
+{
+
+    out-header default
+
+    @<h2>List of names</h2>
+
+    @<table>
+        run-query @db_form="select firstName, lastName from names order by lastName,firstName" output firstName,lastName
+    @        <tr>
+    @            <td>
+                    query-result lastName
+    @            </td>
+    @            <td>
+                    query-result firstName
+    @            </td>
+    @        </tr>
+        end-query
+    @</table>
+
+}
+

@@ -1,0 +1,106 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+query-result \-  (database)
+.SH PURPOSE
+Get query results.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+query-result <column name> \\
+    [ ( to [ define ] <result> ) \\
+      | ( urlencode | noencode | webencode ) ] \\
+    [ length [ define ] <length> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+Use query-result to obtain query results. An instance of query-result obtains a string value of a single query column named <column name>. Note that <column name> can be a computed column, and is not necessarily the same as a table column.
+
+If query-result is used without "to" clause, then the result is printed out. If "to" clause is used, then the result is not printed out, rather it is stored into a string variable <result>, which can be created with optional "define" clause. <result> is \fBallocated memory\fP
+
+Without "to" clause, the result can be either not encoded (if "noencode" clause is used), URL encoded (if "urlencode" is used) or web (HTML) encoded (if "webencode" is used) - by default, webencode is used. With "to" clause (i.e. if the result is stored in a variable <result>), then no encoding takes place (you can then use \fBencode-url\fP or \fBencode-web\fP to convert it as desired).
+
+query-result is often used as \fBinline_code\fP, especially when output.
+
+A NULL value is always represented as an empty string (""). 
+
+Since queries can be nested, any result must always be used directly under the inner-most \fBrun-query\fP, to which it refers. 
+
+Optional "length" clause places the binary length of a result into number variable <length>, with optional "define". Note the length is the same regardless of encoding and always represents the number of bytes used for data, not counting any trailing null byte for strings. In case of binary data, <length> is the actual number of bytes used by such data, regardless of if (and where and how) is such binary data represented in string form.
+
+.SH EXAMPLES
+Display table columns in an HTML table:
+
+.RS 4
+.EX
+
+@<table>
+run-query @mydb="select firstName, lastName from employee" output firstName, lastName
+@   <tr>
+@       <td>
+           query-result firstName
+@       </td>
+@       <td>
+           query-result lastName length define lastName_len
+@          (length of last name is <<p-num lastName_len>>)
+@       </td>
+@   </tr>
+end-query
+@</table>
+
+.EE
+.RE
+
+Using \fBinline_code\fP query-result:
+
+.RS 4
+.EX
+
+run-query @mydb="select fileName, description, fileSize  from files where fileID='%s'" output fileName, description, fileSize : file_id
+    // ask user if sure to delete
+    @Are you sure you want to delete file <<query-result fileName>> (<<query-result description>>) of size <<query-result fileSize>>? Click <a href="<<p-path>>/delete_file?action=delete&amp;file_id=<<p-url file_id>>">Delete</a> or click the browser's Back button to go back.<br/>
+end-query
+
+.EE
+.RE
+
+
+Nested queries and usage of define clause:
+
+.RS 4
+.EX
+
+run-query @mydb="select id from user" output id
+   query-result id to define id
+   run-query @mydb="select timeout from settings where id='%s'" output timeout : id
+       query-result timeout
+   end-query
+end-query
+
+.EE
+.RE
+
+Obtain query results first in variables and then use them to build HTML output:
+
+.RS 4
+.EX
+
+run-query @mydb="select firstName, lastName from employee" output firstName, lastName
+   query-result firstName to define first_name
+   query-result lastName to define last_name
+   @Employee (
+   p-web first_name
+   @,
+   p-web last_name
+   @) found<br/>
+end-query
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

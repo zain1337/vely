@@ -1,0 +1,18 @@
+#include "vely.h"
+
+void json_form () {
+    
+    out-header default
+
+    @<h2>Enter JSON</h2>
+
+    @<form action="<<p-path>>/json_process" method="POST">
+
+    @    <label for="json_text">JSON text:</label><br>
+    @    <textarea name="json_text" rows="8" columns="70"></textarea><br/>
+
+    @    <button type="submit">Extract specific data</button>
+    @    <button type="submit" formaction="<<p-path>>/json_all">Extract all data</button>
+    @ </form>
+
+}

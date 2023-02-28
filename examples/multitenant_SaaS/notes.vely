@@ -1,0 +1,87 @@
+#include "vely.h"
+#include "login.h"
+
+// Notes application in a multitenant Cloud 
+void notes () {
+    // get global request data
+    reqdata *rd;
+    get-req data to rd
+
+    // If session invalid, display Login or Signup
+    if (!rd->is_logged_in) {
+        login_or_signup();
+    }
+    // Greet the user
+    @<h1>Welcome to Notes!</h1><hr/>
+    // If not logged in, exit - this ensures security verification of user's identity
+    if (!rd->is_logged_in) {
+        exit-request
+    }
+    // Get URL parameter that tells Notes what to do
+    input-param subreqs
+    // Display actions that Notes can do (add or list notes)
+    @<a href="<<p-path>>/notes/subreqs/add">Add Note</a> <a href="<<p-path>>/notes/subreqs/list">List Notes</a><hr/>
+
+
+    // List all notes for this user
+    if (!strcmp (subreqs, "list")) {
+        // select notes for this user ONLY
+        run-query @db_multitenant_SaaS = "select dateOf, note, noteId from notes where userId='%s' order by dateOf desc" : rd->sess_userId output dateOf, note, noteId
+            query-result dateOf to define dateOf
+            query-result note to define note
+            query-result noteId to define noteId
+            (( define web_enc
+            p-web note
+            ))
+            // change new lines to <br/> with fast cached Regex
+            match-regex "\n" in web_enc replace-with "<br/>\n" result define with_breaks status define st cache
+            if (st == 0) with_breaks = web_enc; // nothing was found/replaced, just use original
+            // Display a note
+            @Date: <<p-out dateOf>> (<a href="<<p-path>>/notes/subreqs/delete_note_ask?note_id=<<p-out noteId>>">delete note</a>)<br/>
+            @Note: <<p-out with_breaks>><br/>
+            @<hr/>
+        end-query
+    }
+
+    // Ask to delete a note
+    else if (!strcmp (subreqs, "delete_note_ask")) {
+        input-param note_id
+        @Are you sure you want to delete a note? Use Back button to go back, or <a href="<<p-path>>/notes/subreqs/delete_note?note_id=<<p-out note_id>>">delete note now</a>.
+    }
+
+    // Delete a note
+    else if (!strcmp (subreqs, "delete_note")) {
+        input-param note_id
+        // Delete note
+        run-query @db_multitenant_SaaS = "delete from notes where noteId='%s' and userId='%s'" : note_id, rd->sess_userId affected-rows define arows no-loop error define errnote
+        // Inform user of status
+        if (arows == 1) {
+            @Note deleted
+        } else {
+            @Could not delete note (<<p-out errnote>>)
+        }
+    }
+
+    // Add a note
+    else if (!strcmp (subreqs, "add_note")) {
+        // Get URL POST data from note form
+        input-param note
+        // Insert note under this user's ID
+        run-query @db_multitenant_SaaS = "insert into notes (dateOf, userId, note) values (now(), '%s', '%s')" : rd->sess_userId, note affected-rows define arows no-loop error define errnote
+        // Inform user of status
+        if (arows == 1) {
+            @Note added
+        } else {
+            @Could not add note (<<p-out errnote>>)
+        }
+    }
+
+    // Display an HTML form to collect a note, and send it back here (with subreqs="add_note" URL param)
+    else if (!strcmp (subreqs, "add")) {
+        @Add New Note
+        @<form action="<<p-path>>/notes/subreqs/add_note" method="POST">
+        @<textarea name="note" rows="5" cols="50" required autofocus placeholder="Enter Note"></textarea>
+        @<button type="submit">Create</button>
+        @</form>
+    }
+}

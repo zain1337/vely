@@ -1,0 +1,20 @@
+#include "vely.h"
+
+void update_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    num arows;
+    // If quantity update is 0, issue SQL to delete an item from order, otherwise update 
+    if (!strcmp (quantity, "0")) {
+        run-query @db_shopping ="delete from orderItems where orderID='%s' and itemID='%s'" \
+            : order_id, item_id no-loop affected-rows arows
+    } else {
+        run-query @db_shopping ="update orderItems set quantity='%s' where orderID='%s' and itemID='%s'" \
+            : quantity, order_id, item_id no-loop affected-rows arows
+    }
+    @"<<p-num arows>>"
+}

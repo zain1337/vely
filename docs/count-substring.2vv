@@ -1,0 +1,41 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+count-substring \-  (strings)
+.SH PURPOSE
+Count substrings.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+count-substring <substring> in <string> to [ define ] <count> [ case-insensitive ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+count-substring counts the number of occurrences of <substring> in <string> and stores the result in <count> (specified in "to" clause), which can be created with "define" if it does not exist. By default, search is case-sensitive. If you use "case-insensitive" clause, however, the search is case-insensitive.
+
+If <substring> is empty ("") or NULL, <count> is 0.
+
+.SH EXAMPLES
+In the following example, 1 occurrence will be found after the first count-substring, and 2 after the second (since case insensitive search is used there):
+
+.RS 4
+.EX
+
+char sub[] = "world";
+char str[] = "Hello world and hello World!";
+
+count-substring sub in str to define num_occ
+pf-out "Found %lld occurrences!\en", num_occ
+
+count-substring sub in str to num_occ case-insensitive
+pf-out "Found %lld occurrences!\en", num_occ
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

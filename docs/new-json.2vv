@@ -1,0 +1,78 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+new-json \-  (JSON)
+.SH PURPOSE
+Parse JSON text.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+new-json [ define ] <json> from <text> \\
+    [ length <length> ] \\
+    [ status [ define ] <status> ] \\
+    [ error-text [ define ] <error text> ] \\
+    [ error-position [ define ] <error position> ] \\
+    [ max-hash-size <max-hash-size> ] \\
+    [ noencode ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+new-json will parse <text> into <json> variable (a pointer to type "vely_json") which can be created with optional "define".
+
+The length of <text> may be specified with "length" clause in <length> variable, or if not, it will be calculated as the string length of <text>. 
+
+The "status" clause specifies the return <status>, which is VV_OKAY if successful or VV_ERR_JSON if there is an error. The number variable <error position> in "error-position" clause is the byte position in <text> where error was found, in which case <error text> in "error-text" clause is the error message. Both can be created with optional "define".
+
+See \fBread-json\fP on obtaining values from JSON document.
+
+.LP
+.B NO COPYING
+.LP
+
+String <text> is modified during parsing for performance reasons. It is parceled out and <json> contains pointers to it that hold the actual primitive values (string, numbers, boolean, null). This way no data is ever copied for faster parsing. If you don't wish <text> to be modified, make a copy of it before parsing it (see \fBcopy-string\fP). In many cases though, this is not necessary, allowing for better performance.
+
+.LP
+.B HASH TABLE
+.LP
+
+Hash table is used to provide fast access to any value in JSON text, with the number of lookups being close to 1, which means near-direct memory access. By default, the maximum size of a hash table is limited to 10000. If your JSON document has considerably more values than that, use "max-hash-size" clause to specify the maximum hash table size. Hash table mechanism is the same as used internaly in \fBnew-hash\fP.
+
+.LP
+.B ENCODING
+.LP
+
+"noencode" clause will not encode strings, i.e. convert from JSON Unicode strings to UTF8 (see \fBread-json\fP), nor will it perform any validity checks on strings. This may be useful as a performance boost, however it is not recommended in general.
+
+.LP
+.B LIMITATIONS
+.LP
+
+The maximum depth of nested structures in JSON document (i.e. objects and arrays) is 32, and the maximum length of normalized leaf node name is 1024 (see \fBread-json\fP for more on normalized names). There is no limit on document size.
+
+Duplicate normalized names are valid, however, only one of them is reported, and the very last value encountered is actually stored (the others from duplicate names are discarded).
+
+.LP
+.B CREATING JSON
+.LP
+
+To create a JSON document, you can use \fBwrite-string\fP to programmatically construct one - use \fButf8-json\fP to create JSON-compatible Unicode string values. 
+
+.SH EXAMPLES
+Parse text "json_text1" and store the result in "json_var" variable, get status, error text and the location of error:
+
+.RS 4
+.EX
+
+\[char46]..
+new-json json_var from json_text1 status define st error-text errt error-position errp
+read-json json_var key "glossary"."title" value d
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIJSON\fP ( \fBdelete-json\fP   \fBnew-json\fP   \fBread-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

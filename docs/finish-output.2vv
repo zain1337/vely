@@ -1,0 +1,33 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+finish-output \-  (output)
+.SH PURPOSE
+Finishes the request output.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+finish-output
+
+.EE
+.RE
+
+.SH DESCRIPTION
+finish-output will flush all output and conclude the requests output to a client. Any such output afterwards will result in an error. As far as the client is concerned, all the output from the request is complete.
+
+This statement is useful when you need to continue work after the page output is complete. For example, if the request is a long-running one, you can inform the client that the job has started, and then take any amount of time to actually complete the job, without worrying about client timeouts. The client can inquire about the job status via a different request, or be informed via email etc.
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+finish-output
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

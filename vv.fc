@@ -1,0 +1,2 @@
+/var/lib/vv(/.*)?       gen_context(system_u:object_r:vvfile_t,s0)
+/usr/bin/vf             gen_context(system_u:object_r:vvfile_t,s0)

@@ -1,0 +1,31 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+delete-json \-  (JSON)
+.SH PURPOSE
+Delete memory associated with JSON parsing.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+delete-json <json>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+delete-json will delete memory associated with variable <json> created to parse a JSON string with \fBnew-json\fP. 
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+delete-json jv
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIJSON\fP ( \fBdelete-json\fP   \fBnew-json\fP   \fBread-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,131 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+match-regex \-  (regex)
+.SH PURPOSE
+Find, or find and replace patterns in strings using regex (regular expressions).
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+match-regex <pattern> in <target> \\
+    [ \\
+        ( replace-with <replace pattern> \\
+            result [ define ] <result> \\
+            [ status [ define ] <status> ] )  \\
+    | \\
+        ( status [ define ] <status> \\
+            [ case-insensitive ] [ single-match ] ) \\
+    ] \\
+    [ cache ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+match-regex searches <target> string for regex <pattern>. If "replace-with" is specified, then instance(s) of <pattern> in <target> are replaced with <replace pattern> string, and the result is stored in <result> string, which must be different from <target>. <result> is \fBallocated memory\fP.
+
+Both the search and replacement use \fBextended regex syntax\fP (ERE) from the  built-in Linux regex library. The number of found or found/replaced patterns can be obtained in number <status> variable.
+
+If "replace-with" is not specified, then the number of matched <pattern>s within <target> is given in <status> number variable, which in this case must be specified.
+
+If "case-insensitive" is used, then searching for pattern is case insensitive. By default, it is case sensitive.
+
+If "single-match" is specified, then only the very first occurrence of <pattern> in <target> is processed. Otherwise, all occurrences are processed.
+
+<result> and <status> variables can be created within the statement with "define" clause.
+
+If the pattern is bad (i.e. <pattern> is not a correct regular expression), Vely will error out with a message.
+
+.LP
+.B CACHING AND PERFORMANCE
+.LP
+
+If "cache" clause is used, then regex compilation of <pattern> will be done only once and saved for future use. You can use this only if <pattern> is an immutable string. If <pattern> changes dynamically, do not use "cache". However, if <pattern> does not change (as it is the case in a vast majority of cases), there is a significant performance benefit when match-regex executes repeatedly (which is true in case of web applications or in any kind of loop). 
+
+While every pattern is different, even a relatively small one was shown in tests to speed up the match-regex by about 500%, or 5x faster. Use cache whenever possible as it brings parsing performance close to its theoretical limits.
+
+.LP
+.B SUBEXPRESSIONS AND BACK-REFERENCING
+.LP
+
+Subexpressions are referenced via compatible ERE extension, which is a backslash followed by a number. Because C treats backslash followed by a number as an octal number, you must use double backslash (\\e). For example:
+
+.RS 4
+.EX
+
+match-regex "(good).*(day)" \\
+    in "Hello, good day!" \\
+    replace-with "\\e2 \\e1" \\
+    result res
+
+.EE
+.RE
+
+will produce string "Hello, day good!" as a result in "res" variable. Each subexpression is within () parenthesis, so for instance "day" in the above pattern is the 2nd subexpression, and is back-referenced as \\e2 in replacement.
+
+There can be a maximum of 23 subexpressions. 
+
+Note that backreferences to non-existing subexpressions are ignored - for example \\e4 when there are only 3 subexpressions. Vely is "smart" about using two digits and differentiating between \\e1 and \\e10 for instance - it takes into account the actual number of subexpressions and their validity, and selects a proper subexpression even when two digits are used in a backreference.
+
+.SH EXAMPLES
+Use match-regex statement to find out if a string matches a pattern, for example:
+
+.RS 4
+.EX
+
+match-regex "SOME (.*) IS (.*)" in "WOW SOME THING IS GOOD HERE" status define st
+
+.EE
+.RE
+
+In this case, the first parameter ("SOME (.*) IS (.*)") is a pattern and you're matching it with string ("WOW SOME THING IS GOOD HERE"). Since there is a match, status variable (defined on the fly as integer) "st" will be "1" (meaning one match was found) - in general it will contain the number of patterns matched. 
+
+Search for patterns and replace them by using replace-with clause, for example:
+
+.RS 4
+.EX
+
+match-regex "SOME (.*) IS ([^ ]+)" in "WOW SOME THING IS GOOD HERE FOR SURE" replace-with "THINGS ARE \\e2 YES!" result define res status define st
+
+.EE
+.RE
+
+In this case, the result from replacement will be in a new string variable "res" specified with the result clause, and it will be 
+
+.RS 4
+.EX
+
+WOW THINGS ARE GOOD YES! HERE FOR SURE
+
+.EE
+.RE
+
+The above demonstrates a typical use of subexpressions in regex (meaning "()" statements) and their referencing with "\\e1", "\\e2" etc. in the order in which they appear. Consult regex documentation for more information.  Status variable specified with status clause ("st" in this example) will contain the number of patterns matched and replaced. As is the case with all Vely statements, you could use "define" clause to create a result/output variable within the statement, or omit it if it's created elsewhere.
+
+Matching is by default case sensitive. Use "case-insensitive" clause to change it to case insensitive, for instance:
+
+.RS 4
+.EX
+
+match-regex "SOME (.*) IS (.*)" in "WOW some THING IS GOOD HERE" status define st case-insensitive
+
+.EE
+.RE
+
+In the above case, the pattern would not be found without "case-insensitive" clause because "SOME" and "some" would not match. This clause works the same in matching-only as well as replacing strings.
+
+If you want to match only the first occurrence of a pattern, use "single-match" option:
+
+.RS 4
+.EX
+
+match-regex "SOME ([^ ]+) IS ([^ ]+)" in "WOW SOME THING IS GOOD HERE AND SOME STUFF IS GOOD TOO" status define st single-match
+
+.EE
+.RE
+
+In this case there would be two matches by default ("SOME THING IS GOOD" and "SOME STUFF IS GOOD") but only the first would be found. This clause works the same for replacing as well - only the first occurrence would be replaced.
+.SH SEE ALSO
+ \fIRegex\fP ( \fBmatch-regex\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+#include "vely.h" // must always be here
+
+// Upload the file
+void upload ()
+{
+   out-header default
+
+   // file description from the upload form
+   input-param filedesc
+   // file name
+   input-param file_filename
+   // the path to uploaded file
+   input-param file_location
+   // size in bytes
+   input-param file_size
+   // the file extension
+   input-param file_ext
+   VV_UNUSED (file_ext);
+
+   @<h2>Uploading file</h2>
+
+   // insert the information about the file into the database
+   run-query @db_file_manager="insert into files (fileName, localPath, extension, description, fileSize) values ('%s', '%s', '%s', '%s', '%s')": file_filename, file_location, file_ext, filedesc, file_size
+   end-query
+
+   @File <<p-web file_filename>> of size <<p-web file_size>> is stored on server at <<p-web file_location>>. File description is <<p-web filedesc>>.<hr/>
+}

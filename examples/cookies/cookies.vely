@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+
+#include "vely.h" 
+
+void cookies()
+{
+
+    input-param action
+
+    if (!strcmp (action, "enter_cookie")) {
+
+        // Display a form to get cookie value
+        out-header default
+        @<h2>Enter your name</h2>
+        @<form action="<<p-path>>/cookies" method="POST">
+        @    <input type="hidden" name="action" value="save_cookie">
+        @    <label for="cookie_value">Your name:</label><br/>
+        @    <input type="text" name="cookie_value" value=""><br/>
+        @    <br/> 
+        @    <input type="submit" value="Submit">
+        @</form>
+
+    } else if (!strcmp (action, "save_cookie")) {
+        
+        // Submittal of form: save the cookie through response to the browser
+        input-param cookie_value
+        get-time to define cookie_expiration year 1 timezone "GMT"
+        set-cookie "customer_name" = cookie_value  expires cookie_expiration  path "/"
+        out-header default
+        @Cookie sent to browser!
+        @<hr/>
+
+    } else if (!strcmp (action, "query_cookie")) {
+
+        // Web request that delivers cookie value back here (to server); display it.
+        get-cookie define name="customer_name"  
+        out-header default
+        @Customer name is <<p-web name>>
+        @<hr/>
+
+    } else {
+        out-header default
+        @Unrecognized action<hr/>
+    }
+
+}
+

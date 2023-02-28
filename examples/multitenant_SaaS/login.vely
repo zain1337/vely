@@ -1,0 +1,152 @@
+#include "vely.h"
+#include "login.h"
+
+// Handle session maintenance, login, logout, session verification
+// for any multitenant Cloud application
+void login () {
+    // Get URL input parameter "actions"
+    input-param actions
+
+    // Get global request data, we record session information in it, so it's handy
+    reqdata *rd;
+    get-req data to rd
+
+    // If session is already established, the only reason why we won't proceed to
+    // application home is if we're logging out
+    if (rd->is_logged_in) {
+        if (strcmp(actions, "logout")) {
+            _show_home();
+            exit-request
+        }
+    }
+
+    // Application screen to get started. Show links to login or signup and show
+    // home screen appropriate for this
+    if (!strcmp (actions, "begin")) {
+        _show_home();
+        exit-request
+
+    // Start creating new user. Ask for email and password, then proceed to create user
+    // when this form is submitted.
+    } else if (!strcmp (actions, "newuser")) {
+        @Create New User<hr/>
+        @<form action="<<p-path>>/login/actions/createuser" method="POST">
+        @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
+        @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
+        @<input type="submit" value="Sign Up">
+        @</form>
+
+    // Verify code sent to email by user. The code must match, thus verifying email address    
+    } else if (!strcmp (actions, "verify")) {
+        input-param code
+        input-param email
+        // Get verify token based on email
+        run-query @db_multitenant_SaaS = "select verify_token from users where email='%s'" output db_verify : email
+            query-result db_verify to define db_verify
+            // Compare token recorded in database with what user provided
+            if (!strcmp (code, db_verify)) {
+                @Your email has been verifed. Please <a href="<<p-path>>/login">Login</a>.
+                // If matches, update user info to indicate it's verified
+                run-query @db_multitenant_SaaS no-loop = "update users set verified=1 where email='%s'" : email
+                exit-request
+            }
+        end-query
+        @Could not verify the code. Please try <a href="<<p-path>>/login">again</a>.
+        exit-request
+
+    // Create user - this runs when user submits form with email and password to create a user     
+    } else if (!strcmp (actions, "createuser")) {
+        input-param email
+        input-param pwd
+        // create hashed (one-way) password
+        hash-string pwd to define hashed_pwd
+        // generate random 5 digit string for verify code
+        random-string to define verify length 5 number
+        // create user: insert email, hashed password, verification token. Current verify status is 0, or not verified
+        begin-transaction @db_multitenant_SaaS
+        run-query @db_multitenant_SaaS no-loop = "insert into users (email, hashed_pwd, verified, verify_token, session) values ('%s', '%s', '0', '%s', '')" : email, hashed_pwd, verify affected-rows define arows error define err on-error-continue
+        if (strcmp (err, "0") || arows != 1) {
+            // if cannot add user, it probably doesn't exist. Either way, we can't proceed.
+            login_or_signup();
+            @User with this email already exists.
+            rollback-transaction @db_multitenant_SaaS
+        } else {
+            // Create email with verification code and email it to user
+            write-string define msg
+                @From: vely@vely.dev
+                @To: <<p-out email>>
+                @Subject: verify your account
+                @
+                @Your verification code is: <<p-out verify>>
+            end-write-string
+            exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status define st
+            if (st != 0) {
+                @Could not send email to <<p-out email>>, code is <<p-out verify>>
+                rollback-transaction @db_multitenant_SaaS
+                exit-request
+            }
+            commit-transaction @db_multitenant_SaaS
+            // Inform the user to go check email and enter verification code
+            @Please check your email and enter verification code here:
+            @<form action="<<p-path>>/login/actions/verify" method="POST">
+            @<input name="email" type="hidden" value="<<p-out email>>">
+            @<input name="code" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Verification code">
+            @<button type="submit">Verify</button>
+            @</form>
+        }
+
+    // This runs when logged-in user logs out.    
+    } else if (!strcmp (actions, "logout")) {
+        // Update user table to wipe out session, meaning no such user is logged in
+        if (rd->is_logged_in) {
+            run-query @db_multitenant_SaaS = "update users set session='' where userId='%s'" : rd->sess_userId no-loop affected-rows define arows
+            if (arows == 1) {
+                rd->is_logged_in = false; // indicate user not logged in
+                @You have been logged out.<hr/>
+            }
+        }
+        _show_home();
+
+    // Login: this runs when user enters user name and password
+    } else if (!strcmp (actions, "login")) {
+        input-param pwd
+        input-param email
+        // create one-way hash with the intention of comparing with user table - password is NEVER recorded
+        hash-string pwd to define hashed_pwd
+        // create random 30-long string for session ID
+        random-string to rd->sess_id length 30
+        // Check if user name and hashed password match
+        run-query @db_multitenant_SaaS = "select userId from users where email='%s' and hashed_pwd='%s'" output sess_userId : email, hashed_pwd
+            query-result sess_userId to rd->sess_userId
+            // If match, update user table with session ID
+            run-query @db_multitenant_SaaS no-loop = "update users set session='%s' where userId='%s'" : rd->sess_id, rd->sess_userId affected-rows define arows
+            if (arows != 1) {
+                @Could not create a session. Please try again. <<.login_or_signup();>> <hr/>
+                exit-request
+            }
+            // Set user ID and session ID as cookies. User's browser will return those to us with every request
+            set-cookie "sess_userId" = rd->sess_userId path "/"
+            set-cookie "sess_id" = rd->sess_id path "/"
+            // Display home, make sure session is correct first and set flags
+            _check_session();
+            _show_home();
+            exit-request
+        end-query
+        @Email or password are not correct. <<.login_or_signup();>><hr/>
+
+    // Login screen, asks user to enter user name and password    
+    } else if (!strcmp (actions, "")) {
+        login_or_signup();
+        @Please Login:<hr/>
+        @<form action="<<p-path>>/login/actions/login" method="POST">
+        @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
+        @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
+        @<button type="submit">Go</button>
+        @</form>
+    }
+}
+
+// Display Login or Sign Up links
+void login_or_signup() {
+        @<a href="<<p-path>>/login">Login</a> &nbsp; &nbsp; <a href="<<p-path>>/login/actions/newuser">Sign Up</a><hr/>
+}

@@ -1,0 +1,7 @@
+[client]
+user=vely
+password=your_password
+database=db_multitenant_SaaS
+protocol=TCP
+host=127.0.0.1
+port=3306

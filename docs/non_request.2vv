@@ -1,0 +1,66 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+non_request \- Vely documentation (requests)
+.SH DESCRIPTION
+Non-request source files implement common code used in \fBrequest\fP-handling .vely files. Their names always start with an underscore ('_').
+
+So for instance, file '_display.vely' would never handle any requests directly - such file may be (for example) implementing common code that displays various HTML statements. 
+
+A non-request source file can implement any number of functions which can be named in any fashion. However, Vely will declare a prototype for a function with the same name, saving you to the effort to do that, should you decide to implement it. For example, if you have function "void _display_table()" in file "_display.table.vely":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void _display_table() {
+    ...
+}
+
+.EE
+.RE
+
+then the prototype for function "void _display_table()" will be automatically generated and you do not have to do it manually. You would implement any other functions related to it in the same source file.
+
+When Vely code is compiled, both request and non-request source code is automatically picked up - all files with .vely extensions are used.
+
+.SH EXAMPLES
+In the following example, a list on customer names is shown (note functions header() and footer()), and the code is implemented in \fBrequest\fP source file show.vely:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void show() {
+    run-query @db="select name from cust" output name
+        header();
+        query-result  name
+        footer();
+    end-query
+}
+
+.EE
+.RE
+
+Functions header() and footer() are implemented in non-request source file _display.vely:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void header() {
+    @Name:<br/>
+}
+
+void footer() {
+    @<hr/>
+}
+
+.EE
+.RE
+
+Both files (show.vely and _display.vely) will be automatically picked up, compiled and linked.
+.SH SEE ALSO
+ \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

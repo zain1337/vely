@@ -1,0 +1,48 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+json-utf8 \-  (UTF8)
+.SH PURPOSE
+Convert JSON text to UTF8 string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+json-utf8 <text> \\
+    [ status [ define ] <status> ] \\
+    [ error-text [ define ] <error text> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+json-utf8 will convert JSON string value <text> to UTF8. <text> itself will hold the resulting UTF8 string. If you don't wish <text> to be modified, make a copy of it first (see \fBcopy-string\fP). See \fButf8-json\fP for the reverse conversion and data standards information.
+
+You can obtain the optional <status> in "status" clause, which can be created with optional "define". <status> is VV_OKAY if successful, or VV_ERR_UTF8 if there was an error, in which case optional <error text> in "error-text" clause (which can be created with optional "define") will contain the error message.
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+// JSON Unicode value to encode to UTF8
+char txt[] = "\eu0459\\\[char92]"Doc\\\[char92]"\\en\\et\\eb\\ef\\er\\et\\eu21d7\\eu21d8\\et\\eu25b7\\eu25ee\\euD834\\euDD1E\\eu13eb\\eu2ca0\\eu0448\\en\\e/\\\[char92]"()\\et";
+
+// Convert to UTF8 
+json-utf8 txt status define txt_status error-text define txt_error
+
+// Expected UTF8 result
+char utf8[] = "љ\[char92]"Doc\[char92]"\en\et\eb\ef\er\et⇗⇘\et▷◮𝄞ᏫⲠш\en/\[char92]"()\et";
+
+// Make sure conversion was successful
+if (strcmp (utf8, txt) || txt_status != VV_OKAY || txt_error[0] != 0) {
+    @Error in converting JSON string to UTF8
+}
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIUTF8\fP ( \fBjson-utf8\fP   \fButf8-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

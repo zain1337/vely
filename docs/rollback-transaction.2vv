@@ -1,0 +1,40 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+rollback-transaction \-  (database)
+.SH PURPOSE
+Rollbacks a SQL transaction.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+rollback-transaction [ @<database> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+rollback-transaction will roll back a transaction started with \fBbegin-transaction\fP. 
+
+.LP
+.B DATABASE
+.LP
+
+Optional <database> is specified in "@" clause and is the name of the \fBdatabase_config_file\fP. 
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+begin-transaction @mydb
+run-query @mydb="insert into employee (name, dateOfHire) values ('Terry', now())" 
+run-query @mydb="insert into payroll (name, salary) values ('Terry', 100000)" 
+rollback-transaction @mydb
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

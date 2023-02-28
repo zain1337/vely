@@ -1,0 +1,39 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+flush-output \-  (output)
+.SH PURPOSE
+Flush output.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+flush-output
+
+.EE
+.RE
+
+.SH DESCRIPTION
+Use flush-output statement to flush any pending output to the client (such as \fBFastCGI_client\fP) or from the \fBcommand_line\fP application. 
+
+This can be useful if the complete output would take longer to produce and intermittent partial output would be needed.
+
+Note that whether the client will actually receive the output in this fashion depends on several factors, including the client itself and any intermediaries such as proxy servers. 
+
+.SH EXAMPLES
+In this case the complete output may take at least 20 seconds. With flush-output, the message "This is partial output" will be flushed out immediately.
+
+.RS 4
+.EX
+
+@This is partial output
+flush-output
+sleep(20);
+@This is final output
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

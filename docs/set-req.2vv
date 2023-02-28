@@ -1,0 +1,37 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+set-req \-  (request_information)
+.SH PURPOSE
+Set request data.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+set-req data <data> 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+set-req sets information used to process a request. Some of this information is used by Vely and some is used by you in your code.
+
+If you wish to set up \fBglobal_request_data\fP, you can do so by providing <data> in the "data" clause, which is a pointer to any type. Internally, this pointer is saved as void*, so it can be cast to anything. <data> can be retrieved later anywhere during a request with \fBget-req\fP (see "data" clause).
+
+.SH EXAMPLES
+To set global request data:
+
+.RS 4
+.EX
+
+my_type *mydata;
+\[char46]..
+set-req data mydata
+
+.EE
+.RE
+
+See \fBglobal_request_data\fP for more details and an example.
+.SH SEE ALSO
+ \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

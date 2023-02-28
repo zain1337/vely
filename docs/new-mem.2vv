@@ -1,0 +1,85 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+new-mem \-  (memory)
+.SH PURPOSE
+Allocate memory.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+new-mem [ define ] <memory> size <size> \\
+    [ block-size <block size> ] \\
+    [ init ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+new-mem allocates <memory> of <size> blocks, each block of <block size> bytes as specified in "block-size" clause, thus allocating <size>*<block size> bytes aligned suitably for any pointer type. By default, block size is 1, which means in that case <size> is the number of bytes. <memory> is \fBallocated memory\fP.
+
+When "init" is used, the memory is zero-initialized. If you need the memory initialized, always use "init" as it is generally faster than creating memory and then initializing it (for instance with "memset()").
+
+If "define" is used, variable <memory> is created if it does not exist. The pointer returned is always "void*" and can be used for any purpose; always cast it to your desired type. 
+
+If an existing pointer is used (i.e. without "define"), then such pointer can be of any type.
+
+.SH EXAMPLES
+Allocate memory of 300 bytes, producing a "void *". Then the data is copied into it - note the casting to "char*";
+
+.RS 4
+.EX
+
+new-mem define mystr size 300
+strcpy ((char*)mystr, "Some string");
+
+.EE
+.RE
+
+Initialize memory of 1000 bytes (filled with all zeroes):
+
+.RS 4
+.EX
+
+new-mem define mymem size 1000 init
+
+.EE
+.RE
+
+Allocate an array of 1000 integers:
+
+.RS 4
+.EX
+
+int *mymem;
+new-mem mymem size 1000 block-size sizeof(int)
+
+.EE
+.RE
+
+Allocate an array of 1000 integers initialized to 0 and then a single element of the array is assigned a value:
+
+.RS 4
+.EX
+
+int *mymem;
+new-mem mymem size 1000 block-size sizeof(int) init
+mymem[50] = 23;
+
+.EE
+.RE
+
+The memory can be created as "void *" and then assigned to any type:
+
+.RS 4
+.EX
+
+new-mem define mymem size 1000 block-size sizeof(int) init
+int *newmem = (int*)mymem;
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIMemory\fP ( \fBdelete-mem\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

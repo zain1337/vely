@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+//
+// Send email example
+// 
+
+#include "vely.h" 
+
+void mail()
+{
+
+    out-header default
+
+    input-param action
+
+    if (!strcmp (action, "show_form")) {
+
+        // Display HTML form to input email details. Here we will set the 'action' parameter
+        // to 'submit_form'. This way, when the user submits the form, such a request would
+        // come back here and the code under else-if-string checking for 'submit_form' (below)
+        // would execute
+
+        @<h2>Enter email and click Send to send it</h2>
+        @Note: 'From' field must be the email address from the domain of your server.<br/><br/>
+
+        @<form action="<<p-path>>/mail" method="POST">
+        @    <input type="hidden" name="action" value="submit_form">
+
+        @    <label for="from_mail">From:</label><br>
+        @    <input type="text" name="from_mail" value=""><br>
+        
+        @    <label for="to_mail">To:</label><br>
+        @    <input type="text" name="to_mail" value=""><br><br>
+        
+        @    <label for="subject_mail">Subject:</label><br>
+        @    <input type="text" name="subject_mail" value=""><br><br>
+        
+        @    <label for="message">Message:</label><br>
+        @    <textarea name="message" rows="3" columns="50"></textarea>
+
+        @    <br/><br/>
+        
+        @    <input type="submit" value="Send">
+        @</form>
+        
+    } else if (!strcmp (action, "submit_form")) {
+
+        // Send email using data from the form. This code is called from the form above.
+        // Effectively, in this file we have the code to display the form and the code
+        // to handle its submission (below).
+
+        input-param from_mail
+        input-param to_mail
+        input-param message
+        input-param subject_mail
+
+        write-string define msg
+        @From: <<p-out from_mail>>
+        @To: <<p-out to_mail>>
+        @Subject: <<p-out subject_mail>>
+        @
+        <<p-out message>>
+        end-write-string
+        num st;
+        exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status st
+        if (st!=0) {
+            @Could not send email!
+        } else {
+            @Email sent!
+        }
+        @<hr/>
+
+    } else {
+        @Unrecognized action!<hr/>
+    }
+
+}
+

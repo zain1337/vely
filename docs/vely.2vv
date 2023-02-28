@@ -1,0 +1,210 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+vely \- Vely documentation (general)
+.SH DESCRIPTION
+
+.LP
+.B WHAT IS VELY
+.LP
+
+Vely is a general-purpose framework for building high-performance software applications. It is especially well suited for web applications. It's also Free Open Source software.
+
+Vely is based on C programming language to achieve performance goals. However, Vely is for everyone. You don't need to be a C expert. Check out \fBexamples\fP and \fBdocs\fP and see just how easy and powerful Vely is.\fP
+
+
+.LP
+.B WHY USE IT
+.LP
+
+Develop applications with ease, ergonomics and productivity you expect. Rapidly build 100% native high-performance/low-footprint web applications, \fIwithout interpreters or byte-code schemes\fP.
+
+Vely is not object-oriented, but rather it's declarative and functional. This makes it simple to work with.
+
+More on \fBwhy Vely\fP.\fP
+
+
+.LP
+.B WRITE GREEN SOFTWARE
+.LP
+
+C is the \fBgreenest programming language\fP, meaning it consumes the least amount of energy and resources. 
+
+Consider this from \fBMIT\fP:
+
+
+.RS 4
+.EX
+Cloud now has a greater carbon footprint than the airline industry, as well as massive impact on water supply. A single data center can consume the equivalent electricity of 50,000 homes. At 200 terawatt hours (TWh) annually, data centers collectively devour more energy than some nation-states.
+.EE
+.RE
+
+
+Moore's law is \fBslowing down\fP, if not ending at some point in the near future. MIT researches explain how much bloat and performance loss is in the general purpose languages used today and how C can dramatically reduce energy and resource consumption:
+
+.RS 4
+.EX
+Thompson and his colleagues showed that they could get a computationally intensive calculation to run some 47 times faster just by switching from [...] a popular general-purpose programming language, to the more efficient C. That’s because C, while it requires more work from the programmer, greatly reduces the required number of operations, making a program run much faster.
+.EE
+.RE
+
+
+Vely is a general purpose framework built on C. The above is a special intensive calculation case, and Vely likely won't be 47 times faster, however clearly there is a lot of room to improve performance and to lower footprint. And with Vely, you may be equally productive as with other popular languages known for convenience and rapid development.\fP
+
+
+.LP
+.B WRITING CODE
+.LP
+
+Write \fBstatement_APIs\fP in C code just as you would any API. They are \fBprecompiled\fP into C code, and cover just about anything: web, database, strings, files, flow and execution, encoding/encryption, time, error handling, daemon-izing code, and other common tasks (see \fBdocumentation\fP).\fP 
+
+Vely statements generate C code. They are safer, largely self-explanatory and easier to write and maintain, and are more powerful than traditional C API. They also make code easy to read; that's just as important, if not more so, as the ease of writing code.\fP
+
+
+.LP
+.B WHAT'S IT FOR
+.LP
+
+Create web applications, including REST APIs, or write \fBcommand_line\fP programs. Same code works as both.
+
+Web applications run as FastCGI servers with standard reverse proxies such as Apache or Nginx for enhanced performance, safety and stability.
+
+Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP).
+
+Use Vely for web applications, command-line programs, as middleware, database applications, services software, data integration, Internet Of Things (IOT)  and elsewhere. It is well-suited for cloud applications due to low resource requirements and because it is easy to \fBcontainerize_application\fPs.\fP
+
+
+.LP
+.B GETTING STARTED
+.LP
+
+Try \fB123_hello_world\fP for a Hello World web application in minutes. Then, try \fBexamples\fP for everything from a database example and a file manager to a multitenant SaaS application.\fP
+
+
+.LP
+.B STANDARD INTERFACE
+.LP
+
+A Vely application works by processing standard HTTP requests. This standardizes the program interfaces across the board.
+
+This interface is extremely simple. Each \fBrequest_URL\fP by default states an application name and a request name which is the source file handling it. So, "/appname/mycode" means that application name is "appname" and that "mycode()" function defined in file mycode.vely will execute. 
+
+Read more about \fBvely_architecture\fP and \fBhow_vely_works\fP.\fP 
+
+
+.LP
+.B MAKING APPLICATION
+.LP
+
+Vely creates a Makefile for you and figures out libraries that need to be used. Your source code directory will be automatically scanned and made into an application.\fP
+
+
+.LP
+.B CODE GENERATION
+.LP
+
+Suppose you write a Vely \fBstatement\fP like this:\fP
+
+.RS 4
+.EX
+
+call-web "http://website.com" response resp response-code rc \\
+    status len request-body files "file1"="uploadtest", "file23"="fileup4"
+
+.EE
+.RE
+
+Vely will generate the C code to effectively POST a form to website.com that sends two local files to that server, and will get you the response code and status back. You can do this by using cURL library, but it will take quite a bit of C coding to do this. And there are many different combinations and things you can do, and the code gets generated to do it quickly, efficiently and safer each time, taking care of much error handling and edge cases automatically.
+
+The same goes for \fBexec-program\fP, \fBrun-query\fP, \fBsend-file\fP, \fBencrypt-data\fP, \fBread-json\fP etc. All these things you can program yourself in C, but these statements are flexible and will quickly and safely do what you need.\fP
+
+
+.LP
+.B WHAT'S VELY LIKE
+.LP
+
+
+.RS 4
+.EX
+
+void list_employees() {
+    out-header default
+    @<html><body>
+
+    char *header = make_header(); // write any C code
+    p-out header
+
+    // Create report in outmsg string and fill it with database query result
+    write-string define outmsg
+        // Get data from the database
+        run-query ="select name, salary from employees order by name" output name, salary
+            @Name: <<query-result name>>
+            @<br/>
+            @Salary: <<query-result salary>>
+            @<br/><br/>
+        end-query
+    end-write-string
+
+    // Write report to a file and then to the client
+    write-file "employees" from outmsg status define st
+    if (st<0) {
+        @Error in writing file (<<pf-out "%lld", st>>)
+        exit-request
+    } else {
+        p-out outmsg
+    }
+    @</body></html>
+}
+
+.EE
+.RE
+
+Highlighted with Vely's \fBsyntax_highlighting\fP using \fB2html\fP.\fP
+
+
+.LP
+.B QUALITY CONTROL
+.LP
+
+Each Vely release must pass tests on every platform where it's available before it's released. There are currently 1389 such tests, see \fBquality_control\fP.\fP
+
+
+.LP
+.B NEWS, ARTICLES
+.LP
+
+See \fBrelease_notes\fP for what's new in each release. See \fBarticles\fP for more about Vely and how-to's.\fP
+
+
+.LP
+.B AUTHOR
+.LP
+
+\fBSergio Mijatovic\fP (vely@vely.dev).\fP
+
+
+.LP
+.B LICENSE
+.LP
+
+\fBEclipse Public License 2 (EPL-2)\fP\fP
+
+
+.LP
+.B OFFICIAL WEBSITE
+.LP
+
+\fBhttps://vely.dev\fP\fP
+
+
+.LP
+.B CONTACT
+.LP
+
+vely@vely.dev\fP
+
+
+.LP
+.B BUGS, ENHANCEMENTS, FEEDBACK
+.LP
+
+See how to \fBreport bugs or suggest new features\fP. 

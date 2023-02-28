@@ -1,0 +1,41 @@
+#include "vely.h"
+#include "shopping.h"
+
+void list_orders()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+
+    num curr_order = 0;
+
+    // Start JSON output
+    @{ "orders": [ 
+
+    if (order_id[0] != 0) {
+        // Query just a specific order
+        run-query @db_shopping = "select o.orderID, c.customerID, c.firstName, c.lastName \
+                from orders o, customers c \
+                where o.customerID=c.customerID and o.orderId='%s'" \
+                output define customer_id, first_name, last_name \
+                row-count define order_count : order_id
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    } else {
+        // Query to get all orders
+        run-query @db_shopping ="select o.orderID, c.customerID, c.firstName, c.lastName \
+                from orders o, customers c \
+                where o.customerID=c.customerID order by o.orderId" \
+                output define order_id, customer_id, first_name, last_name \
+                row-count define order_count
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    }
+
+    // Finish JSON output
+    @   ]
+    @}
+}
+

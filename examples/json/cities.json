@@ -1,0 +1,61 @@
+{ "country": [
+    { 
+        "name": "USA",
+        "state": [
+            { 
+                "name": "Arizona",
+                "city": [
+                    {
+                        "name" : "Phoenix",
+                        "population": 5000000
+            	    } ,
+                    {
+                        "name" : "Tuscon",
+                        "population": 1000000
+            	    } 
+
+                ]
+            } ,
+            { 
+                "name": "California",
+                "city": [
+                    {
+                        "name" : "Los Angeles",
+                        "population": 19000000
+            	    },
+                    {
+                        "name" : "Irvine"
+            	    }
+                ]
+            } 
+        ] 
+    } ,
+    { 
+        "name": "Mexico",
+        "state": [
+            { 
+                "name": "Veracruz",
+                "city": [
+                    {
+                        "name" : "Xalapa-Enríquez",
+                        "population": 8000000
+            	    },
+                    {
+                        "name" : "C\u00F3rdoba",
+                        "population": 220000
+            	    }
+                ]
+            } ,
+            { 
+                "name": "Sinaloa",
+                "city": [
+                    {
+                        "name" : "Culiac\u00E1n Rosales",
+                        "population": 3000000
+            	    }
+                ]
+            } 
+        ] 
+    }
+    ]
+}

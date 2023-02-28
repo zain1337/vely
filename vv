@@ -1,0 +1,1052 @@
+#!/bin/bash
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC. 
+
+#variable names for Vely start with VV_ (VV_C_ being compiling-related) and _ (internal)
+
+#
+#
+#make script for Vely application
+#
+#
+
+#
+#Set one or the other
+#
+#_BETA=""
+
+export VV_USER=$(whoami)
+#make sure HOME is available, some apps wipe it out like apache setenv
+if [ "$HOME" == "" ]; then
+    HOME=$(eval echo ~$VV_USER)
+fi
+
+#cannot run as run as it might mess up permissions. 
+if [[ $EUID -eq 0 ]]; then echo "You cannot run vely as root or sudo"; exit -1; fi
+
+#enable "extended globs" (such as "parameter expansion" or ${!X}
+shopt -s extglob
+
+#display error context if vely has a shell error, source file bash only
+set -eE -o functrace
+trap 'echo "Error: status $?, $(caller), line line ${BASH_SOURCE[0]}/${LINENO}"' ERR
+
+#do not change these values, they are changed here by Makefile per platform when make install is done
+export VV_LIBRARY_PATH=/usr/lib/vely
+. "$VV_LIBRARY_PATH"/sys
+#end of do-not-change
+
+#by default, make is silent (except for messages we emit). For debugging, use -e to see everything that's going on (this shows vely execution too!)
+VV_SHOW_MAKE="-s"
+
+#location of Vely data
+export VV_DATA="/var/lib/vv"
+
+export VV_C_RESTPATH=""
+export VV_C_MAXUPLOAD="25000000"
+
+#defaults for quick install
+_PROXYPORT="80"
+
+#display Vely usage
+function use_message() {
+    echo "Usage: $0  OPTIONS 
+OPTIONS:
+
+-c      clean make artifacts for a rebuild
+-v      show version
+-s      show detailed execution (script tracing)
+-e N    show last N program errors
+-t N    show trace files for N most recent processes
+-o      show documentation directory
+-l      show library directory
+-m      setup syntax highlighting for Vim
+-u      substitute environment variables in stdin
+-r      display shell commands to run a program
+            --req=\"/<request name><url payload>\"
+            --method=\"<request method>\"
+-q      build application
+            --db=\"mariadb:<db name>|postgres:<db name> ...\" 
+            --lflag=<linker flags> 
+            --cflag=<c flags> 
+            --trace 
+            --c-lines 
+            --debug 
+            --maxupload=<max upload size>
+            --path=\"/some/path\"
+-i      display build flags for Vely FastCGI client
+            --include
+                displays C compile flags
+            --link
+                displays C linking flags
+-h      this help
+Type 'man vv' for more information.
+"
+}
+
+#process all command-line options
+function main() {
+
+
+
+#list of Vely options for getop
+_OPT_STATUS="0"
+#do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
+_opts=$(getopt -a -n $0 -o e:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$? 
+if [ $_OPT_STATUS -ne 0 ]; then
+    use_message 1>&2
+    exit -1
+fi
+
+#init flags used to emit helpful messages
+_DEVOPT=0
+_DO_QUICK=0
+
+#if nothing at all passed that is valid: make vely application - that is just 'vely'
+    eval set -- "$_opts"
+    while true; do 
+    case "$1" in 
+        --trace  )
+            export VV_C_TRACE="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        --c-lines  )
+            export VV_C_SKIPLINES="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        --debug  )
+            export VV_C_DEBUG="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        --path  )
+            export VV_C_RESTPATH="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        --maxupload  )
+            export VV_C_MAXUPLOAD="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        --cflag  )
+            export VV_C_CFLAGS="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        -t )
+#display last N trace files (for N most recent processes)
+            _SHOWTRACE="$2"
+            shift 2
+            ;;
+        -u )
+#subst env vars from stdin to stdout
+            "$VV_LIBRARY_PATH"/v1 -envsub 
+            exit 0
+            ;;
+        -e )
+#display last N errors from backtrace
+            _SHOWERROR="$2"
+            shift 2
+            ;;
+        --lflag  )
+            export VV_C_LFLAGS="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        --method  )
+#request method (GET, POST...)
+            _REQ_METHOD="$2"
+            shift 2
+            ;;
+        --req  )
+#request name+payload 
+            _REQ_URL="$2"
+            shift 2
+            ;;
+        -r  )
+#display bash to run command-line program
+            _COMMRUN="1"
+            shift
+            ;;
+        -h  )
+#help message
+            use_message
+            shift
+            exit
+            ;;
+        -m )
+#Vim highlighting
+            _DO_HIGHLIGHT="1"
+            shift 
+            ;;
+        --link )
+#display FastCGI link
+            _DO_CLIENT_LINK="1"
+            shift 
+            ;;
+        --include )
+#display FastCGI include
+            _DO_CLIENT_INCLUDE="1"
+            shift 
+            ;;
+        -i )
+#display FastCGI client flags
+            _DO_CLIENT="1"
+            shift 
+            ;;
+        -q )
+#quick setup
+            _DO_QUICK="1"
+            shift 
+            ;;
+        --db )
+#db vendor
+            _ALLDB="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        -c )
+#clean the project's temp and object files. This is to be able to fully recompile the project afterwards.
+            _DO_CLEAN="1"
+            shift 
+            ;;
+        -d )
+#include debugging info in program
+            export VV_C_DEBUG="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        -l )
+#show lib directory
+            echo "$VV_LIBRARY_PATH"
+            shift 
+            exit
+            ;;
+        -o )
+#show documentation directory
+            docdir
+            shift 
+            exit
+            ;;
+        -s )
+#display vely script's execution in detail
+            export VV_SHOW_MAKE=
+            set -x
+            _DEVOPT=1
+            shift 
+            ;;
+        -v )
+#display version of Vely
+            vely_version
+            exit
+            ;;
+        -- ) 
+            shift 
+            break
+            ;;
+        * ) 
+            use_message 1>&2
+            exit -1
+        esac
+    done
+
+#handle client fastcgi app building
+    if [[ "$_DO_QUICK" == "1" && "$_DO_CLIENT" == "1" ]]; then
+        error "Cannot use both -i and -q options. Use one or the other"
+    fi
+    if [ "$_DO_CLIENT" == "1" ]; then
+        show_client_bld
+        exit 0
+    fi
+
+#ask --debug to be used for tracing
+    if [[ "$VV_C_TRACE" == "1" && "$VV_C_DEBUG" != "1" ]]; then
+        error "In order to use tracing, you must use --debug option"
+    fi
+
+#something extra and unexpected, complain about it, probably an error
+    if [ "$1" != "" ]; then
+        error "Unknown input [$1]"
+    fi
+
+#before app name checking b/c it doesn't have anything to do with it
+    if [ "$_DO_HIGHLIGHT" != "" ]; then
+        setup_highlighting
+        exit 0
+    fi
+
+#application name created with vf in .vappname, which must exist
+    if [ -f ".vappname" ]; then
+        export VV_C_NAME=$(cat .vappname)
+    else
+        error "Vely application was not created yet. Please use vf to create an application first"
+    fi
+    check_name "$VV_C_NAME" "application name"
+    export VV_BLD0=$VV_DATA/bld
+    export VV_BLD=$VV_BLD0/$VV_C_NAME
+    export VV_H="$VV_DATA/$VV_C_NAME"
+    export VV_A="$VV_H/app"
+
+#THEN perform any actions
+
+#check for source only if compiling or cleaning up
+    if [[ "$_DO_QUICK" == "1" || "$_DO_CLEAN" == "1" ]]; then
+        _SRCC=$(ls *.vely|wc -l)
+        if [ "$_SRCC" == "0" ]; then
+            error "No Vely source source code found."
+        fi
+        if [[ ! -d "$VV_A" || ! -d "$VV_BLD" ]]; then
+            error "Vely application [$VV_C_NAME] does not exist. Use vf to create it."
+        fi
+    fi
+    if [[ "$_DO_QUICK" == "0" && "$_DEVOPT" == "1" ]]; then
+        error "Use -q if you intend to make the application."
+    fi
+
+    if [ "$_SHOWERROR" != "" ]; then
+        showerr $_SHOWERROR
+        exit 0
+    fi
+
+    if [ "$_COMMRUN" != "" ]; then
+        show_run_program
+        exit 0
+    fi
+
+    if [ "$_SHOWTRACE" != "" ]; then
+        showtrace $_SHOWTRACE
+        exit 0
+    fi
+
+#perform cleaning FIRST. Must 
+    if [ "$_DO_CLEAN" == "1" ]; then
+        vely_clean
+        exit 0
+    fi
+
+
+#perform any actions
+#autoapp make app automatically. It exits at its end
+    if [ "$_DO_QUICK" == "1" ]; then 
+#build app
+        autoapp
+    fi
+
+
+#these are 'in-conclusion' actions, they happen LAST
+    error "No action specified."
+}
+
+
+
+
+#
+#
+#Functions used in processing
+#
+#
+
+#
+#
+#
+#Show flags for client FastCGI app building. 
+#
+#
+#
+function show_client_bld() {
+#if neither --cflag nor --lflag specified, print out both
+    if [[ "$_DO_CLIENT_INCLUDE" != "1" &&  "$_DO_CLIENT_LINK" != "1" ]]; then
+        _DO_CLIENT_INCLUDE=1
+        _DO_CLIENT_LINK=1
+    fi
+#print the flag asked for, if both, place them on the same line
+    if [ "$_DO_CLIENT_INCLUDE" == "1" ]; then
+        echo -n "-I$VV_INCLUDE_PATH "
+    fi
+    if [ "$_DO_CLIENT_LINK" == "1" ]; then
+        echo -n "-L$VV_LIBRARY_PATH -lfcgiclively -Wl,--rpath=$VV_LIBRARY_PATH "
+    fi
+    echo ""
+}
+
+#
+#
+#
+#Setup keyword highlighting for Vim
+#
+#
+#
+function setup_highlighting() {
+    mkdir -p $HOME/.vim
+    mkdir -p $HOME/.vim/syntax
+    cp $VV_LIBRARY_PATH/v.vim $HOME/.vim/syntax/v.vim
+#set .vely file type to use v.vim above
+    _USEV="autocmd BufRead,BufNewFile *.vely set filetype=v"
+    if [ ! -f "$HOME/.vimrc" ]; then
+        echo "$_USEV" > $HOME/.vimrc
+    else
+        _HERE=$(grep -F "$_USEV" $HOME/.vimrc |wc -l)
+        if [ "$_HERE" == "0" ]; then
+            echo "$_USEV" >> $HOME/.vimrc
+        fi
+    fi
+#make sure syntax is on
+    _SYNON="syntax on"
+    _HERE=$(grep -F "$_SYNON" $HOME/.vimrc |wc -l)
+    if [ "$_HERE" == "0" ]; then
+        echo "$_SYNON" >> $HOME/.vimrc
+    fi
+}
+
+
+
+#
+#
+#
+#Display bash to run command-line program
+#
+#
+#
+function show_run_program() {
+    . $VV_BLD/.blds
+    if [ "$VV_C_RESTPATH" == "" ];  then
+        _APATH="/$VV_C_NAME"
+    else
+        _APATH="$VV_C_RESTPATH"
+    fi
+    _REQ_PATH="/<request name><url payload>"
+    _REQ_QUERY="<request query>"
+    if [ "$_REQ_URL" != "" ]; then
+        if [[ "$_REQ_URL" =~ ^.*\?.*$ ]]; then
+            _REQ_PATH=$(echo "$_REQ_URL" | cut -d "?" -f 1)
+            _REQ_QUERY=$(echo "$_REQ_URL" | cut -d "?" -f 2)
+        else
+            _REQ_PATH="$_REQ_URL"
+            _REQ_QUERY=""
+        fi
+    fi
+    if [ "$_REQ_METHOD" == "" ]; then
+        _REQ_METHOD="GET"
+    fi
+    echo "export REQUEST_METHOD=$_REQ_METHOD
+export SCRIPT_NAME=\"$_APATH\"
+export PATH_INFO=\"$_REQ_PATH\"
+export QUERY_STRING=\"$_REQ_QUERY\"
+/var/lib/vv/bld/$VV_C_NAME/$VV_C_NAME"
+}
+
+
+#
+#
+#
+#Show last $1 trace files
+#
+#
+#
+function showtrace() {
+    ls -aslrt /var/lib/vv/$VV_C_NAME/app/trace/trace* |tail -n $1
+    echo "Backtrace: /var/lib/vv/$VV_C_NAME/app/trace/backtrace"
+}
+
+#
+#
+#
+#Show last $1 errors from backtrace
+#
+#
+#
+function showerr() {
+    grep -a "ERROR:" /var/lib/vv/$VV_C_NAME/app/trace/backtrace |tail -n $1
+    echo "Backtrace: /var/lib/vv/$VV_C_NAME/app/trace/backtrace"
+}
+
+#
+#
+#
+#Get database vendors and names from dbvendor:dbname ... format, which is the input ($1)
+#
+#
+#
+function getdbs() {
+#database vendor/name pairs
+
+    _DBL="$1"
+    _j=0
+    for _i in $(echo "$_DBL"); do
+#-n says do not print non-matches, p says print matches only
+        _DBV[$_j]=$(sed -n 's/\(.*\):\(.*\)/\1/p' <<<$_i)
+        _DBN[$_j]=$(sed -n 's/\(.*\):\(.*\)/\2/p' <<<$_i)
+        if [[ "${_DBV[$_j]}" != "mariadb" && "${_DBV[$_j]}" != "postgres" && "${_DBV[$_j]}" != "sqlite" ]]; then
+            error "Database [${_DBV[$_j]}] is not supported"
+        fi
+        if [ "${_DBN[$_j]}" == "" ]; then
+            error "Database configuration file not specified"
+        fi
+        if [[ ! "$_DBVALL" =~ " ${_DBV[$_j]} " ]]; then
+            _DBVALL="$_DBVALL ${_DBV[$_j]} "
+        fi
+        ((_j=_j+1))
+    done
+}
+
+#
+#
+#
+#Autocreate settings file used to recompile if one (or more) of them changes
+#File $VV_BLD/blds is used in vmakefile as a signal to recompile all (if changed)
+#Sole purpose is to know when to recompile, nothing is cached as far as command-line params go.
+#
+#
+#
+function mkset() {
+    echo "VV_C_TRACE='$VV_C_TRACE'
+VV_C_SKIPLINES='$VV_C_SKIPLINES'
+VV_C_DEBUG='$VV_C_DEBUG'
+VV_C_MAXUPLOAD='$VV_C_MAXUPLOAD'
+VV_C_RESTPATH='$VV_C_RESTPATH'
+VV_C_CFLAGS='$VV_C_CFLAGS'
+VV_C_LFLAGS='$VV_C_LFLAGS'
+VV_C_MODULES='$VV_C_MODULES'
+VV_C_V1_MOD='$(stat -c "%Y" $VV_LIBRARY_PATH/v1)'
+VV_C_VV_MOD='$(stat -c "%Y" $(which vv))'
+VV_DBS='$_ALLDB'
+" > $VV_BLD/.blds
+    if [ ! -f "$VV_BLD/blds" ]; then
+        cp -f $VV_BLD/.blds $VV_BLD/blds
+    else
+        _ECODE="0"
+        diff $VV_BLD/.blds $VV_BLD/blds > /dev/null || _ECODE="$?"
+        if [ "$_ECODE" != 0 ]; then
+            cp -f $VV_BLD/.blds $VV_BLD/blds
+        fi
+    fi
+}
+
+
+#
+#
+#
+#Show documentation directory
+#
+#
+#
+function docdir() {
+    if [ "$VV_ISFEDORA" == "1" ]; then
+        echo "$(rpm -E '%{_datadir}')/vely"
+    elif [ "$VV_ISDEBIAN" == "1" ]; then
+        echo "/usr/share/vely"
+    elif [ "$VV_ISARCH" == "1" ]; then
+        echo "/usr/share/vely"
+    else
+        error "Unknown Operating System"
+    fi
+}
+
+#
+#
+#
+#Check if app name is valid
+#
+#
+#
+function check_name() {
+#$1 is the name
+#$2 is the type of it (used in error message)
+    if [[ ! "$1" =~ ^[a-zA-Z0-9_]{1,30}$ ]]; then
+        error "$2 name can be made up of alphanumerical characters only and underscore, and its length must be between 1 and 30 characters, found [$1]"
+    fi
+}
+
+
+
+#
+#
+#
+#Emitting error messages
+#
+#
+#
+function error() {
+#$1 is message
+    echo -e "** Error: $1" 1>&2
+    exit -1
+}
+
+
+
+
+#
+#
+#if VV_C_MODULES read from .cache file and available, get the usage and set modules
+#
+#
+function read_modules() {
+
+#Set _ISMOD_* variables and call set_modules to set variables for building of application.
+    for _i in $(echo "$VV_C_MODULES"); do
+        if [ "$_i" == "mariadb" ]; then
+            _ISMOD_MARIADB="1"
+        elif [ "$_i" == "postgres" ]; then
+            _ISMOD_POSTGRES="1"
+        elif [ "$_i" == "sqlite" ]; then
+            _ISMOD_SQLITE="1"
+        else
+            error "Unknown module [$_i]"
+        fi
+    done
+
+#
+#begin automatic libs discovery
+#
+#figure out if there's need for these libs
+#these find out if there's mention of these calls. A more native C approach was attempted
+#where during v1 compilation, information was collected and then used later, however that method ended up being either same or 
+#slower than this due to complexities of collecting and manipulating, and having to change (now) simple Makefile rules.
+#Trying to obtain modification times, save and compare later was alone more than double the time of what's below.
+#This gives all files to grep, so avoid slow "for i in $(ls *.vely)", and checks for file that has other than filename:0, so
+#that's where :[1-9] comes from. By far the fastest method.
+#Overall, the slowdown in performance of full recompile with this is only about 0.06% for 67 .vely files and about 8000 lines of code.
+#The limit here is about 100,000 file with names of 20 chars long, so unlikely to have that many source files with that long names
+#This approach also scales the best. For example, adding 10 more libs put it at 0.4%, whereas the approach with grepping
+#each lib separately puts it at 0.74%, or almost double.
+#
+
+#first look for all possible statements
+    grep -h -o "^[[:space:]]*\(call-web \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \)" *.vely>$VV_BLD/.findmod || true
+#then from occurrances, look for curl
+    if [[ $(grep -m 1 -o "^[[:space:]]*call-web " $VV_BLD/.findmod) != "" ]]; then _ISMOD_CURL="1"; fi
+#then from occurrances, look for crypto
+    if [[ $(grep -m 1 -o "^[[:space:]]*\(hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \)" $VV_BLD/.findmod) != "" ]]; then _ISMOD_CRYPTO="1"; fi
+
+
+#
+#end automatic libs discovery
+#
+
+    VV_MOD_LIBS=
+    VV_MODULES=
+    VV_MODULES_INCLUDE=
+    VV_STUBS=
+    VV_LIST_ALL_MODULES=
+#sqlite module
+    if [ "$_ISMOD_SQLITE" == "1" ]; then
+        VV_SQLITE_USED="-DVV_SQLITE_INCLUDE"
+#sqlite3.h is installed in include directory, so no need to specify
+        #VV_MODULES_INCLUDE="$VV_MODULES_INCLUDE -I /usr/include/sqlite3.h"
+        VV_MODULES="$VV_MODULES -lsqlite3"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelylite"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES sqllite"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_sqlite.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES sqlite"
+    fi
+#postgres module
+    if [ "$_ISMOD_POSTGRES" == "1" ]; then
+        VV_POSTGRES_USED="-DVV_POSTGRES_INCLUDE"
+        VV_C_PGCONF=$(. "$VV_LIBRARY_PATH"/sys pgconf)
+        if [ "$VV_C_PGCONF" == "yes" ]; then
+            VV_MODULES_INCLUDE="$VV_MODULES_INCLUDE -I $(pg_config --includedir)"
+        else
+            VV_MODULES_INCLUDE="$VV_MODULES_INCLUDE $(pkg-config --cflags libpq)"
+        fi
+        VV_MODULES="$VV_MODULES -lpq"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelypg"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES postgres"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_postgres.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES postgres"
+    fi
+#mariadb module
+    if [ "$_ISMOD_MARIADB" == "1" ]; then
+        VV_MARIADB_USED="-DVV_MARIADB_INCLUDE"
+        VV_MODULES_INCLUDE="$VV_MODULES_INCLUDE $(mariadb_config --include)"
+        VV_MODULES="$VV_MODULES $(mariadb_config --libs)"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelymys"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES mariadb"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_mariadb.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES mariadb"
+    fi
+#curl module
+    if [ "$_ISMOD_CURL" == "1" ]; then
+        VV_CURL_USED="-DVV_CURL_INCLUDE"
+        VV_MODULES="$VV_MODULES -lcurl"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelycurl"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES curl"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_curl.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES curl"
+    fi
+#crypto module
+    if [ "$_ISMOD_CRYPTO" == "1" ]; then
+        VV_CRYPTO_USED="-DVV_CRYPTO_INCLUDE"
+        VV_MODULES="$VV_MODULES -lssl -lcrypto"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelysec"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES crypto"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_crypto.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES crypto"
+    fi
+    if [[ "$_ISMOD_MARIADB" == "1" || "$_ISMOD_POSTGRES" == "1" || "$_ISMOD_SQLITE" == "1"  ]]; then
+        VV_MOD_LIBS="-lvelydb $VV_MOD_LIBS"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_gendb.o"
+    fi
+
+
+#used in vmakecommon/install to properly link modules at link-time and to substitute stubs for those modules that are not used
+    export VV_MODULES
+    export VV_MODULES_INCLUDE
+    export VV_STUBS
+    export VV_MOD_LIBS
+    export VV_C_MODULES
+    export VV_LIST_ALL_MODULES
+    export VV_MARIADB_USED
+    export VV_CURL_USED
+    export VV_CRYPTO_USED
+}
+
+
+
+
+#
+#
+#sets a list of many source code files (source.vely, velyapp.h, vely_dispatch_request.vely etc.)
+#takes care of generated vs provided source code: if a certain handler is provided, then don't generate it.
+#
+#
+function gen_src() {
+
+#
+#Generate source.vely, all the source files needed for Vely app
+#
+    _T="source.vely"
+    _SRCF=$(ls *.vely 2>/dev/null) || true
+    _HDRF=$(ls *.h 2>/dev/null) || true
+
+    echo "#SPDX-License-Identifier: EPL-2.0" >> $VV_BLD/$_T.new
+    echo "#Copyright 2017 DaSoftver LLC." >> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    echo "#" >> $VV_BLD/$_T.new
+    echo "#Lists source files in your application. This is an auto-generated file." >> $VV_BLD/$_T.new
+    echo "#" >> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    echo "#Include files here:" >> $VV_BLD/$_T.new
+    _HFILES=$(echo "$_HDRF" | grep -a -v velyapp.h | xargs)
+    echo "VV_HEADER_FILES=$(echo $_HFILES)" >> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    echo "#Source files here:" >> $VV_BLD/$_T.new
+    echo "VV_SOURCE_FILES=$(echo $_SRCF)" >> $VV_BLD/$_T.new
+
+    _ISDIFF=$(diff $VV_BLD/$_T.new $VV_BLD/$_T 2>/dev/null) || true
+    if [[ "$_ISDIFF" != "" || ! -f "$VV_BLD/$_T" ]]; then
+        mv $VV_BLD/$_T.new $VV_BLD/$_T
+    else
+        rm -rf $VV_BLD/$_T.new
+    fi
+
+
+
+#
+#Generate velyapp.h, a file that has a list of C declarations neeeded to build an app
+#
+    _T="velyapp.h"
+    _SRCF=$(ls *.vely 2>/dev/null) || true
+
+    echo "// SPDX-License-Identifier: EPL-2.0"  >> $VV_BLD/$_T.new
+    echo "// Copyright 2017 DaSoftver LLC.">> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    echo "// This is an auto-generated file for a VELY application" >> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    echo "#ifndef _VELYAPP" >> $VV_BLD/$_T.new
+    echo "#define _VELYAPP" >> $VV_BLD/$_T.new
+    echo >> $VV_BLD/$_T.new
+    if [ "$_HFILES" != "" ]; then
+        echo "$_HFILES" | sed 's/\(.*\)/#include "\1"/g' >> $VV_BLD/$_T.new
+        echo >> $VV_BLD/$_T.new
+    fi
+    echo "// function prototypes of your code" >> $VV_BLD/$_T.new
+    for _F in $(echo $_SRCF); do
+        _FN=$(sed 's/\(.*\)\.vely/\1/g' <<< $_F)
+        echo "void ${_FN}();" >> $VV_BLD/$_T.new
+    done
+    echo >> $VV_BLD/$_T.new
+    echo "#endif" >> $VV_BLD/$_T.new
+
+    _ISDIFF=$(diff $VV_BLD/$_T.new $VV_BLD/$_T 2>/dev/null) || true
+    if [[ "$_ISDIFF" != "" || ! -f "$VV_BLD/$_T" ]]; then
+        mv $VV_BLD/$_T.new $VV_BLD/$_T
+    else
+        rm -rf $VV_BLD/$_T.new
+    fi
+
+#
+#Generate vely_dispatch_request.vely, the main request handler. Based on the source code names of handler files (.vely files)
+#
+    _T="vely_dispatch_request.vely"
+    _SRCF=$(ls *.vely 2>/dev/null | grep -a -v "^_.*\.vely") || true
+    _NUMF=$(echo $_SRCF | wc -w)
+
+    echo "// SPDX-License-Identifier: EPL-2.0" >>$VV_BLD/$_T.new
+    echo "// Copyright 2017 DaSoftver LLC." >>$VV_BLD/$_T.new
+    echo >>$VV_BLD/$_T.new
+    echo "// VELY auto-generated request dispatcher" >>$VV_BLD/$_T.new
+    echo >>$VV_BLD/$_T.new
+    echo "#include \"vely.h\"" >>$VV_BLD/$_T.new
+    echo >>$VV_BLD/$_T.new
+    echo "void vely_dispatch_request()" >>$VV_BLD/$_T.new
+    echo "{" >>$VV_BLD/$_T.new
+
+#longjmp for when a request exits via exit-request. If return value is <>0, it means
+#this is a call from longjmp, and we should proceed to right after vely_dispatch_request - that is the extent
+#of unwinding, such that we rollback uncommitted transactions, shutdown request and release all memory and
+#then move on to the next request.
+#Cannot place setjmp within if, may not process correctly when jump happens.
+#We use vely_done_setjmp to prohibit exit-request from executing the jump unless sigsetjmp was done first at runtime.
+    echo "    int ret_val = sigsetjmp(vely_jmp_buffer, 1);" >>$VV_BLD/$_T.new
+    echo "    if (ret_val != 0) goto end_point;" >>$VV_BLD/$_T.new
+    echo "    vely_done_setjmp = 1;" >>$VV_BLD/$_T.new
+#right now the return value is always 0 (directly or called from longjmp)
+#the jump will work because all we do is go to _after() function, which doesn't depend on any
+#automatic variables from vely_dispatch_request, and after that function exits
+
+#req_done used to skip before/after execution if no handler used
+    echo "    volatile int req_done;" >>$VV_BLD/$_T.new #volatile because of longjmp, so the init below doesn't get optimized
+
+    if [ "$_NUMF" != "0" ]; then
+        echo "    get-req name to define req" >>$VV_BLD/$_T.new
+    fi
+    echo "    .req_done = 0;" >>$VV_BLD/$_T.new #must be initialized separately (not as int req_done=0;) because longjmp may return to the same function and won't be initialized again
+    _F_FIRST="yes"
+    for _F in $(echo $_SRCF); do
+        _FN=$(sed 's/\(.*\)\.vely/\1/g' <<< $_F)
+        if [ "$_F_FIRST" == "yes" ]; then
+            if [ "$_NUMF" == "1" ]; then
+                echo "    if (!strcmp (req, \"$_FN\") || !strcmp (req, \"\")) {" >>$VV_BLD/$_T.new
+            else
+                echo "    if (!strcmp (req, \"$_FN\")) {" >>$VV_BLD/$_T.new
+            fi
+            _F_FIRST="no"
+        else
+            echo "    } else if (!strcmp (req, \"$_FN\")) {" >>$VV_BLD/$_T.new
+        fi
+#before handler executes only IF req found a handler, that's why it's not in front of if()
+        echo "        ._before();" >>$VV_BLD/$_T.new
+        echo "        .req_done = 1;" >>$VV_BLD/$_T.new
+        echo "        .$_FN();" >>$VV_BLD/$_T.new
+    done
+    echo "    } else {" >>$VV_BLD/$_T.new
+    echo "        vely_bad_request();" >>$VV_BLD/$_T.new
+    echo "        vely_report_error (\"Request [%s] not found\", req);" >>$VV_BLD/$_T.new
+    echo "    }" >>$VV_BLD/$_T.new
+
+#when exit-request is done, this is where we must end up. Since this code is executed after
+#vely_dispatch_request, we can't longjump here. We long jump to a prior point and then go to here.
+    echo ".end_point:" >>$VV_BLD/$_T.new
+#set vely_done_setjmp to 0, because if we do exit-request in _after(), it would go into infinite loop, coming back to after.
+#this way, exit-request in _after, or anywhere afterwards, will do nothing. Only when the next request comes along, and vely_done_setjmp is set to 1
+#in the beginning of this function, we will actually jump to end_point:
+    echo "    .vely_done_setjmp = 0;" >>$VV_BLD/$_T.new
+
+#cannot do exit-request in _after - must simply do return(s)
+    echo "    .if (req_done == 1) _after();" >>$VV_BLD/$_T.new
+#
+#There can be NOTHING after .after() that uses any automatic variables from vely_dispatch_request() or
+#exit-request (and longjmp) will not work
+#
+    echo "}" >>$VV_BLD/$_T.new
+    echo >>$VV_BLD/$_T.new
+
+    _ISDIFF=$(diff $VV_BLD/$_T.new $VV_BLD/$_T 2>/dev/null) || true
+    if [[ "$_ISDIFF" != "" || ! -f "$VV_BLD/$_T" ]]; then
+        mv $VV_BLD/$_T.new $VV_BLD/$_T
+    else
+        rm -rf $VV_BLD/$_T.new
+    fi
+}
+
+
+
+#
+#
+#
+#Create linkage for before,after and startup events. _weak_ linkage didn't work because Vely should produce
+#a program that links *only* with Vely libs. It means we only distribute a single file, which is a program,
+#that has only the minimal set of code - and this program uses Vely's shared library. Hence, all is shared 
+#(the program between different instance and all the shared libs).
+#VV_EVENT_STUBS is all the stubs used.
+#So, VV_EVENT_STUBS could be "/usr/lib/vely/stub_after.o" but then available after vmakefile will be "$VV_BLD/_before.o $VV_BLD/startup.o"
+#and all three will be present (one empty and two implemented)
+#
+#
+#
+function stub_events() {
+    VV_EVENT_STUBS=
+    if [ ! -f "_before.vely" ]; then
+        VV_EVENT_STUBS="$VV_EVENT_STUBS $VV_LIBRARY_PATH/stub_before.o"
+    fi
+    if [ ! -f "_after.vely" ]; then
+        VV_EVENT_STUBS="$VV_EVENT_STUBS $VV_LIBRARY_PATH/stub_after.o"
+    fi
+    if [ ! -f "_startup.vely" ]; then
+        VV_EVENT_STUBS="$VV_EVENT_STUBS $VV_LIBRARY_PATH/stub_startup.o"
+    fi
+    export VV_EVENT_STUBS
+}
+
+
+#
+#
+#
+#Build Vely app
+#
+#
+#
+function build_app() {
+    _VFILES=$(ls *.vely 2>/dev/null|wc -l) 
+    if [ "$_VFILES" == "0" ]; then error "Your project must have at least one .vely file"; fi
+#set .dbvendors for v1 to pickup
+    db_lib
+#get any modules in use, and generate a list of all modules
+    read_modules
+#generate needed source code
+    gen_src
+#generate stubs (if needed) for events (before, after, startup..)
+    stub_events
+#create file that tells make to recompile if options changed
+    mkset
+#make the application (compile and link)
+    make $VV_SHOW_MAKE  -f "$VV_LIBRARY_PATH"/vmakefile all
+}
+
+#
+#
+#
+#Command line options implementation
+#
+#
+#
+
+function vely_version() {
+#the final year is based on the year when the last Makefile ran, which is a pretty good indicator of when was the last change done here by the author;
+#of course, for those who compile from source, and don't use the provided deb/dnf packages, it will always be the current year - that is not the intention -
+#in that case, change this manually to the year from the official distribution!!!! That is required under most copyright laws, in which the second year should
+#be the year of the last change by the author.
+    echo "Vely $VV_VERSION$_BETA on $VV_PLATFORM_ID ($VV_PLATFORM_VERSION)"
+    echo "Copyright (c) 2017 Dasoftver LLC"
+}
+
+#
+#
+#
+#display file or empty string if it doesn't exist
+#
+#
+#
+function cat0() {
+    if [ ! -f "$1" ]; then echo ""; else cat "$1"; fi
+}
+
+
+
+#
+#
+#
+#Quick auto app maker
+#
+#
+#
+function autoapp() {
+
+    build_app 
+    exit
+}
+
+
+#
+#
+#
+#Set library modules from --db. Either db_lib (-q) or init_db (-qa) is executed, but not both
+#
+#
+#
+function db_lib() {
+#parse --db input
+#get list of dbs - add any new db vendors here (currently mariadb and postgres)
+    rm -f $VV_BLD/.dbvendors
+    getdbs "$_ALLDB"
+    _TOTDB="${#_DBV[@]}"
+    for (( _i=0; _i<$_TOTDB; _i++ )); do
+#must copy array element 
+        _DBNAME="${_DBN[$_i]}"
+        _DBCONF="$_DBNAME"
+#build list of all
+        _ALLC="$_ALLC
+$_DBCONF"
+        _DBMAKE="${_DBV[$_i]}"
+        if [ "$_DBMAKE" == "sqlite" ]; then
+            if [ "$_DONELITE" == "" ]; then
+                export VV_C_MODULES="$VV_C_MODULES $_DBMAKE"
+                _DONELITE="1"
+            fi    
+#for v1.c to pick up
+            echo "${_DBCONF}=sqlite" >> $VV_BLD/.dbvendors
+            if [ ! -f "$_DBCONF" ]; then
+                error "Database configuration file [$_DBCONF] ($_DBMAKE) not found"
+            fi
+            "$VV_LIBRARY_PATH"/v1 -envsub < "$_DBCONF" > $VV_A/db/"$_DBCONF"
+        fi
+        if [ "$_DBMAKE" == "mariadb" ]; then
+            if [ "$_DONEMARIA" == "" ]; then
+                export VV_C_MODULES="$VV_C_MODULES $_DBMAKE"
+                _DONEMARIA="1"
+            fi    
+#for v1.c to pick up
+            echo "${_DBCONF}=mariadb" >> $VV_BLD/.dbvendors
+            if [ ! -f "$_DBCONF" ]; then
+                error "Database configuration file [$_DBCONF] ($_DBMAKE) not found"
+            fi
+            "$VV_LIBRARY_PATH"/v1 -envsub < "$_DBCONF" > $VV_A/db/"$_DBCONF"
+        fi
+        if [ "$_DBMAKE" == "postgres" ]; then
+            if [ "$_DONEPG" == "" ]; then
+                export VV_C_MODULES="$VV_C_MODULES $_DBMAKE"
+                _DONEPG="1"
+            fi
+#for v1.c to pick up
+            echo "${_DBCONF}=postgres" >> $VV_BLD/.dbvendors
+            if [ ! -f "$_DBCONF" ]; then
+                error "Database configuration file [$_DBCONF] ($_DBMAKE) not found"
+            fi
+            "$VV_LIBRARY_PATH"/v1 -envsub < "$_DBCONF" > $VV_A/db/"$_DBCONF"
+        fi
+    done
+#check db conf name unique
+    _TUNIQ=$(echo $_ALLC|sort -k 1|uniq|wc -l)
+    _TOT=$(echo $_ALLC|wc -l)
+    if [ "$_TUNIQ" != "$_TOT" ]; then
+        error "Database configuration names must be unique"
+    fi
+}
+
+
+
+#
+#
+#
+#Clean building artifacts of Vely code to rebuilt it entirely
+#
+#
+#
+function vely_clean() {
+#clean the source and other code, so the next vely app compilation will be a full rebuild
+    make $VV_SHOW_MAKE -f "$VV_LIBRARY_PATH"/vmakefile clean
+}
+
+
+main "$@"
+
+

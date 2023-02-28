@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</title>
+</head>
+<body>
+    <h1 class="align">Example: Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</h1>
+    <script>
+        fetch('/json/json_process',{
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            body:  '{ "country": [ \
+    {  \
+        "name": "USA", \
+        "state": [ \
+            {  \
+                "name": "Arizona", \
+                "city": [ \
+                    { \
+                        "name" : "Phoenix", \
+                        "population": "5000000" \
+            	    } , \
+                    { \
+                        "name" : "Tuscon", \
+                        "population": "1000000" \
+            	    }  \
+ \
+                ] \
+            } , \
+            {  \
+                "name": "California", \
+                "city": [ \
+                    { \
+                        "name" : "Los Angeles", \
+                        "population": "4000000" \
+            	    }, \
+                    { \
+                        "name" : "Irvine" \
+            	    } \
+                ] \
+            }  \
+        ]  \
+    } , \
+    {  \
+        "name": "Mexico", \
+        "state": [ \
+            {  \
+                "name": "Veracruz", \
+                "city": [ \
+                    { \
+                        "name" : "Xalapa-Enríquez", \
+                        "population": "8000000" \
+            	    }, \
+                    { \
+                        "name" : "C\u00F3rdoba", \
+                        "population": "220000" \
+            	    } \
+                ] \
+            } , \
+            {  \
+                "name": "Sinaloa", \
+                "city": [ \
+                    { \
+                        "name" : "Culiac\u00E1n Rosales", \
+                        "population": "3000000" \
+            	    } \
+                ] \
+            }  \
+        ]  \
+    } \
+    ] \
+}'
+        })
+        .then((result) => { return result.text(); })
+        .then((content) => { document.getElementById("json_output").innerHTML = content; });
+    </script>
+    <div id='json_output'></div>
+</body>
+</html>

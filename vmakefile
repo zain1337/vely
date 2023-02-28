@@ -1,0 +1,104 @@
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC.
+
+#variable names for Vely start with VV_ (VV_C_ being compiling-related) and _ (internal)
+
+# 
+# Vely  make file 
+#
+
+#
+# Setting of build variables
+# 
+
+
+SHELL:=/bin/bash
+
+export VV_EXPLAIN
+
+_SYSTEMID=$(shell $$VV_LIBRARY_PATH/sys showid)
+
+# c/linker flags
+_CC=gcc
+
+ifeq ($(strip $(VV_C_DEBUG)),1)
+    _OPTIM_COMP=-g3 -DDEBUG -rdynamic
+    _OPTIM_LINK=-rdynamic
+else
+    _OPTIM_COMP=-O3
+    _OPTIM_LINK=
+endif
+
+_APPMAKE=-DVV_APPMAKE=1    
+
+VV_FCGI_TARGET=$(VV_BLD)/$(VV_C_NAME).fcgi
+VV_TARGET=$(VV_BLD)/$(VV_C_NAME)
+
+ifeq ($(strip $(_SYSTEMID)),opensuse)
+    VV_FCGI_INCLUDE=-I /usr/include/fastcgi
+else
+    VV_FCGI_INCLUDE=
+endif
+
+_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP)
+
+
+
+ifeq ($(strip $(VV_C_SKIPLINES)),1)
+    VV_X_FLAG=-x
+else
+    VV_X_FLAG=
+endif
+
+
+#
+# Rules for building
+# 
+
+all: $(VV_FCGI_TARGET)  $(VV_TARGET)
+
+#clean files. *.velyo is produced by VELY, the result is generated/object files
+clean:
+	if [ -d "$(VV_BLD)" ]; then find $(VV_BLD)/ -name "*" -type f \( -name "*.o" -or -name "*.c" -or -name "*.h" \) -exec rm -f {} \; ; fi
+
+
+#include $(VV_BLD)/source.vely
+#obtain VV_SOURCE_FILES and VV_HEADER_FILES from generated source.vely
+ifneq (clean,$(filter clean,$(MAKECMDGOALS)))
+    include $(VV_BLD)/source.vely
+endif
+VV_HEADER_FILES:=$(VV_HEADER_FILES) 
+
+#string subst: short for $(patsubst %.vely,%.o,$(VV_SOURCE_FILES)) which finds whitespace-separated word in $(VV_SOURCE_FILES) that match %.vely and replaces them with %.o
+_OBJ_FILES=$(VV_SOURCE_FILES:%.vely=$(VV_BLD)/%.o) 
+
+define make_source
+	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -name "$(VV_C_NAME)" $< -out   $(VV_BLD)/__$(shell basename $@).c 
+	$(_CC) -c $(VV_BLD)/__$(shell basename $@).c  $(_CFLAGS) -o $@ -I`pwd` 
+endef
+
+#the rest if compilation of source files and producing object files and libraries needed for apache,
+#do not change these
+$(VV_BLD)/vely_dispatch_request.o: $(VV_BLD)/vely_dispatch_request.vely $(VV_INCLUDE_PATH)/vely.h $(VV_HEADER_FILES) $(VV_BLD)/velyapp.h $(VV_BLD)/blds
+	$(call make_source)
+
+$(VV_BLD)/%.o: %.vely $(VV_INCLUDE_PATH)/vely.h $(VV_HEADER_FILES) $(VV_BLD)/velyapp.h $(VV_BLD)/blds
+	$(call make_source)
+
+#does not need to depend on velyfcgiapp.c because it makes it
+$(VV_BLD)/velyfcgiapp.o: $(VV_BLD)/blds
+	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -main -name "$(VV_C_NAME)" -max-upload "$(VV_C_MAXUPLOAD)" -app-path "$(VV_C_RESTPATH)" -trace "$(VV_C_TRACE)" -out $(VV_BLD)/velyfcgiapp.c
+	$(_CC) -c $(VV_BLD)/velyfcgiapp.c  $(_CFLAGS) -DCMOD -o $@ -I`pwd` 
+
+_LDFLAGS=-Wl,--no-undefined -Wl,--rpath=$(VV_LIBRARY_PATH) $(VV_C_LFLAGS)  -L$(VV_LIBRARY_PATH) $(_OPTIM_LINK)
+
+
+
+#libs are always specified *after* the object where they're needed. Link flags (including -L) go first.
+
+$(VV_BLD)/$(VV_C_NAME).fcgi: $(VV_BLD)/velyfcgiapp.o $(VV_BLD)/vely_dispatch_request.o $(_OBJ_FILES) $(VV_BLD)/vely_dispatch_request.o
+	$(_CC) -o $@ $(_LDFLAGS) $^ $(VV_EVENT_STUBS) -lfcgively -lfcgi $(VV_MOD_LIBS) $(VV_MODULES) $(VV_STUBS) 
+
+$(VV_BLD)/$(VV_C_NAME): $(VV_BLD)/velyfcgiapp.o $(VV_BLD)/vely_dispatch_request.o $(_OBJ_FILES) $(VV_BLD)/vely_dispatch_request.o
+	$(_CC) -o $@ $(_LDFLAGS) $^ $(VV_EVENT_STUBS) -lvely $(VV_MOD_LIBS) $(VV_MODULES) $(VV_STUBS) 
+

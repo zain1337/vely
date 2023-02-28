@@ -1,0 +1,23 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+purge-fifo \-  (FIFO)
+.SH PURPOSE
+Delete FIFO list data.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+purge-fifo <list>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+purge-fifo will delete all data from the FIFO <list>, created by \fBnew-fifo\fP. The list is then empty and you can still put data into it, and get data from it afterwards, without having to call \fBnew-fifo\fP again.
+
+.SH EXAMPLES
+See \fBread-fifo\fP.
+.SH SEE ALSO
+ \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,281 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+statement_APIs \- Vely documentation (language)
+.SH DESCRIPTION
+Statement APIs, or Vely statements (such as \fBwrite-file\fP or \fBrun-query\fP etc.) are programming statements written within C code in files with .vely extension. They are pre-processed by \fBvv\fP into C code, and then compiled into a native executable. A statement does something useful, for example runs a database query, searches a string with regex, calls a web service, parses JSON, creates a unique file, etc. (see \fBdocumentation\fP).
+
+.LP
+.B STATEMENTS VS API
+.LP
+
+Writing a single Vely statement instead of multiple C API calls is easier to read and maintain, less error prone, safer at run-time and more productive. The functionality, scope and default behavior of each statement are chosen to reflect those benefits for typical practical needs of application development. They are meant to be building blocks that enable productivity and collaboration.
+
+A statement is not a macro or a simple substitution for one or more API calls. A statement can perform multiple functions that are logically connected, but would require use of different API calls and in different configurations to achieve the functionality. For example \fBrun-query\fP can perform a simple query with no input or output parameters, or a complex one with them, and with or without a number of other options. Achieving these functionalities with APIs would require different ones used in different ways, increasing chances of human error. Note that sorting out how to do things like this is performed at compile time - no performance is lost at run-time figuring out the best way to achieve Vely statement's stated goal.
+
+Statement name is always in the form of two words with hyphen in between:
+
+.RS 4
+\[bu]    
+imperative "verb"-"object" (call-web or run-query for instance), where the action applies to an object,
+
+.RE
+
+.RS 4
+\[bu]    
+descriptive "adjective"-"noun" ("input-param", "query-result" for example), where the action is further provided in clause(s),
+
+.RE
+
+.RS 4
+\[bu]    
+transformational "noun"-"noun", where one object transforms (converts) into another,
+.RE
+
+along with the clauses supplying the rest of the predicate, such as subject or subordinate clause(s). The two-word model is chosen for simplicity in order to avoid unwieldy do-this-that-way-along-with-something-else or such kind of statements, which unfortunately sometimes proliferate in APIs.
+
+This design mimics natural speech and is typical of declarative languages, as it is easier to write and read than APIs. Just like in a natural language, the action asked in a single statement can be very simple, moderate or involved depending on the need, and the "sentence" used to carry it out is easy to comprehend at a glance, and easy to construct based on "what" needs to be done rather than "how". Even so, the C code generated is still done with performance in mind first and foremost, and the statement design is ultimately always guided by that goal.
+
+Vely statements are the core of the language functionality. Here's a formal description of what they are.
+
+.LP
+.B STATEMENT STRUCTURE
+.LP
+
+Vely statements generally have three components separated by space(s):
+
+.RS 4
+\[bu]    
+a name
+
+.RE
+
+.RS 4
+\[bu]    
+an object argument
+
+.RE
+
+.RS 4
+\[bu]    
+a number of clauses
+.RE
+
+A statement starts with a name, which designates its main purpose. An object argument denotes the object of the purpose stated in the name. Each clause consist of a clause name, which specifies some aspect of the statement's purpose and it may be followed by no additional data, or it may be accompanied with one or more data arguments. A clause may have subclauses, which follow the same structure and are associated with the clause by appearing immediately after it. Most clauses are separated by space(s), however some (like "=" or "@") may not need space(s) before any data; the statement's documentation would clearly specify this.
+
+An object argument must immediately follow the statement's name, while clauses may be specified in any order.
+
+For example, in the following Vely code:
+
+.RS 4
+.EX
+
+encrypt-data orig_data input-length 6 output-length define encrypted_len password "mypass" salt newsalt to define res binary
+
+.EE
+.RE
+
+encrypt-data is the statement's name, and "orig_data" is its object argument. The clauses are:
+
+.RS 4
+\[bu]    
+input-length 6
+
+.RE
+
+.RS 4
+\[bu]    
+output-length define encrypted_len (with "define" being a subclause of "output-length" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+password "mypass"
+
+.RE
+
+.RS 4
+\[bu]    
+salt newsalt
+
+.RE
+
+.RS 4
+\[bu]    
+to define res (with "define" being a subclause of "to" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+binary
+.RE
+
+The clauses can be in any order, so the above can be restated as:
+
+.RS 4
+.EX
+
+encrypt-data orig_data to define res password "mypass" salt newsalt output-length define encrypted_len binary input-length 6
+
+.EE
+.RE
+
+Vely documentation provides a concise BNF-like notation of how each statement works, which in case of \fBencrypt-data\fP is (backslash simply allows continuing to multiple lines):
+
+.RS 4
+.EX
+
+encrypt-data <data> to [ define ] <result> password <password> \\
+    [ input-length <input length> ] \\
+    [ salt <salt> ] \\
+    [ output-length [ define ] <output length> ] \\
+    [ binary ] \\
+
+.EE
+.RE
+
+Optional clauses are enclosed with angle brackets (i.e between "[" and "]"), and data arguments (in general C expressions) are stated between "<" and ">". If only one of a number of clauses may appear, such clauses are separated by "|", and each clause possibly enclosed with "(" and ")" if it consists of more than one keywords or arguments. Generally a clause continues until the next clause, which means until all subclauses and arguments are exhausted.
+
+The most common subclause is an optional "define", which always precedes an output variable, i.e. a variable that stores (one of) the results of the statements. If used, it creates such variable within the statement. It is commonly used to shorten the code written.
+
+Keywords (other than statement names such as encrypt-data above) are generally specific to each statement (or a group of statements in which they are used). So, keyword "salt", for example, has meaning only within encrypt-data statement, where it is used to specify the data for the "salt" clause. In order to have the complete freedom to choose your variable names so they don't clash with keywords, you can simply surround them (or the expressions in which they appear) in parenthesis (i.e. "(" and ")") and use any names you want, without worrying about keywords, for example:
+
+.RS 4
+.EX
+
+const char *password = "some password";
+const char *salt = "0123456789012345";
+encrypt-data "some data" password (password) salt (salt) to define (define)
+p-out define
+
+.EE
+.RE
+
+In this example, keywords "password", "salt" and "define" are used as variable names as well; and in p-out statement, variable named "define" is used freely, even if it is a keyword for other statements - but it is not for the p-out statement.
+
+It is recommended to use supplied Vely statements over your C code for the same functionality. 
+
+Note that while you can use tab characters at the beginning of the line (such as for indentation), as well as in string literals, do not use tabs in Vely code as they are not supported for lack of readability - use plain spaces.
+
+.LP
+.B LOOK AND FEEL
+.LP
+
+Vely statements have decidedly non-C look and feel, unlike what's common with typical API interface. This is by design. They stand out when reading code in a way that clearly communicates their purpose, with the intent of increased readability and more expressive and condensed functionality. On the other hand, Vely statements are decidedly C, as they are completely integrated with C code and translate to pure C in the end.
+
+.LP
+.B CONSTRUCTS IN CODE BLOCKS
+.LP
+
+Note that, Vely statements, after translated into C code by \fBvv\fP, are generally made of multiple C statements, hence Vely statements can never be treated as single-line statements. Thus, for example, Vely will emit an error if you write:
+
+.RS 4
+.EX
+
+if (some condition) vely-statement
+
+if (some condition)
+    vely-statement
+
+.EE
+.RE
+
+Instead, write:
+
+.RS 4
+.EX
+
+if (some condition) {
+    vely-statement
+}
+
+.EE
+.RE
+
+
+.LP
+.B INTEGRATION WITH C
+.LP
+
+Vely is loosely integrated with C, with the integration points chosen for maximum practical benefit. It does not parse C to work, mostly because that does not present significant benefits and it would slow down code generation. 
+
+Vely does, however, process certain C elements. It processes strings in C expressions used in Vely statements, as well as parenthesis to make sure that statement clauses are parsed properly. 
+
+Probably the most important aspect of integrating with gcc is line number reporting. Line numbers and error messages reported by gcc and gdb are referring to source Vely files, making it easy to find the exact source code line of any issue.
+
+Note that at the same time, if you use --c-lines option (see \fBvv\fP), it forces generated C code line reporting. That is rarely necessary because gcc messages are typically detailed and sufficient.
+
+.LP
+.B SPLITTING STATEMENT INTO MULTIPLE LINES
+.LP
+
+To split a statement into multiple lines (including string continuations), use a backslash (\e), for instance:
+
+.RS 4
+.EX
+
+encrypt-data orig_data input-length 6 \\
+    output-length define encrypted_len \\
+    password "my\\
+    pass" salt \\
+    newsalt to define res binary 
+
+.EE
+.RE
+
+Note that all statements are always left-trimmed for whitespace. Thus the resulting string literal in the above example is "mypass", and not "my   pass", as the whitespaces prior to line starting with "pass" are trimmed first. Also, all statements are right-trimmed for white space, except if backslash is used at the end, in which case any spaces prior to backslash are conserved. For that reason, in the above example there is a space prior to a backslash where clauses need to be separated.
+
+.LP
+.B ERROR HANDLING
+.LP
+
+A statement that fails for reasons that are generally irrecoverable will fail, for example out of memory or disk space, bad input parameters etc. Vely philosophy is to minimize the need to check for such conditions by preventing the program from continuing. This is preferable, as forgetting to check usually results in unforeseen bugs and safety issues, and the program should have stopped anyway. 
+
+Errors that are correctable programmatically are reported and you can check them, for example when opening a file that may or may not exist.
+
+Overall, the goal is to stop execution when necessary and to offer the ability to handle an issue when warranted, in order to increase run-time safety and provide instant clues about conditions that must be corrected.
+
+.LP
+.B CODE PROCESSING, ERROR REPORTING, DEBUGGING
+.LP
+
+A statement is pre-processed into C code, which is then compiled into a native executable using gcc compiler. The final C code is a mix of your own code and generated Vely code. 
+
+Error reporting by default shows line numbers in your .vely source code files, which generally makes it easy to pinpoint an error. If you want to see generated C code and make error reporting refer to it, use "--c-lines" option of \fBvv\fP utility; this is useful if the error refers to details of generated code. You can also obtain the line number from .vely source file, and then examine generated source code file by looking for #line directives. Generated final C file is located in:
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/<app name>/__<source file base name>.o.c
+
+.EE
+.RE
+
+For instance if application name is "myapp" and source file is "mycode.vely", then generated code is in file:
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/myapp/__mycode.o.c
+
+.EE
+.RE
+
+If an error is reported as being on line 43 of file "mycode.vely", then look for lines in the above .c file that look like:
+
+.RS 4
+.EX
+
+\[char35]line 43 "mycode.vely"
+
+.EE
+.RE
+
+The code adjacent to those lines is the generated code for the Vely statement at line 43 in "mycode.vely". 
+
+Vely will perform many sanity checks when possible while preprocessing your .vely files, such as enforce the presence and count of required arguments in clauses, check if conflicting clauses are used, report imbalance of opening/closing clauses in statements that use them (such as for example \fBwrite-string\fP, \fBread-line\fP or with \fBdatabase_queries\fP), reject unknown statements, report incorrect usage of statements and similar. However, most of the checking of your code is ultimately done by gcc (Linux C compiler), such as typing, expression syntax, C language correctness, linkage issues and others; in doing so, gcc will report the correct line number, as stated above (either a line number in your .vely source file, or a generated C code file). 
+
+When debugging (such as with using gdb), stepping through your code is similar to error reporting: by default gdb will treat Vely statement as a "single-statement" and step over it as such. If you use "--c-lines" option, then you will be able to step through final C code.
+.SH SEE ALSO
+ \fILanguage\fP ( \fBdot\fP   \fBinline_code\fP   \fBstatement_APIs\fP   \fBsyntax_highlighting\fP   \fBunused-var\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

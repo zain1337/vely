@@ -1,0 +1,490 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_form \- Vely documentation (examples)
+.SH DESCRIPTION
+This application is a guest tracking database. The user can:
+
+.RS 4
+\[bu]    
+input first and last name, which once submitted, are added to a database table,
+
+.RE
+
+.RS 4
+\[bu]    
+display web page showing the list of names queried from the database.
+.RE
+
+
+In a nutshell: 4 source files, 86 lines of code; PostgreSQL; web browser; Apache; Unix sockets;
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+Users can sign the guest book via HTML form:
+(Image form_enter.png not available in man page, see web page documentation)
+When a Submit button is clicked, entered data is added to the guest book:
+(Image form_added.png not available in man page, see web page documentation)
+This shows the entire guest book:
+(Image form_show.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because they are used in this example, you will need to install \fBApache\fP as a web server and \fBPostgreSQL\fP as a database.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/form.tar.gz
+cd form
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "form", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) form
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/form") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Before any coding, you need some place to store the information used by the application. First, you will create PostgreSQL database "db_form". You can change the database name, but remember to change it everywhere here. And then, you will create database objects in the database. 
+
+Note the example here uses peer-authentication, which is the default on all modern PostgreSQL installations - this means the database user name is the same as the Operating System user name.
+
+Execute the following in PostgreSQL database as root (using \fBpsql\fP utility):
+
+.RS 4
+.EX
+
+echo "create user $(whoami);
+create database db_form with owner=$(whoami);
+grant all on database db_form to $(whoami);
+\eq
+" | sudo -u postgres psql
+
+.EE
+.RE
+
+Next, login to database db_form and create the database objects for the application:
+
+.RS 4
+.EX
+
+psql -d db_form -f setup.sql
+
+.EE
+.RE
+
+
+.LP
+.B CONNECT VELY TO A DATABASE
+.LP
+
+In order to let Vely know where your database is and how to log into it, you will create \fBdatabase_config_file\fP named "db_form". This name doesn't have to be "db_form", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
+
+.RS 4
+.EX
+
+echo "user=$(whoami) dbname=db_form"  > db_form
+
+.EE
+.RE
+
+The above is a standard \fBpostgres connection string\fP that describes the login to the database you created. Since Vely uses native PostgreSQL connectivity, you can specify any connection string that your database lets you.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q --db=postgres:db_form 
+
+.EE
+.RE
+
+Note usage of --db option to specify PostgreSQL database and the database configuration file name.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 form
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf form
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+To stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit form
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+- Step 1:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+- Step 2:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/form" is the application path (see \fBrequest_URL\fP) and "form" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/form" unix:///var/lib/vv/form/sock/sock|fcgi://localhost/form
+
+.EE
+.RE
+
+- Step 3:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35]Display form 
+http://127.0.0.1/form/form_display
+
+\[char35]Show data entered 
+http://127.0.0.1/form/display_data
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.SH FILES
+You are now done with the example! What follows are the source files in this project so you can examine how it works:
+
+.LP
+.B SETUP DATABASE OBJECTS (SETUP.SQL)
+.LP
+
+Create table to hold the first and last name of the guest:
+
+.RS 4
+.EX
+
+create table if not exists names (firstName varchar(30), lastName varchar(40));
+
+.EE
+.RE
+
+
+.LP
+.B WEB FORM (FORM_DISPLAY.VELY)
+.LP
+
+This is a simple HTML web form where first and last name is collected and sent to the server via POST mechanism. Note the path segment after the application path (set with \fBp-path\fP), which is "/form_post", meaning this request will be handled in source file "form_post.vely":
+
+.RS 4
+.EX
+
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+\[char35]include "vely.h" // must always be here
+
+
+// 
+// Display a web form
+//
+void form_display ()
+{
+
+     out-header default
+
+    @<h2>Enter your name</h2>
+
+    @<form action="<<p-path>>/form_post" method="POST">
+
+    @    <label for="first_name">First name:</label><br>
+    @    <input type="text" name="first_name" value=""><br>
+        
+    @    <label for="last_name">Last name:</label><br>
+    @    <input type="text" name="last_name" value=""><br><br>
+        
+    @    <input type="submit" value="Submit">
+    @ </form>
+}
+
+
+.EE
+.RE
+
+
+.LP
+.B SUBMITTING WEB FORM (FORM_POST.VELY)
+.LP
+
+\fBinput-param\fP is used to obtain input parameters sent here from the web form created in "form_display.vely". The data is inserted into the database and the status message output back to web client (i.e. browser):
+
+.RS 4
+.EX
+
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+\[char35]include "vely.h" // must always be here
+
+
+// 
+// Post input from a web form
+//
+void form_post ()
+{
+
+    out-header default
+
+    input-param first_name
+    input-param last_name
+    run-query @db_form="insert into names(firstName, lastName) values ('%s','%s')" : first_name, last_name error define err
+    end-query
+
+    if (strcmp(err, "0")) {
+        @Could not add name, error [<<p-out err>>]
+        exit-request
+    }
+
+    @Name added to the database<hr/>
+}
+
+
+.EE
+.RE
+
+
+.LP
+.B DISPLAY DATABASE DATA IN TABLE FORMAT IN BROWSER (DISPLAY_DATA.VELY)
+.LP
+
+This shows typical web output from querying a database. SELECT statement in \fBrun-query\fP produces a result set, which is displayed in a tabular format in the browser:
+
+.RS 4
+.EX
+
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+\[char35]include "vely.h" 
+
+
+// 
+// Display table data
+//
+void display_data ()
+{
+
+    out-header default
+
+    @<h2>List of names</h2>
+
+    @<table>
+        run-query @db_form="select firstName, lastName from names order by lastName,firstName" output firstName,lastName
+    @        <tr>
+    @            <td>
+                    query-result lastName
+    @            </td>
+    @            <td>
+                    query-result firstName
+    @            </td>
+    @        </tr>
+        end-query
+    @</table>
+
+}
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

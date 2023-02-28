@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h" 
+
+void write_report()
+{
+
+    out-header default
+
+    get-app db-vendor db_write_report to define dbv
+    @Database vendor used is <<p-out dbv>><br/>
+
+    // Build report for a query and store it into variable outmsg
+
+    write-string define outmsg
+    @Employee report<hr/>        
+
+    // Get data from the database
+    run-query @db_write_report="select name, salary from employees order by name" output name, salary
+       @  -----<br/>
+       @  Name: <<query-result name>> 
+       @  Salary: <<query-result salary>><br/>
+    end-query
+    @-----<br/>
+
+    @End report.
+
+    end-write-string
+
+
+    // build time stamp for report file
+    get-time to define curr_time format "%A %B %d %Y %l %M %p %Z"
+    get-req process-id to define pid
+    match-regex " " in curr_time replace-with "_" result define tstamp
+
+    // get application home directory and build the path for reports directory
+    get-app directory to define home_dir
+    write-string define report_dir
+    @<<p-out home_dir>>/reports
+    end-write-string
+
+    // make directory, ignore error if it exists
+    exec-program "mkdir" args "-p", report_dir status define st
+    if (st != VV_OKAY  && st != VV_ERR_EXIST) {
+        @Error in creating reports directory
+        exit-request
+    }
+
+    // build the name of report file
+    write-string define report_file
+    @<<p-out home_dir>>/reports/report_<<pf-out "%lld", pid>><<p-out tstamp>>
+    end-write-string
+
+    // write report file
+
+    write-file report_file from outmsg status st
+    if (st<0) {
+        @Error in writing report file <<p-out report_file>> (<<pf-out "%lld", st>>)
+        exit-request
+    } else {
+        // if okay, display report file to the web
+        @Report file [<<p-out report_file>>] written.<br/>
+        @Report file content:<br/>
+        p-out outmsg
+    }
+
+}
+

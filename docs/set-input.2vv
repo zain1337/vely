@@ -1,0 +1,53 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+set-input \-  (request_information)
+.SH PURPOSE
+Set or overwrite input parameters.
+
+.SH SYNTAX
+set-input <param name> = <param value>
+.SH DESCRIPTION
+set-input sets or overwrites an \fBinput-param\fPeter. <param name> is a string that holds parameter name and <param value> is a string that holds parameter value.
+
+If an input parameter with <param name> already exists, it's value is overwritten with <param value>. 
+
+If an input parameter with <param name> does not exist, a new parameter is created and its value is set to <param value>.
+
+Note that no copy of <param value> is made. If it will go out of scope before it's used, make a copy first (see \fBcopy-string\fP).
+
+set-input is useful when input parameters supplied through a \fBrequest\fP need to be altered or added-to so your code can process them more efficiently, to write less code etc.
+
+Once set-input sets parameter value, using \fBinput-param\fP will obtain it as if it was provided through a request URL. 
+
+Note that \fBinput-param\fP creates a variable, so you cannot use it twice in the same scope. Typically, set-input is used to set input parameter values, while another code block or function will use input-param to obtain those values.
+
+.SH EXAMPLES
+Set the value of input parameter named "quantity" to "0", which is also the output:
+
+.RS 4
+.EX
+
+set-input "quantity" = "0"
+\[char46]..
+input-param quantity
+p-out quantity
+
+.EE
+.RE
+
+Set the value of input parameter named "description" to "not available", which is also the output:
+
+.RS 4
+.EX
+
+char *name = "description";
+set-input name = "not available"
+\[char46]..
+input-param description
+p-out description
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

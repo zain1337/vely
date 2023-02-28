@@ -1,0 +1,40 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+encode-url \-  (URL_encoding)
+.SH PURPOSE
+URL-encode string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+encode-url <string> to [ define ] <encoded string> \\
+    [ output-length [ define ] <encoded length> ] \\
+    [ input-length <length> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+encode-url URL-encodes <string> and stores the result in <encoded string> which may be created with optional "define". <encoded string> is \fBallocated memory\fP.
+
+Number <length> in the optional "input-length" clause lets you specify the number of bytes in <string> that will be encoded - if not specified or negative, it is the string length. "output-length" clause (also optional) lets you get the length of the encoded string in <encoded length>, which can be created with optional "define".
+
+All bytes except alphanumeric and those from "-._~" (i.e. dash, dot, underscore and tilde) are encoded.
+
+.SH EXAMPLES
+In this example, a string "str" is URL encoded and the result is in a "result" string variable, and its length is in "len_of_result" variable:
+
+.RS 4
+.EX
+
+char str[]="  x=y?z&  ";
+encode-url str to define result output-length define len_of_result
+
+.EE
+.RE
+
+The "result" is "%20%20x%3Dy%3Fz%26%20%20" and "len_of_result" is 24.
+.SH SEE ALSO
+ \fIURL encoding\fP ( \fBdecode-url\fP   \fBencode-url\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

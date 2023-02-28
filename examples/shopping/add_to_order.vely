@@ -1,0 +1,14 @@
+#include "vely.h"
+
+void add_to_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    // SQL to add an item to an order
+    run-query @db_shopping ="insert into orderItems (orderId, itemID, quantity) values  ('%s', '%s', '%s')" \
+        : order_id, item_id, quantity no-loop affected-rows define arows
+    @"<<p-num arows>>"
+}

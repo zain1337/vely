@@ -1,0 +1,40 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+get-hash \-  (hash_table)
+.SH PURPOSE
+Get usage specifics for a hash table.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+get-hash  <hash > \\
+    ( length [ define ] <length> ) \\
+    | ( size [ define ] <size> ) \\
+    | ( average-reads [ define ] <reads> )
+
+.EE
+.RE
+
+.SH DESCRIPTION
+get-hash provides usage specifics of a hash table <hash> (created by \fBnew-hash\fP). 
+
+Use "length" clause to obtain its <length> (i.e. the number of elements stored in it), "size" clause to obtain its <size> (i.e. the number of "buckets", or possible hash codes) and "average-reads" clause to obtains the average number of <reads> (i.e. how many string comparisons are needed on average to find a key).
+
+Each of these number variables can be created with "define".
+
+This information may be useful in determining the performance of a hash, and whether \fBresize-hash\fP is indicated.
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+get-hash h length define l size define s average-reads define r
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIHash table\fP ( \fBget-hash\fP   \fBnew-hash\fP   \fBpurge-hash\fP   \fBread-hash\fP   \fBresize-hash\fP   \fBwrite-hash\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

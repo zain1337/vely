@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h" // must always be here
+
+
+// 
+// Display a web form
+//
+void form_display ()
+{
+
+     out-header default
+
+    @<h2>Enter your name</h2>
+
+    @<form action="<<p-path>>/form_post" method="POST">
+
+    @    <label for="first_name">First name:</label><br>
+    @    <input type="text" name="first_name" value=""><br>
+        
+    @    <label for="last_name">Last name:</label><br>
+    @    <input type="text" name="last_name" value=""><br><br>
+        
+    @    <input type="submit" value="Submit">
+    @ </form>
+}
+

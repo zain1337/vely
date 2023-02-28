@@ -1,0 +1,108 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+split-string \-  (strings)
+.SH PURPOSE
+Split a string into pieces based on a delimiter.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+split-string \\
+    ( <string> with <delimiter> to [ define ] <result> \\
+    | delete <result> )
+
+.EE
+.RE
+
+.SH DESCRIPTION
+split-string will find all instances of <delimiter> in <string> and then split it into pieces. The <result> is a pointer to a variable of type "vely_split_str" and it has two members: integer variable "num_pieces" which is the number of pieces <string> was broken into, and string array "pieces", which holds the actual pieces, each null-terminated. If variable <result> does not exist, you can create it with define clause. A delimiter within double quotes ("..") is not counted, i.e. it is skipped. 
+
+Note that <string> is altered by placement of null-terminators and will not hold the same value (rather it will hold only the leading portion of what it did before split-string took place). Each element of "pieces" array points to memory occupied by <string>. Hence, split-string does not copy any data and is very fast in performing the kind of parsing described here. You can copy string beforehand if you don't want it altered (see \fBcopy-string\fP).
+
+All pieces produced will be trimmed both on left and right. If a piece is double quoted, then double quotes are removed. For instance:
+
+.RS 4
+.EX
+
+char clist[] = "a , b, \[char92]"c , d\[char92]" , e"
+split-string clist with "," to define res
+
+.EE
+.RE
+
+After this, the variable "res" will be an array of strings with these values:
+
+.RS 4
+.EX
+
+res->num_pieces is 4
+res->pieces[0] points to "a"
+res->pieces[1] points to "b"
+res->pieces[2] points to "c , d"
+res->pieces[3] points to "e"
+
+.EE
+.RE
+
+Also, since <string> is altered, it cannot be a constant - rather it must always be a variable, for example, if you do this with the intention to split this string based on "," as a delimiter:
+
+.RS 4
+.EX
+
+char *str = "string,to,split";
+
+.EE
+.RE
+
+your program will report an error (SIGSEGV most likely, or segmentation fault). You should do:
+
+.RS 4
+.EX
+
+char str[] = "string,to,split";
+
+.EE
+.RE
+
+split-string is useful for parsing CSV (Comma Separated Values) or any other kind of separated values, where separator can be any string of any length, for example if you're parsing an encoded URL-string, then "&amp;" may be a separator, as in the example below.
+
+If "delete" clause is used, memory allocated for <result> (in a previously executed split-string) is released.
+
+.SH EXAMPLES
+The following will parse a string containing name/value pairs (such as "name=value") separated by string "&amp;":
+
+.RS 4
+.EX
+
+// Data to parse - data/value pairs delimited by "&amp;" string, and data and value delimited by equal sign:
+char instr[]="x=23&amp;y=good&amp;z=hello_world";
+
+// Split string first into pieces based on "amp;"
+split-string instr with "&amp;" to define assignment
+
+// For each of name=value pairs, split it with equal sign
+num i;
+for (i = 0; i < assignment->num_pieces; i++) {
+    split-string assignment->pieces[i] with "=" to define data
+    pf-out "Variable %s has value %s\en", data->pieces[0], data->pieces[1]
+}
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+Variable x has value 23
+Variable y has value good
+Variable z has value hello world
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

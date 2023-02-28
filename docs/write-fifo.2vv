@@ -1,0 +1,32 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+write-fifo \-  (FIFO)
+.SH PURPOSE
+Write key/value pair into a FIFO list.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+write-fifo <list> key <key> value <value>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+write-fifo adds a key/value pair to the FIFO <list>, specified with string <key> and <value> (in "key" and "value" clauses). It always adds data to the end of the list. <value> is a pointer to any type, allowing storage of any kind of data. <key> and <value> must not go out of scope or be freed while FIFO is used - if necessary, store a copy (see \fBcopy-string\fP for strings).
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+new-fifo define nf
+write-fifo nf key "mykey" value "myvalue"
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

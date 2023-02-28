@@ -1,0 +1,110 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+examples \- Vely documentation (examples)
+.SH DESCRIPTION
+Click on each example for instructions. For a condensed Hello World that you can run from command line in just minutes, try \fB123_hello_world\fP.
+
+.RS 4
+\[bu]    
+\fBexample_hello_world\fP
+    2 source files, 7 lines of code; no database; command line; web browser; Nginx; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_cookies\fP
+    1 source files, 49 lines of code; no database; web browser; Apache; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_create_table\fP
+    2 source files, 44 lines of code; PostgreSQL; command line; web browser; Nginx; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_file_manager\fP
+    6 source files, 169 lines of code; PostgreSQL; web browser; Apache; TCP sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_form\fP
+    4 source files, 86 lines of code; PostgreSQL; web browser; Apache; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_json\fP
+    5 source files, 160 lines of code; no database; web browser; Nginx; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_multitenant_SaaS\fP
+    7 source files, 312 lines of code; MariaDB; web browser; Apache; Application path; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_sendmail\fP
+    1 source files, 79 lines of code; no database; web browser; Apache; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_shopping\fP
+    11 source files, 212 lines of code; PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_stock\fP
+    3 source files, 55 lines of code; MariaDB; command line; web browser; Nginx; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_utility\fP
+    2 source files, 26 lines of code; SQLite; command line; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_write_report\fP
+    2 source files, 69 lines of code; MariaDB; command line; web browser; Nginx; Unix sockets;
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_docker\fP
+.RE
+
+
+.SH SEE ALSO
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

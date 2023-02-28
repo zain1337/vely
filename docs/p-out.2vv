@@ -1,0 +1,62 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+p-out \-  (output)
+.SH PURPOSE
+Outputs a string without encoding.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+p-out <string>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+p-out outputs a string expression given by <string>, without any encoding (meaning a string is output exactly as it appears). The string is sent to a client that made the request. If this is within \fBwrite-string\fP, then <string> is output into the buffer that builds a new string.
+
+.SH EXAMPLES
+To output data verbatim to a client:
+
+.RS 4
+.EX
+
+char *mydata="Hello world";
+p-out mydata
+
+.EE
+.RE
+
+Writing to client, outputting text followed by a horizontal rule - the text is output to a client (such as browser) as it is, and the browser will interpret tags "<br/>" and "<hr/>" as a line break and a horizonal line and display them as such:
+
+.RS 4
+.EX
+
+p-out "This is a non-encoded output<br/>"
+p-out "<hr/>"
+
+.EE
+.RE
+
+Create a query text string by means of \fBwrite-string\fP statement:
+
+.RS 4
+.EX
+
+void get_table_data (const char *table_name)
+{
+   //
+   // Construct the run-time text of dynamic SQL
+   //
+   write-string define qry_txt
+   @select * from <<p-out table_name>>
+   end-write-string
+}
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

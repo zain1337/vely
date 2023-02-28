@@ -1,0 +1,38 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+encode-web \-  (web_encoding)
+.SH PURPOSE
+Web(HTML)-encode string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+encode-web <string> to [ define ] <encoded string> \\
+    [ output-length [ define ] <encoded length> ] \\
+    [ input-length <length> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+encode-web encodes <string> so it can be used in a HTML-like markup text (such as a web page or an XML/XHTML document), and stores the result in <encoded string> which may be created with optional "define". <encoded string> is \fBallocated memory\fP.
+
+Optional "output-length" clause lets you get the length of the encoded string in <encoded length>, which can be created with optional "define". You can encode only the first <length> bytes, given by an "input-length" clause.
+
+.SH EXAMPLES
+In this example, a string "str" will be web-encoded and the result is in "result" variable, with its length in "len_of_result" variable:
+
+.RS 4
+.EX
+
+char str[]="  x<y>z&\[char92]"'  ";
+encode-web str to define result output-length define len_of_result
+
+.EE
+.RE
+
+The "result" is "   x&lt;y&gt;z&amp;&quot;&apos;  " and "len_of_result" is 33.
+.SH SEE ALSO
+ \fIWeb encoding\fP ( \fBdecode-web\fP   \fBencode-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

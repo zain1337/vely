@@ -1,0 +1,38 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+exit-code \-  (program_execution)
+.SH PURPOSE
+Return exit code when running from the \fBcommand_line\fP.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+exit-code <exit code>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+exit-code specifies <exit code> (which must be an integer expression) when the program runs from the \fBcommand_line\fP.
+
+exit-code can be specified anywhere in the code, and does not mean exiting the program. To exit the program, either use \fBexit-request\fP or simply allow \fBrequest\fP function to reach its end.
+
+When exit-code is not used, the default exit code is 0.
+
+.SH EXAMPLES
+When the program exits, its exit code will be 12:
+
+.RS 4
+.EX
+
+exit-code 12
+\[char46]..
+exit-request
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIProgram execution\fP ( \fBexec-program\fP   \fBexit-code\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

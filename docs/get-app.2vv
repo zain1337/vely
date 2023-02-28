@@ -1,0 +1,99 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+get-app \-  (application_information)
+.SH PURPOSE
+Obtain data that describes the application.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+get-app \\
+    name | directory | trace-directory | file-directory \\
+        | db-vendor <database configuration> | upload-size \\
+        | path \\
+    to [ define ] <variable>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+Application-related variables can be obtained with get-app statement. The following application variables can be obtained (they are all strings except upload-size):
+
+
+.RS 4
+\[bu]    
+"name" returns the name of your application, as specified when created (see \fBvf\fP). 
+
+
+.RE
+
+.RS 4
+\[bu]    
+"directory" is the directory where your application resides, i.e. the application home directory (see \fBhow_vely_works\fP).
+
+
+.RE
+
+.RS 4
+\[bu]    
+"trace-directory" is the directory where your application trace files are written (if enabled, see \fBhow_vely_works\fP).
+
+
+.RE
+
+.RS 4
+\[bu]    
+"file-directory" is the directory where Vely file storage system is, i.e. \fBfile_storage\fP.
+
+
+.RE
+
+.RS 4
+\[bu]    
+"db-vendor" is the database vendor name of database given by <database configuration> (as used for example in \fBrun-query\fP). You can use it to create database specific conditions. The database vendor name can be compared against predefined string constants VV_MARIADB (for MariaDB database), VV_POSTGRES (for Postgres database) and VV_SQLITE (for SQLite database).
+
+
+.RE
+
+.RS 4
+\[bu]    
+"path" is the leading path of the URL request that can be used to build web forms and links leading back to your application. It returns the same value as \fBp-path\fP.
+
+
+.RE
+
+.RS 4
+\[bu]    
+"upload-size" is the maximum allowed size of an uploaded file - this is a number.
+.RE
+
+Note that all these values are constants.
+
+.SH EXAMPLES
+Get the name of Vely application:
+
+.RS 4
+.EX
+
+get-app name to define appname
+
+.EE
+.RE
+
+Get the vendor of database db:
+
+.RS 4
+.EX
+
+get-app db-vendor db to define dbv
+if (!strcmp (dbv, VV_POSTGRES)) {
+    // do something Postgres specific
+}
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIApplication information\fP ( \fBget-app\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

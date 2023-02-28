@@ -1,0 +1,44 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+vely_dispatch_request \- Vely documentation (requests)
+.SH DESCRIPTION
+"void vely_dispatch_request()" is an automatically generated \fBrequest\fP-dispatching function in Vely. It uses request name (see \fBrequest_URL\fP) to call the appropriate request handler. 
+
+For example, if the request name is "myreq", then function with signature "void myreq()" will be called - such function must be implemented in "myreq.vely" source code file.
+
+You can implement two hooks into vely_dispatch_request(): one that executes before each request handling (\fBbefore_request_handler\fP) and one that executes afterwards (\fBafter_request_handler\fP).
+
+In terms of debugging, breaking in this function gives you a good starting point to debug the handling of any given request, for instance in gdb:
+
+.RS 4
+.EX
+
+br vely_dispatch_request
+
+.EE
+.RE
+
+If no request has been recognized (i.e. request name does not match any request-handling .vely source file), then 
+
+.RS 4
+\[bu]    
+no request handler will execute, 
+
+.RE
+
+.RS 4
+\[bu]    
+\fBbefore_request_handler\fP and \fBafter_request_handler\fP will not execute either,
+
+.RE
+
+.RS 4
+\[bu]    
+and a "Request not found" error will be reported via \fBreport-error\fP.
+.RE
+
+At the end of the request, all strings allocated by Vely will be freed.
+
+You cannot change the implementation of vely_dispatch_request(), but you can see it in the build directory (see \fBvv\fP).
+.SH SEE ALSO
+ \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

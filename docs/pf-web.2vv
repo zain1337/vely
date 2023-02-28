@@ -1,0 +1,33 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+pf-web \-  (output)
+.SH PURPOSE
+Outputs a web-encoded formatted string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+pf-web [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [ , <expression> ]...
+
+.EE
+.RE
+
+.SH DESCRIPTION
+pf-web is the same as \fBpf-out\fP, except that the output is web-encoded (or HTML-encoded). This means such output is suited for use in web pages - the text will be displayed verbatim without HTML-markup being interpreted.
+
+.SH EXAMPLES
+Display text containing HTML tags without them being rendered in the browser:
+
+.RS 4
+.EX
+
+pf-web "We use %s markup", "<hr/>"
+
+.EE
+.RE
+
+See \fBpf-out\fP for more examples.
+.SH SEE ALSO
+ \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,40 @@
+#!/bin/bash
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC.
+
+#generate SELinux policies
+
+#$1 is lib dir, $2 is data dir, $3 is bindir
+
+LDIR="$1"
+DDIR="$2"
+BDIR="$3"
+
+cd $LDIR
+mkdir -p tmp
+cp -f vv.te vv.fc vely.te tmp/
+cd tmp
+make -f /usr/share/selinux/devel/Makefile vv.pp 
+install -D -m 0600 vv.pp -t $DDIR/selinux/packages/ 
+checkmodule -M -m -o vely.mod vely.te 
+semodule_package -o vely.pp -m vely.mod 
+install -D -m 0600 vely.pp -t $DDIR/selinux/packages/ ;
+
+if (( $EUID == 0 )); then
+    semodule -n -i "$DDIR/selinux/packages/vv.pp"
+    semodule -n -i "$DDIR/selinux/packages/vely.pp"
+fi
+
+if [ -d "/var/lib/vv" ]; then 
+    if /usr/sbin/selinuxenabled ; then 
+        if (( $EUID == 0 )); then
+            load_policy
+            restorecon -R /var/lib/vv
+            restorecon -R $BDIR/vf
+        fi
+    fi
+fi
+
+cd $LDIR
+rm -rf tmp
+

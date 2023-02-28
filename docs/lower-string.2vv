@@ -1,0 +1,33 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+lower-string \-  (strings)
+.SH PURPOSE
+Lower-case a string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+lower-string <string>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+lower-string converts all <string>'s characters to lower case.
+
+.SH EXAMPLES
+The resulting "str" is "good":
+
+.RS 4
+.EX
+
+char str[]="GOOD";
+lower-string str
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

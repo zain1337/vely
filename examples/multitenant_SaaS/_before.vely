@@ -1,0 +1,24 @@
+#include "vely.h"
+#include "login.h"
+
+// _before() is a before-request-handler. It always executes before
+// any other code that handles a request. It's a good place for any
+// kind of request-wide setting or data initialization
+void _before() {
+    // Output HTTP header
+    out-header default
+    reqdata *rd; // this is global request data, see login.h
+    // allocate memory for global request data, will be automatically deallocated
+    // at the end of request
+    new-mem rd size sizeof(reqdata)
+    // initialize flags
+    rd->displayed_logout = false;
+    rd->is_logged_in = false;
+    // set the data we created to be global request data, accessible
+    // from any code that handles a request
+    set-req data rd
+    // check if session exists (based on cookies from the client)
+    // this executes before any other request-handling code, making it
+    // easier to just have session information ready
+    _check_session ();
+}

@@ -1,0 +1,368 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_cookies \- Vely documentation (examples)
+.SH DESCRIPTION
+A value is entered in the browser and saved as a cookie, then read back later. This example:
+
+.RS 4
+\[bu]    
+displays a web form, 
+
+.RE
+
+.RS 4
+\[bu]    
+when a form is submitted, uses the input to set a cookie in response,
+
+.RE
+
+.RS 4
+\[bu]    
+in a separate page, gets the cookie value and displays it.
+.RE
+
+This is the basic mechanism often used in saving web application states and session information.
+
+In a nutshell: 1 source files, 49 lines of code; no database; web browser; Apache; Unix sockets;
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+A web form is displayed where the user can enter a name. Clicking "Submit" sends it to the server:
+(Image cookies_enter.png not available in man page, see web page documentation)
+A reply page when the server receives the information and sets the cookie in the browser:
+(Image cookies_sent.png not available in man page, see web page documentation)
+A request sent to the server will now have the cookie, which the server code will read and display back:
+(Image cookies_show.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because it is used in this example, you will need to install \fBApache\fP as a web server.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/cookies.tar.gz
+cd cookies
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "cookies", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) cookies
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/cookies") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q 
+
+.EE
+.RE
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 cookies
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf cookies
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+To stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit cookies
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+- Step 1:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+- Step 2:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/cookies" is the application path (see \fBrequest_URL\fP) and "cookies" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/cookies" unix:///var/lib/vv/cookies/sock/sock|fcgi://localhost/cookies
+
+.EE
+.RE
+
+- Step 3:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35]Enter cookie 
+http://127.0.0.1/cookies/cookies?action=enter_cookie
+
+\[char35]Query entered cookie 
+http://127.0.0.1/cookies/cookies?action=query_cookie
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.SH FILES
+You are now done with the example! What follows are the source files in this project so you can examine how it works:
+
+.LP
+.B WORKING WITH COOKIES (COOKIES.VELY)
+.LP
+
+Usage of cookies is simple - \fBget-cookie\fP is used to obtain the cookie from a web client (i.e. a browser), and \fBset-cookie\fP to set the cookie in the browser when the response is sent back.
+
+Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter a value that is sent back to the server (see "enter_cookie" as the "action" parameter), which the server then sends back to the browser in response (see "save_cookie"), and finally with "query_cookie" this value can be obtained and displayed again. This demonstrates how server-side software uses cookies to manipulate and obtain the client state. 
+
+.RS 4
+.EX
+
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+
+\[char35]include "vely.h" 
+
+void cookies()
+{
+
+    input-param action
+
+    if (!strcmp (action, "enter_cookie")) {
+
+        // Display a form to get cookie value
+        out-header default
+        @<h2>Enter your name</h2>
+        @<form action="<<p-path>>/cookies" method="POST">
+        @    <input type="hidden" name="action" value="save_cookie">
+        @    <label for="cookie_value">Your name:</label><br/>
+        @    <input type="text" name="cookie_value" value=""><br/>
+        @    <br/> 
+        @    <input type="submit" value="Submit">
+        @</form>
+
+    } else if (!strcmp (action, "save_cookie")) {
+        
+        // Submittal of form: save the cookie through response to the browser
+        input-param cookie_value
+        get-time to define cookie_expiration year 1 timezone "GMT"
+        set-cookie "customer_name" = cookie_value  expires cookie_expiration  path "/"
+        out-header default
+        @Cookie sent to browser!
+        @<hr/>
+
+    } else if (!strcmp (action, "query_cookie")) {
+
+        // Web request that delivers cookie value back here (to server); display it.
+        get-cookie define name="customer_name"  
+        out-header default
+        @Customer name is <<p-web name>>
+        @<hr/>
+
+    } else {
+        out-header default
+        @Unrecognized action<hr/>
+    }
+
+}
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

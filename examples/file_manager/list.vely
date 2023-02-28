@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+#include "vely.h" // must always be here
+
+// List files
+void list ()
+{
+   // List current files in the database
+   out-header default
+   @<h2>List of files</h2>
+   @To add a file, <a href="<<p-path>>?req=start">click here</a><br/><br/>
+   @<table border="1">
+   @<tr>
+   @    <td>File</td><td>Description</td><td>Size</td><td>Show</td><td>Delete</td>
+   @</tr>
+
+   // get the list of files from the database
+   run-query @db_file_manager="select fileName, description, fileSize, fileID from files order by fileSize desc" output fileName, description, fileSize, fileID
+       query-result fileName to define file_name
+       query-result fileID to define file_ID
+       query-result description to define description
+       query-result fileSize to define file_size
+       // construct table output with links to Show and Delete files
+       @<tr>
+       @    <td><<p-web file_name>></td><td><<p-web description>><td><<p-web file_size>></td>
+       @    <td><a href="<<p-path>>?req=download&amp;file_id=<<p-url file_ID>>">Show</a></td>
+       @    <td><a href="<<p-path>>?req=delete&amp;action=confirm&amp;file_id=<<p-url file_ID>>">Delete</a></td>
+       @</tr>
+   end-query
+   @</table>
+}

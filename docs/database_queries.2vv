@@ -1,0 +1,56 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+database_queries \- Vely documentation (database)
+.SH DESCRIPTION
+
+.LP
+.B DATABASES
+.LP
+
+Your application can use any number of databases, specified by \fBdatabase_config_file\fPs. If only a single database is used, you may skip specifying a database with "@" clause. You can use different database vendors at the same time.
+
+.LP
+.B QUERY INTERFACE, SQL INJECTION
+.LP
+
+Vely has the same query interface for all databases (see for example \fBrun-query\fP). It provides means to execute dynamic as well as static queries; regardless, query input parameters are always separated from the query logic. This separation is in some cases emulated (see \fBrun-query\fP), and in others native, such as with prepared statements (see \fBrun-query\fP). In either case, Vely provides protection against SQL injections.
+
+.LP
+.B INPUT AND OUTPUT PARAMETERS
+.LP
+
+Input parameters and output resuls are always null-delimited strings. In web applications, more often than not, it is string values that are sought as output or provided as input, and conversion to other types rarely happens; there is surely a number of applications where the opposite may be true, but for the majority of applications this approach may work better. If data conversion is needed, it can be performed pre-query or post-query, depending on the purpose. The placeholder for input parameter is chosen to represent this approach, using single quotes (as text literals are single quoted in SQL) and %s (a C convention for string placeholders), thus '%s' is used for input parameters.
+
+.LP
+.B BINARY DATA
+.LP
+
+Binary data can be handled for storage or retrieval via hexadecimal strings (see \fBencode-hex\fP, \fBdecode-hex\fP) or Base64 (see \fBdecode-base64\fP, \fBencode-base64\fP); this is reasonable for smaller amounts of data. Note that storing large amounts of binary data in the database is generally less desirable than storing such data (for instance PDF or JPG documents) in the file system (see \fBfile_storage\fP), as manipulating and retrieving binary data is generally easier and faster that way.
+
+.LP
+.B PREPARED STATEMENTS
+.LP
+
+Prepared statements typically provide better performance but may not be ideal in every circumstance (see \fBprepared_statements\fP). 
+
+.LP
+.B MULTIPLE STATEMENTS
+.LP
+
+Multiple statements in one query can be executed in PostgreSQL, where only the last statement's result set is available, which is simpler and probably more manageable. MariaDB multiple statement execution is disabled by default, and so is for SQLite. Multiple statement execution isn't ideal as generally the number of statements may not be known in advance and retrieving multiple results sets can be challenging. Using stored procedures that return a single result set, or multiple queries to execute multiple statements are both better approach.
+
+Prepared queries, regardless of the database, can never be multiple statements, which is a limitation that exists in all databases.
+
+.LP
+.B CONNECTION PERSISTENCE AND REUSE, TRANSACTIONS
+.LP
+
+A single Vely process (see \fBhow_vely_works\fP and \fBvely_architecture\fP) keeps a single connection open to the database, which is shared between all requests a process will handle. Each request will either commit or rollback a transaction; if the transaction is neither committed nor rollback-ed, it will be rollback-ed with error (see \fBbegin-transaction\fP). If a database connection is lost, Vely will automatically re-establish it if possible. This allows for very fast query execution and essentially unlimited reuse of prepared statements.
+
+.LP
+.B AUTOCOMMIT
+.LP
+
+The autocommit feature is enabled by default on all supported databases. Do not disable it, as that would cause unpredictable and inconsistent behavior.  Whenever you need a transactional behavior, use \fBcommit-transaction\fP to begin a transaction and \fBcommit-transaction\fP/\fBrollback-transaction\fP to end it.  Also, in general, multiple DML statements (such as INSERT) are faster within a transaction block because the data is not flushed with each one, but rather once per block.
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,26 @@
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC.
+
+module vely 1.0;
+
+require {
+    type httpd_t;
+    type vvfile_t;
+    type vv_t;
+    type vvport_t;
+    type unconfined_t;
+    class sock_file write;
+    class unix_stream_socket connectto;
+    type unreserved_port_t;
+    class tcp_socket { name_bind name_connect };
+}
+
+
+
+#allow web server to connect to vv_t vely process
+allow httpd_t vv_t:unix_stream_socket connectto;
+#allow web server to write to vely socket (must also be allow by DAC, which sockets are, but nothing else)
+allow httpd_t vvfile_t:sock_file write;
+#allow web server to connect to vely processes only
+allow httpd_t vvport_t:tcp_socket name_connect;
+

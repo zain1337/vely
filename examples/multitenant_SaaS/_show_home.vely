@@ -1,0 +1,6 @@
+#include "vely.h"
+
+void _show_home() {
+    notes();
+    exit-request
+}

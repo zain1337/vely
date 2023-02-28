@@ -1,0 +1,46 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+trim-string \-  (strings)
+.SH PURPOSE
+Trim a string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+trim-string <string> [ length [ define ] <new length> ] [ result [ define ] <result> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+trim-string trims <string>, both on left and right. You can optionally get the length of the changed string by using "length" clause, in integer variable <new length>, which can be created with optional "define".
+
+Without "result" clause, trimming is in place, i.e. if necessary the bytes within <string> are shifted to the left, and the result is <string>. With "result" clause,  <result> points to trimmed value within <string>, i.e. there is no movement of memory - this is a faster trim, but the pointer to the result is no longer <string>. 
+
+.SH EXAMPLES
+The variable "str" will be "some string" and "new_len" will be 11:
+
+.RS 4
+.EX
+
+char str[] = "  some string  ";
+trim-string str length define new_len
+
+.EE
+.RE
+
+With "result" clause, the variable "str" will be "some string" and "new_len" will be 11, and "res" will point to (str+2):
+
+.RS 4
+.EX
+
+char str[] = "  some string  ";
+trim-string str length define new_len result define res
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

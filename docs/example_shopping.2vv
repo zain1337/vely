@@ -1,0 +1,924 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_shopping \- Vely documentation (examples)
+.SH DESCRIPTION
+This is a shopping web service REST API with basic functions:
+
+.RS 4
+\[bu]    
+add customer
+
+.RE
+
+.RS 4
+\[bu]    
+add item
+
+.RE
+
+.RS 4
+\[bu]    
+create order
+
+.RE
+
+.RS 4
+\[bu]    
+add item to order
+
+.RE
+
+.RS 4
+\[bu]    
+update order
+
+.RE
+
+.RS 4
+\[bu]    
+delete item from order
+
+.RE
+
+.RS 4
+\[bu]    
+delete order
+.RE
+
+The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details.
+
+The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
+
+In a nutshell: 11 source files, 212 lines of code; PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets;
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+ Add a customer (named Diana Vega). "Customer ID" is the result JSON text (in this case "3"):
+(Image shopping_add_customer.png not available in man page, see web page documentation)
+ Add two items ("chocolate bar" and "swiss cheese"). "Item ID" is the result JSON text for each:
+(Image shopping_add_items.png not available in man page, see web page documentation)
+ Add an order for customer created by specifying "Customer ID" (in this case it's "3"):
+(Image shopping_add_order.png not available in man page, see web page documentation)
+ Add two items to order created by specifying "Order ID" (in this case "5"). The two items are the ones created with "Item ID"s of "3" and "4", and quantities of items ordered are "2" and "1" respectively:
+(Image shopping_add_items_to_order.png not available in man page, see web page documentation)
+ Update an order by specifying "Order ID" (in this case "5"). The items is specified with "Item ID" (in this case "4") and the quantity is updated to "3":
+(Image shopping_update_order.png not available in man page, see web page documentation)
+ Delete an order with "Order ID" (in this case "3"). The result is JSON text specifying number of orders deleted (in this case "1"), and the number of items in it (in this case "0"):
+(Image shopping_delete_order.png not available in man page, see web page documentation)
+ List a single order by using "Order ID" (in this case "5"). JSON response contains customer and items information:
+(Image shopping_list_order.png not available in man page, see web page documentation)
+ List all orders. The JSON response contains customer and items information, and in this case there are two orders:
+(Image shopping_list_orders.png not available in man page, see web page documentation)
+ Deletes a line item (i.e. all items of the same kind) in an order. In this case "Item ID" specifies the item ("4") in an order given by "Order ID" ("5"). The result is the number of line items deleted:
+(Image shopping_delete_item_from_order.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because they are used in this example, you will need to install \fBApache\fP as a web server and \fBPostgreSQL\fP as a database.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/shopping.tar.gz
+cd shopping
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "shopping", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) shopping
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/shopping") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Before any coding, you need some place to store the information used by the application. First, you will create PostgreSQL database "db_shopping". You can change the database name, but remember to change it everywhere here. And then, you will create database objects in the database. 
+
+Note the example here uses peer-authentication, which is the default on all modern PostgreSQL installations - this means the database user name is the same as the Operating System user name.
+
+Execute the following in PostgreSQL database as root (using \fBpsql\fP utility):
+
+.RS 4
+.EX
+
+echo "create user $(whoami);
+create database db_shopping with owner=$(whoami);
+grant all on database db_shopping to $(whoami);
+\eq
+" | sudo -u postgres psql
+
+.EE
+.RE
+
+Next, login to database db_shopping and create the database objects for the application:
+
+.RS 4
+.EX
+
+psql -d db_shopping -f setup.sql
+
+.EE
+.RE
+
+
+.LP
+.B CONNECT VELY TO A DATABASE
+.LP
+
+In order to let Vely know where your database is and how to log into it, you will create \fBdatabase_config_file\fP named "db_shopping". This name doesn't have to be "db_shopping", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
+
+.RS 4
+.EX
+
+echo "user=$(whoami) dbname=db_shopping"  > db_shopping
+
+.EE
+.RE
+
+The above is a standard \fBpostgres connection string\fP that describes the login to the database you created. Since Vely uses native PostgreSQL connectivity, you can specify any connection string that your database lets you.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q --db=postgres:db_shopping --path="/api/v1/shopping"
+
+.EE
+.RE
+
+Note usage of --db option to specify PostgreSQL database and the database configuration file name.
+
+--path is used to specify the application path, see \fBrequest_URL\fP.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 shopping
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf shopping
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+To stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit shopping
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+- Step 1:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+- Step 2:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/api/v1/shopping" is the application path (see \fBrequest_URL\fP) and "shopping" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/api/v1/shopping" unix:///var/lib/vv/shopping/sock/sock|fcgi://localhost/shopping
+
+.EE
+.RE
+
+- Step 3:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+Here is REST API for the application.
+
+Substitute the loopback "127.0.0.1" with the IP or web address of your server.
+
+\fBTo add a customer\fP, use the POST URL to create new "customer" resource:
+
+.RS 4
+.EX
+
+curl -X POST  "http://127.0.0.1/api/v1/shopping/customers/first-name/<first name>/last-name/<last name>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X POST  "http://127.0.0.1/api/v1/shopping/customers/first-name/Mia/last-name/Beltran"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is <customer ID> of a newly created customer.
+
+\fBTo add an item\fP to the list of inventory items, use the POST URL to create new "item" resource:
+
+.RS 4
+.EX
+
+curl -X POST  "http://127.0.0.1/api/v1/shopping/items/name/<item name>?description=<item description>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X POST  "http://127.0.0.1/api/v1/shopping/items/name/rice-pudding?description=Delicious"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is <item ID> of a newly created item.
+
+\fBTo create an order\fP, use the following POST URL to create a new "order" resource, and use <customer ID> previously obtained:
+
+.RS 4
+.EX
+
+curl -X POST "http://127.0.0.1/api/v1/shopping/orders/customer-id/<customer ID>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X POST "http://127.0.0.1/api/v1/shopping/orders/customer-id/1"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is <order ID> of a newly created order.
+
+\fBTo add an item to an order\fP, use the following POST URL to create a new "order/item" resource, and use <order ID> and <item ID> previously obtained:
+
+.RS 4
+.EX
+
+curl -X POST "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>/item-id/<item ID>?quantity=<item quantity>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X POST "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/1?quantity=2"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is the number of line items created ("1" or "0").
+
+\fBTo update an order\fP (meaning change the number of items), use the following PUT URL, and use <order ID> and <item ID> previously obtained:
+
+.RS 4
+.EX
+
+curl -X PUT "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>/item-id/<item ID>?quantity=<item quantity>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X PUT "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/1?quantity=3"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is the number of line items updated ("1" or "0"). Per REST methodology, this is an idemopotent operation, i.e. it can be repeated any number of times with the same result.
+
+\fBTo delete an item from order\fP, use the following DELETE URL, and use <order ID> and <item ID> previously obtained:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>/item-id/<item ID>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/2"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is the number of line items delete ("1" or "0"). 
+
+\fBTo list all orders\fP, use the following GET URL:
+
+.RS 4
+.EX
+
+curl -X GET "http://127.0.0.1/api/v1/shopping/orders"
+
+.EE
+.RE
+
+The return value is a JSON document with all orders, including customer information, as well as items, their descriptions and quantities.
+
+\fBTo list a specific order\fP, use the following GET URL:
+
+.RS 4
+.EX
+
+curl -X GET "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X GET "http://127.0.0.1/api/v1/shopping/orders/order-id/1"
+
+.EE
+.RE
+
+The return value is a JSON document with a specific order, including customer information, as well as items, their descriptions and quantities.
+
+\fBTo delete a specific order\fP, use the following DELETE URL:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/<order id>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1"
+
+.EE
+.RE
+
+The return value is a JSON document with a number of orders and number of items deleted.
+
+.SH FILES
+You are now done with the example! What follows are the source files in this project so you can examine how it works:
+
+.LP
+.B CUSTOMERS RESOURCE (CUSTOMERS.VELY)
+.LP
+
+This implements REST API for a customer.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void customers()
+{
+    get-req method to define req_method
+
+    if (req_method == VV_POST) add_customer ();
+}
+
+.EE
+.RE
+
+
+.LP
+.B ORDERS RESOURCE (ORDERS.VELY)
+.LP
+
+This implements REST API for an order.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void orders()
+{
+    out-header use content-type "application/json"
+
+    get-req method to define req_method
+
+    if (req_method == VV_POST) {
+        input-param item_id
+        if (item_id[0] == 0) create_order (); else add_to_order();
+    }
+    else if (req_method == VV_PUT) update_order (); 
+    else if (req_method == VV_GET) list_orders ();
+    else if (req_method == VV_DELETE) { 
+        input-param item_id
+        if (item_id[0] == 0) delete_order (); else {
+            set-input "quantity" = "0"
+            update_order (); 
+        }
+    }
+}
+
+.EE
+.RE
+
+
+.LP
+.B ITEMS RESOURCE (ITEMS.VELY)
+.LP
+
+This implements REST API for an item. 
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void items()
+{
+    out-header use content-type "application/json"
+
+    get-req method to define req_method
+
+    if (req_method == VV_POST) add_item ();
+}
+
+.EE
+.RE
+
+
+.LP
+.B ADD A CUSTOMER (ADD_CUSTOMER.VELY)
+.LP
+
+This will add a new customer. Removing a customer is not included, and it should remove all its orders.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_customer()
+{
+    out-header use content-type "application/json"
+
+    input-param first_name
+    input-param last_name
+    // Add a customer SQL
+    run-query @db_shopping ="insert into customers (firstName, lastName) \\
+            values ('%s', '%s') returning customerID" output define customerID : \\
+            first_name, last_name
+        @"<<p-out customerID>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.LP
+.B ADD AN ITEM TO INVENTORY (ADD_ITEM.VELY)
+.LP
+
+Here an item is added to invetory available for sale.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_item()
+{
+    out-header use content-type "application/json"
+
+    input-param name
+    input-param description
+    // Add an item to inventory SQL
+    run-query @db_shopping ="insert into items (name, description) \\
+        values ('%s', '%s') returning itemID" output itemID : name, description
+        query-result itemID to define item_id
+        @"<<p-out item_id>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.LP
+.B CREATE AN ORDER (CREATE_ORDER.VELY)
+.LP
+
+This creates a new order, ready to have items added to it.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void create_order()
+{
+    out-header use content-type "application/json"
+
+    input-param customer_id
+    // SQL to create an order
+    run-query @db_shopping ="insert into orders (customerId) \\
+        values ('%s') returning orderID" output orderID : customer_id
+        query-result orderID to define order_id
+        @"<<p-out order_id>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.LP
+.B ADD ITEM TO ORDER (ADD_TO_ORDER.VELY)
+.LP
+
+Add an item to existing order.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_to_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    // SQL to add an item to an order
+    run-query @db_shopping ="insert into orderItems (orderId, itemID, quantity) values  ('%s', '%s', '%s')" \\
+        : order_id, item_id, quantity no-loop affected-rows define arows
+    @"<<p-num arows>>"
+}
+
+.EE
+.RE
+
+
+.LP
+.B UPDATE ITEM QUANTITY IN AN ORDER (UPDATE_ORDER.VELY)
+.LP
+
+If the quantity update is 0, the item is deleted from order, otherwise the quantity is updated.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void update_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    num arows;
+    // If quantity update is 0, issue SQL to delete an item from order, otherwise update 
+    if (!strcmp (quantity, "0")) {
+        run-query @db_shopping ="delete from orderItems where orderID='%s' and itemID='%s'" \\
+            : order_id, item_id no-loop affected-rows arows
+    } else {
+        run-query @db_shopping ="update orderItems set quantity='%s' where orderID='%s' and itemID='%s'" \\
+            : quantity, order_id, item_id no-loop affected-rows arows
+    }
+    @"<<p-num arows>>"
+}
+
+.EE
+.RE
+
+
+.LP
+.B LIST ORDERS AS JSON (LIST_ORDERS.VELY)
+.LP
+
+All orders are listed along with customer ID and name, and under each order are the items with their names, descriptions and quantity of items ordered.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "shopping.h"
+
+void list_orders()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+
+    num curr_order = 0;
+
+    // Start JSON output
+    @{ "orders": [ 
+
+    if (order_id[0] != 0) {
+        // Query just a specific order
+        run-query @db_shopping = "select o.orderID, c.customerID, c.firstName, c.lastName \\
+                from orders o, customers c \\
+                where o.customerID=c.customerID and o.orderId='%s'" \\
+                output define customer_id, first_name, last_name \\
+                row-count define order_count : order_id
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    } else {
+        // Query to get all orders
+        run-query @db_shopping ="select o.orderID, c.customerID, c.firstName, c.lastName \\
+                from orders o, customers c \\
+                where o.customerID=c.customerID order by o.orderId" \\
+                output define order_id, customer_id, first_name, last_name \\
+                row-count define order_count
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    }
+
+    // Finish JSON output
+    @   ]
+    @}
+}
+
+
+.EE
+.RE
+
+
+.LP
+.B REPRESENT ORDER AS JSON (_JSON_FROM_QUERY.VELY)
+.LP
+
+This will take order information from the list of orders (as directed by GET REST API for either all orders or a specific one), and find all items within an order. The JSON text is output.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "shopping.h"
+
+void _json_from_order (const char *order_id, num curr_order, num order_count, 
+    const char *customer_id, const char *first_name, const char *last_name)
+{
+    @   { 
+    @       "orderID": "<<p-out order_id>>",
+    @       "customer": 
+    @       {
+    @           "customerID": "<<p-out customer_id>>",
+    @           "firstName": "<<p-out first_name>>",
+    @           "lastName": "<<p-out last_name>>"
+    @       },
+    @       "items": [
+    num curr_item = 0;
+    // Query to get all items in an order
+    run-query @db_shopping ="select i.itemID, t.name, t.description, i.quantity \\
+            from orderItems i, items t where i.orderID='%s' \\
+                and t.itemID=i.itemID" \\
+            output itemID, itemName, itemDescription, itemQuantity : order_id \\
+            row-count define item_count
+        @       {
+        @           "itemID": "<<query-result itemID>>",
+        @           "itemName": "<<query-result itemName>>",
+        @           "itemDescription": "<<query-result itemDescription>>",
+        @           "itemQuantity": "<<query-result itemQuantity>>"
+        // add a comma if there are more items after this
+        @       }<<p-out ++curr_item < item_count ? ",":"">>
+    end-query
+    @   ]
+    // add a comma if there are more orders after this
+    @   }<<p-out ++curr_order < order_count ? ",":"">>
+}
+
+.EE
+.RE
+
+
+.LP
+.B INCLUDE FILE (SHOPPING.H)
+.LP
+
+This file has a function declaration for _json_from_query() so it can be used in multiple .vely files.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void _json_from_order (const char *order_id, num curr_order, num order_count, 
+    const char *customer_id, const char *first_name, const char *last_name);
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h" // must always be here
+
+
+// 
+// Post input from a web form
+//
+void form_post ()
+{
+
+    out-header default
+
+    input-param first_name
+    input-param last_name
+    run-query @db_form="insert into names(firstName, lastName) values ('%s','%s')" : first_name, last_name error define err
+    end-query
+
+    if (strcmp(err, "0")) {
+        @Could not add name, error [<<p-out err>>]
+        exit-request
+    }
+
+    @Name added to the database<hr/>
+}
+

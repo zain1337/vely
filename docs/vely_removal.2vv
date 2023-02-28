@@ -1,0 +1,24 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+vely_removal \- Vely documentation (general)
+.SH DESCRIPTION
+To remove Vely, use the standard packager you used to install it, such as dnf, apt or zypper, typically with "remove" option, for example:
+
+.RS 4
+.EX
+
+\[char35]fedora
+sudo dnf remove vely
+\[char35]debian
+sudo apt remove vely
+\[char35]openSUSE
+sudo zypper remove vely
+\[char35]ArchLinux (use -s to remove dependencies)
+sudo pacman -R vely
+
+.EE
+.RE
+
+Note that /var/lib/vv directory is not removed, as it generally contains application files. You may move such files or delete them as you see fit.
+.SH SEE ALSO
+ \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

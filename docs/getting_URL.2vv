@@ -1,0 +1,27 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+getting_URL \- Vely documentation (requests)
+.SH DESCRIPTION
+To get the URL used to make a \fBrequest\fP, use \fBget-sys\fP statement with "web-environment" clause. 
+
+For a query string, get the "QUERY_STRING" environment variable. For a full URL path, combine "SCRIPT_NAME" and "PATH_INFO" variables.
+
+To get a request body, use \fBrequest-body\fP statement.
+
+.SH EXAMPLES
+To get the full URL path in variable "fpath", concatenate "SCRIPT_NAME" and "PATH_INFO":
+
+.RS 4
+.EX
+
+get-sys web-environment "SCRIPT_NAME" to define sname
+get-sys web-environment "PATH_INFO" to define pinfo
+(( define fpath
+    @<<p-out sname>><<p-out pinfo>>
+))
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

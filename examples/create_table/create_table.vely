@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h" 
+
+void create_table()
+{
+
+    out-header default
+
+    // Drop existing table
+    run-query @db_create_table = "drop table if exists my_table"  error define err error-text define err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble dropping table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+
+    // Create table
+    run-query @db_create_table =  "create table if not exists my_table (my_number bigint)"  error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table created!<br/>
+
+    // Insert data into table
+    run-query @db_create_table="insert into my_table (my_number) values ('%s'), ('%s'), ('%s')" : "100", "200", "400" affected-rows define nrows
+    end-query
+    @Added <<pf-out "%lld", nrows>> rows!<br/>
+
+    // Select data we just inserted
+    @Getting data we inserted:<br/>
+    run-query @db_create_table="select my_number from my_table" output my_number
+        @I got number <<query-result my_number>>!<br/>
+    end-query
+
+    // Drop the table again
+    run-query @db_create_table =  "drop table if exists my_table" error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+    
+}
+

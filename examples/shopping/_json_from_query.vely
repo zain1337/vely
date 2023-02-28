@@ -1,0 +1,34 @@
+#include "vely.h"
+#include "shopping.h"
+
+void _json_from_order (const char *order_id, num curr_order, num order_count, 
+    const char *customer_id, const char *first_name, const char *last_name)
+{
+    @   { 
+    @       "orderID": "<<p-out order_id>>",
+    @       "customer": 
+    @       {
+    @           "customerID": "<<p-out customer_id>>",
+    @           "firstName": "<<p-out first_name>>",
+    @           "lastName": "<<p-out last_name>>"
+    @       },
+    @       "items": [
+    num curr_item = 0;
+    // Query to get all items in an order
+    run-query @db_shopping ="select i.itemID, t.name, t.description, i.quantity \
+            from orderItems i, items t where i.orderID='%s' \
+                and t.itemID=i.itemID" \
+            output itemID, itemName, itemDescription, itemQuantity : order_id \
+            row-count define item_count
+        @       {
+        @           "itemID": "<<query-result itemID>>",
+        @           "itemName": "<<query-result itemName>>",
+        @           "itemDescription": "<<query-result itemDescription>>",
+        @           "itemQuantity": "<<query-result itemQuantity>>"
+        // add a comma if there are more items after this
+        @       }<<p-out ++curr_item < item_count ? ",":"">>
+    end-query
+    @   ]
+    // add a comma if there are more orders after this
+    @   }<<p-out ++curr_order < order_count ? ",":"">>
+}

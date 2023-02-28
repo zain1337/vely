@@ -1,0 +1,286 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+run-query \-  (database)
+.SH PURPOSE
+Execute a query and loop through result set.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+run-query \\
+    [ @<database> ] \\
+    = <query text> \\
+    [ ( output [ define ] <column name> [ , ... ] ) | unknown-output ] \\
+    [ no-loop ] \\
+    [ error [ define ] <error> ] \\
+    [ error-text [ define ] <error text> ] \\
+    [ affected-rows [ define ] <affected rows> ] \\
+    [ row-count [ define ] <row count> ] \\
+    [ on-error-continue | on-error-exit ] \\
+    [ column-count [ define ] <column count> ] \\
+    [ column-names [ define ] <column names> ] \\
+    [ column-data [ define ] <column data> ] \\
+    [ : <input parameter> [ , ... ] ]
+
+    <any code>
+
+[ end-query ]
+
+run-prepared-query \\
+    ... ( the same as run-query ) ...
+
+.EE
+.RE
+
+.SH DESCRIPTION
+run-query executes a query specified with <query text>, which is a dynamic query text (i.e. computed at run-time), or it is a constant string value.
+
+.LP
+.B DATABASE
+.LP
+
+Optional <database> is specified in "@" clause and is the name of the \fBdatabase_config_file\fP. It is optional if there is only one database used (see \fBvv\fP), in which case it is the default.
+
+.LP
+.B OUTPUT
+.LP
+
+- output clause
+The optional "output" clause is a comma-delimited list of the query's output columns. These column names are used in \fBquery-result\fP to get the columns values. The column names do not need to match the actual query column names, rather you can name them anyway you want, as long as they positionally correspond. 
+
+If optional "define" is used, then string variables with the same name are created for each column and query's output assigned to them, in which case each name must be a valid C identifier name. For example:
+
+.RS 4
+.EX
+
+run-query @db = "select firstName, lastName from employees" output define first_name, last_name
+    ...
+end-loop
+
+.EE
+.RE
+
+is the same as:
+
+.RS 4
+.EX
+
+run-query @db = "select firstName, lastName from employees" output first_name, last_name
+    query-result first_name to define first_name
+    query-result last_name to define last_name
+    ...
+end-loop
+
+.EE
+.RE
+
+"define" is useful in "output" clause to quickly and efficiently create query's output variables in very little code.
+
+Note that the result obtained via "define" is always unencoded. If you need different encoding or other details about the result, use \fBquery-result\fP.
+
+- unknown-output clause
+If for some reason you don't know the number of output columns of the query (for instance in "SELECT * from ..." kind of query), use "unknown-output" clause, in which case you can use "column-data", "column-names" and "column-count" to get the query metadata in order to obtain the results. If you use neither "output" nor "unknown-output" clause, then your query has no output columns, for example it might be an "INSERT" or "DELETE" statement, or a DDL statement like "CREATE TABLE".
+
+.LP
+.B INPUT
+.LP
+
+The query's input parameters (if any) are specified with '%s' in the <query text> (note that single quotes must be included). The actual input variables are provided after optional semicolon (":"), in a list separated by a comma. Each input variable is a string regardless of the actual column type, as the database engine will interpret the data according to its usage. Each input variable is trimmed (left and right) before used in a query. Each <input parameter> may contain a comma if it is a string (i.e. quoted) or it is an expression within parenthesis.
+
+.LP
+.B LOOPING THROUGH DATA
+.LP
+
+"end-query" ends the loop in which query results are available (see \fBquery-result\fP). The optional "no-loop" clause includes implicit "end-query", and in that case no "end-query" can be used. This is useful if you don't want to access any output columns, but rather only affected rows (in INSERT or UPDATE for example), row count (in SELECT) or error code. "end-query" is also unnecessary for DDL statements like "CREATE INDEX" for instance.
+
+.LP
+.B AFFECTED ROWS
+.LP
+
+The optional "affected-rows" clause provides the number of <affected rows> (such as number of rows inserted by INSERT). The number of rows affected is typically used for DML operations such as INSERT, UPDATE or DELETE. For SELECT, it may or may not be the same as "row-count" which returns the number of rows from a query. See your database documentation for more. 
+
+<affected rows> can be created with optional "define".
+
+.LP
+.B ROWS RETURNED
+.LP
+
+The number of rows returned by a query can be obtained in optional <row count> in "row-count" clause. <row count> can be created with optional "define".
+
+.LP
+.B ERROR HANDLING
+.LP
+
+The query's error code is available in  <error> variable in optional "error" clause - this code is always "0" if query is successful. The <error> code may or may not be a number but is always returned as a string value. <error> is \fBallocated memory\fP. In case of error, error text is available in optional "error-text" clause in <error text>, which is \fBallocated memory\fP.
+
+"on-error-continue" clause specifies that \fBrequest\fP processing will continue in case of error, whereas "on-error-exit" clause specifies that it will exit. This setting overrides database-level \fBon-error\fP for this specific query only. If you use "on-error-continue", be sure to check the error code.
+
+<error> and <error text> can be created with optional "define".
+
+Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP)
+
+.LP
+.B RUN-PREPARED-QUERY
+.LP
+
+run-prepared-query is the same as run-query except for a few important differences; see \fBprepared_statements\fP.
+
+.LP
+.B QUERYING WHEN COLUMN NAMES ARE NOT KNOWN
+.LP
+
+If you do not know the column names (or even how many of them there are), use optional "column-count" clause to obtain the number of columns in <column count>, "column-names" to obtain the list of column names in <column names>, and "column-data" for the actual query results in <column data>. Use optional "define" to create any of them. To get a column count for instance:
+
+.RS 4
+.EX
+
+run-query @mydb ="select name, lastName yearOfHire from employee" no-loop column-count define col_count
+@Number of columns: <<p-num col_count>><br/>
+
+.EE
+.RE
+
+<column names> is an array of strings containing names of query columns. Column names can be obtained only if "unknown-output" is used. If "define" is used, the array of strings is created, otherwise you need to do it yourself, as in:
+
+.RS 4
+.EX
+
+char **col_names;
+run-query @mydb ="select name, lastName yearOfHire from employee" no-loop column-names col_names
+
+.EE
+.RE
+
+Note that column names are the names of query columns, which may or may not match any actual table column names, since query outputs can have aliases (and they must have them if the output is computed). In the following example, the output will be "employeeFirstName" and "employeeLastName" as they are aliases:
+
+.RS 4
+.EX
+
+run-query @mydb="select firstName employeeFirstName, lastName employeeLastName from employee" unknown-output \\
+    column-names to define col_names no-loop
+@Column names are <<p-web col_names[0]>>  and <<p-web col_names[1]>>
+
+.EE
+.RE
+
+The array of <column names>, as well as each member of this array, are \fBallocated memory\fP.
+
+"column-data" clause will store a query result into an array of strings <column data>. Typical use of column-data is when a query text is constructed on the fly and the exact list of result columns of a query is unknown (see "unknown-output" clause). In that case, when running the query you can obtain the query metadata, such as number of rows (with "row-count" clause), the number of columns (with "column-count") and the output column names (with "column-names"). This way the query result is described and you can interpret the data obtained with "column-data".
+
+"column-data" gets all the query's data laid out in a single data array, organized by repeating rows. For instance, suppose that table queried has 2 columns and the data is stored into "col_data" array. In that case, "col_data[0]" and "col_data[1]" would be the two columns' values from the first row, "col_data[2]" and "col_data[3]" would be the two columns' values from the second row, "col_data[4]" and "col_data[5]" would be the the columns' values from the third row etc. If "define" is used, then the <column data> variable is created. If it's not used, then you have to define the string array yourself, as in:
+
+.RS 4
+.EX
+
+char **col_data;
+run-query @mydb="select firstName employeeFirstName, lastName employeeLastName from employee" unknown-output \\
+    column-data to col_data
+
+.EE
+.RE
+
+This example obtains the number of rows and columns, as well as column names for a query. In this case the query is "select * from <table name>", where <table name> is provided at run-time - hence you might not know column names of the result set. Based on the number of rows and columns, all data resulting from the query is displayed in a "for" loop:
+
+.RS 4
+.EX
+
+void get_table_data (const char *table_name)
+{
+    //
+    // Construct the run-time text of SQL
+    //
+    (( define qry_txt
+    @select * from <<p-out table_name>>
+    ))
+
+    //
+    // Use unknown-output to demonstrate a solution if
+    // output columns of a query are difficult to obtain
+    //
+    //
+    // Run the query and obtain number of rows
+    // Obtain number of columns, column names, the actual column data
+    // Get actual table data
+    //
+    run-query @mydb = qry_txt unknown-output row-count define row_count no-loop \\
+        column-count  define col_count column-names define col_names column-data define col-data
+
+
+    //
+    // In a loop, go through all rows, and for each row, display all column info as well
+    // as the actual column data from the table.
+    //
+    num i;
+    num j;
+    for (j = 0; j <row_count; j++) {
+        //
+        // Display columns for each row
+        //
+        for (i = 0; i <col_count; i++) {
+            pf-out "colname %s, coldata %s\en", col_names[i], col_data[j*col_count+i]
+        }
+    }
+}
+
+.EE
+.RE
+
+The array of <column data>, as well as each member of this array, are \fBallocated memory\fP.
+
+.LP
+.B NOTES
+.LP
+
+"=" and "@" clauses may or may not have a space before the data that follows. So for example, these are both valid:
+
+.RS 4
+.EX
+
+// No space after "@" and "="
+run-query @db ="select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+
+// Space after "@" and "="
+run-query @ db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+
+.EE
+.RE
+
+
+.SH EXAMPLES
+Select first and last name (output is firstName and lastName) based on employee ID (specified by input parameter empid):
+
+.RS 4
+.EX
+
+input-param empid
+run-query @db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+    @Employee is <<query-result  firstName>> <<query-result  lastName>>
+end-query
+
+.EE
+.RE
+
+Prepared query without a loop and obtain error code and affected rows:
+
+.RS 4
+.EX
+
+run-prepared-query @db = qry no-loop error define ecode affected-rows define arows : stock_name, stock_price, stock_price
+
+.EE
+.RE
+
+When only a single database is used (a single \fBdatabase_config_file\fP for an application), then "@" clause can be omitted:
+
+.RS 4
+.EX
+
+run-query =myqry no-loop : stock_name, stock_price, stock_price
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

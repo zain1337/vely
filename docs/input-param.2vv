@@ -1,0 +1,114 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+input-param \-  (request_information)
+.SH PURPOSE
+Get input parameter.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+input-param <name>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+To obtain input parameters from an incoming \fBrequest\fP, use input-param. Whether it's a web or command-line application, input parameters are specified as name/value pairs (see \fBrequest_URL\fP). The value of input parameter <name> will be in the string variable with the same name. Input parameter values are trimmed for whitespace (both on left and right). 
+
+Input parameter name can be made up of alphanumeric characters, hyphen or underscore only and cannot start with a digit. Note that a hyphen is automatically converted to underscore, so an input parameter "some-parameter" in the HTTP request will be known in your code as "some_parameter". For example in URL:
+
+.RS 4
+.EX
+
+http://<your web server>/<app name>/some-request?my-par1=val1&my-par2=val2
+
+.EE
+.RE
+
+the request name will be "some_request" (handled by some_request.vely source code), and input parameters will be "my_par1" and "my_par2":
+
+.RS 4
+.EX
+
+input-param my_par1
+input-param my_par2
+
+.EE
+.RE
+
+
+.LP
+.B FILE UPLOADS
+.LP
+
+File uploads are handled as input parameters as well, see \fBfile_uploading\fP.
+
+.LP
+.B USING INPUT PARAMETERS
+.LP
+
+As an example, for HTML form input parameters named "param1" with value "value1" and "param2" with value "value2":
+
+.RS 4
+.EX
+
+<input type='hidden' name='param1' value='value1'>
+<input type='hidden' name='param2' value='value2'>
+
+.EE
+.RE
+
+you can get these parameters and print out their values by using:
+
+.RS 4
+.EX
+
+input-param param1
+input-param param2
+p-web param1
+p-web param2
+
+.EE
+.RE
+
+the output of which is:
+
+.RS 4
+.EX
+
+value1
+value2
+
+.EE
+.RE
+
+A request may be in the form of a web link URL, and getting the parameter values is the same:
+
+.RS 4
+.EX
+
+http://<your web server>/<app name>/<request name>&param1=value1&param2=value2
+
+.EE
+.RE
+
+
+.LP
+.B DUPLICATE PARAMETER NAMES
+.LP
+
+If there are multiple input parameters with the same name, such as 
+
+.RS 4
+.EX
+
+http://<web address>/<app name>/<request name>?par=val1&par=val2
+
+.EE
+.RE
+
+the value of input parameter "par" is undefined. Do not specify multiple input parameters with the same name.
+.SH SEE ALSO
+ \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

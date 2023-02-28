@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+
+#include "vely.h"
+
+void add_stock()
+{
+    out-header default
+    @<html>
+        @<body>
+        input-param name
+        input-param price
+        // Add data to stock table, update if the stock exists
+        run-query @db_stock = "insert into stock (stock_name, stock_price) values ('%s', '%s') on duplicate key update stock_price='%s'" : name, price, price error define err no-loop
+        if (strcmp (err, "0")) {
+            report-error "Cannot update stock price, error [%s]", err
+        }
+        @<div>
+            @Stock price updated!
+        @</div>
+        @</body>
+    @</html>
+}
+

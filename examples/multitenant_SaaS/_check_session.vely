@@ -1,0 +1,30 @@
+#include "vely.h"
+#include "login.h"
+
+
+// Check if session is valid
+void _check_session () {
+    // Get global request data
+    reqdata *rd;
+    get-req data to rd
+    // Get cookies from user browser
+    get-cookie rd->sess_userId="sess_userId"
+    get-cookie rd->sess_id="sess_id"
+    if (rd->sess_id[0] != 0) {
+        // Check if session ID is correct for given user ID
+        char *email;
+        run-query @db_multitenant_SaaS = "select email from users where userId='%s' and session='%s'" output email : rd->sess_userId, rd->sess_id row-count define rcount 
+            query-result email to email
+        end-query
+        if (rcount == 1) {
+            // if correct, set logged-in flag
+            rd->is_logged_in = true;
+            // if Logout link not display, then display it
+            if (rd->displayed_logout == false) {
+                get-app path to define upath
+                @Hi <<p-out email>>! <a href="<<p-out upath>>/login/actions/logout">Logout</a><br/>
+                rd->displayed_logout = true;
+            }
+        } else rd->is_logged_in = false;
+    }
+}

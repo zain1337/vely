@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+#include "vely.h"
+
+void temphist() {
+    out-header default
+
+    input-param action
+
+    if (!strcmp (action, "record")) {
+        input-param temp
+        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp affected-rows define rc error-text define er no-loop
+        if (rc != 1) {
+            @Could not insert temperature reading, error <<p-out er>>.
+        } else {
+            @Temperature reading stored.
+        }
+    }
+
+    else if (!strcmp (action, "list")) {
+        run-query @db_utility = "select temp, timest from temps order by timest" output temp, timest
+            @Date: <<query-result  timest>>
+            @Temperature: <<query-result  temp>>
+        end-query
+    }
+}

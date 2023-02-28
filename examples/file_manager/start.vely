@@ -1,0 +1,31 @@
+// SPDX-License-Identifier: EPL-2.0
+// Copyright 2018 DaSoftver LLC.
+#include "vely.h" // must always be here
+
+// Upload and list/download files
+void start ()
+{
+
+   out-header default
+
+   @<h2>File Manager</h2>
+
+   @To manage the uploaded files, <a href="<<p-path>>?req=list">click here.</a><br/>
+   @<br/>
+
+   // Form to upload a file
+
+   @<form action="<<p-path>>" method="POST" enctype="multipart/form-data">
+   @    <input type="hidden" name="req" value="upload">
+
+   @    <label for="file_description">File description:</label><br>
+   @    <textarea name="filedesc" rows="3" columns="50"></textarea><br/>
+   @    <br/>
+   @    <label for="filename">File:</label>
+   @    <input type="file" name="file" value=""><br><br>
+
+   @    <input type="submit" value="Submit">
+   @</form>
+
+}
+

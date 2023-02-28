@@ -1,0 +1,51 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+connect_nginx_unix_socket \- Vely documentation (web_servers)
+.SH DESCRIPTION
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
+
+- Step 1:
+You will need to edit the Nginx configuration file. For Ubuntu and similar:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/sites-enabled/default
+
+.EE
+.RE
+
+while on Fedora and other systems it might be at:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/nginx.conf
+
+.EE
+.RE
+
+
+Add the following in the "server {}" section ("/<app path>" is the application path (see \fBrequest_URL\fP) and "<app name>" is your application name):
+
+.RS 4
+.EX
+
+location /<app path> { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/<app name>/sock/sock; }
+
+.EE
+.RE
+
+- Step 2:
+Finally, restart Nginx:
+
+.RS 4
+.EX
+
+sudo systemctl restart nginx
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIWeb servers\fP ( \fBconnect_apache_tcp_socket\fP   \fBconnect_apache_unix_socket\fP   \fBconnect_nginx_tcp_socket\fP   \fBconnect_nginx_unix_socket\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

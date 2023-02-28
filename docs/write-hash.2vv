@@ -1,0 +1,53 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+write-hash \-  (hash_table)
+.SH PURPOSE
+Store key/value pair into a hash table.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+write-hash <hash> \\
+    key <key> \\
+    value <value> \\
+    [ status [ define ] <status> ] \\
+    [ old-value [ define ] <old value> ] 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+write-hash will store <key> (in "key" clause) with <value> (specified in "value" clause) into hash table <hash>, which must be created with \fBnew-hash\fP. <key> is a string and <value> can be a pointer of any type, allowing storage of any kind of data. <key> and <value> must not go out of scope or be freed while the hash is used - if necessary, store a copy (see \fBcopy-string\fP for strings).
+
+If <key> already exists in the hash table, then the pointer to old value associated with it is returned in the optional <old value> (in "old-value" clause) - in this case the optional number <status> (in "status" clause) has a value of VV_ERR_EXIST. If <key> did not exist, <status> will be VV_OKAY and <old value> is NULL. Both <status> and <old value> can be created with "define" clause.
+
+.SH EXAMPLES
+Writing data to hash:
+
+.RS 4
+.EX
+
+new-hash define h size 1000
+write-hash h key "mykey" value "some data"
+
+.EE
+.RE
+
+Writing new value with the same key and obtaining the previous value (which is "some data"):
+
+.RS 4
+.EX
+
+write-hash h key "mykey" value "new data" status define st old-value define od
+if (st == VV_ERR_EXIST) {
+    @Previous value for this key is <<p-out od>>
+}
+
+.EE
+.RE
+
+See \fBread-hash\fP for more examples.
+.SH SEE ALSO
+ \fIHash table\fP ( \fBget-hash\fP   \fBnew-hash\fP   \fBpurge-hash\fP   \fBread-hash\fP   \fBresize-hash\fP   \fBwrite-hash\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

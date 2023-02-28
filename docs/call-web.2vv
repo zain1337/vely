@@ -1,0 +1,230 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+call-web \-  (web)
+.SH PURPOSE
+Get content of URL resource (call a web address).
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+call-web <URL> \\
+    response [ define ] <result> \\
+    [ response-code [ define ] <response code> ] \\
+    [ response-headers [ define ] <headers> ] \\
+    [ status [ define ] <status> ] \\
+    [ method <request method> ] \\
+    [ request-headers [ content-type <content type> ] \\
+        custom <header name>=<header value> [ , ... ] ] \\
+    [ request-body \\
+        ( [ fields <field name>=<field value> [ , ... ] ] \\
+            [ files <file name>=<file location> [ , ... ] ] ) \\
+        | \\
+        ( payload <body content> [ payload-length <content length> ] ) \\
+    ] \\
+    [ error [ define ] <error> ] \\
+    [ cert <certificate> | no-cert ] \\
+    [ cookie-jar <cookie jar> ] \\
+    [ timeout <timeout> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+With call-web, you can get the content of any accessible URL resource, for example web page, image, PDF document, XML document, REST API etc. It allows you to programmatically download URL's content, including the header. For instance, you might want to obtain (i.e. download) the source code of a web page and its HTTP headers. You can then save such downloaded items into files, analyze them, or do anything else.
+
+<URL> is the resource locator, for example "https://some.web.page.com" or if you are downloading an image (for instance) it could be "https://web.page.com/image.jpg". Anything you can access from a client (such as web browser), you can also obtain programmatically. You can specify any URL parameters, for example "https://some.web.page.com?par1=val1&par2=val2".
+
+.LP
+.B RESPONSE AND HEADERS
+.LP
+
+The result is obtained via "response" clause into variable <result>, and the length (in bytes) of such response is obtained via "status" clause in <status> variable. <result> is \fBallocated memory\fP. 
+
+The response code (such as 200 for "OK", 404 for "Not Found" etc.) is available via optional "response-code" clause in number variable <response code>; the default value is 0 if response code is unavailable (due to error for instance).
+
+The optional "response-headers" clause allows for retrieval of response headers (such as HTTP headers) in <headers> variable, as a single string variable. <headers> is \fBallocated memory\fP.
+
+Each of <result>, <response code>, <headers> and <status> can be created if they don't exist with the corresponding "define".
+
+.LP
+.B REQUEST METHOD
+.LP
+
+You can specify the request method using "method" clause. <method> has a string value of the request method, such as "GET", "POST", "PUT", "PATCH", "DELETE" or any other.
+
+.LP
+.B STATUS
+.LP
+
+In case of error, <status> is negative, and has value of VV_ERR_FAILED (typically indicating system issue, such as lack of memory, library or system issue or local permissions), VV_ERR_WEB_CALL (error in accessing URL or obtaining data) - otherwise <status> is the length in bytes of the response (0 or positive). Optionally, you can obtain the error message (if any) via "error" clause in <error> variable (which can also be created with "define" if it doesn't exist). Error is an empty string ("") if there is no error. <error> is \fBallocated memory\fP.
+
+.LP
+.B TIMEOUT
+.LP
+
+If "timeout" clause is specified, call-web will timeout if operation has not completed within <timeout> seconds. If this clause is not specified, the default timeout is 120 seconds. If timeout occurs, <status> will be VV_ERR_WEB_CALL and <error> will indicate timeout. Timeout cannot be negative nor greater than 86400 seconds.
+
+.LP
+.B HTTPS AND CERTIFICATES
+.LP
+
+You can call any valid URL that uses protocol supported by the underlying library (cURL). If you're using https protocol (or any other that requires a SSL/TSL certificate), you can either use the local CA (certificate authority) issued, specify the location of a certificate with "cert" clause, or if you do not want it checked, use "no-cert". By default, the locally installed certificates are used; if the URL you are visiting is not trusted via those certificates, and you still want to visit it, use "no-cert"; and if you do have a no-CA (i.e. self-signed certificate) for that URL, use "cert" to provide it as a file name (either a full path or a name relative to current working directory, see \fBhow_vely_works\fP).
+
+.LP
+.B COOKIES
+.LP
+
+If you'd like to obtain cookies (for example to maintain session or examine their values), use "cookie-jar" clause. <cookie jar> specifies the location of a file holding cookies. Cookies are read from this file (which can be empty or non-existent to begin with) before making a call-web and any changes to cookies are reflected in this file after the call. This way, multiple calls to the same server maintain cookies the same way browser would do. Make sure the same <cookie jar> file is not used across different application spaces, meaning it should be under the application home directory (see \fBhow_vely_works\fP), which is the most likely method of implementation.
+
+.LP
+.B BINARY RESULT
+.LP
+
+The result of call-web (which is <result>) can be a text value or a binary value. If it is a binary value (for example if getting "JPG", "PNG", "PDF" or other documents), then <status> is the number of bytes in a buffer that holds the value. If it is a string value (such as if downloading "HTML" document as a text), then <status> is the string length.
+
+.LP
+.B REQUEST BODY, SENDING FILES AND ARBITRARY CONTENT
+.LP
+
+In order to include request body, for instance to send files, use "request-body" clause. Request body is typically used with POST, PUT or PATCH methods. Even though not common, you can also use it with GET, DELETE or any other custom method, such as for example if the resource you wish to identify requires binary data; perhaps a disposable image is used to identify the resource. 
+
+- Structured content
+Use "fields" and/or "files" subclauses to send a structured body request in the form of name/value pairs, the same as sent from an HTML form. To do that, you can specify fields with "fields" subclause in the form of <field name>=<field value> pairs separated by a comma. For instance, here two fields are set (field "source" with value "web" and field "act" with value "setcookie"):
+
+.RS 4
+.EX
+
+call-web "http://website.com/app_name/some_request" response resp response-code rc status len \\
+    request-body fields "source"="web","act"="setcookie"
+
+.EE
+.RE
+
+To include files, use "files" subclause in the form of <file name>=<file location> separated by commas. For example, here "file1" is the file name sent to the client (which can be anything), and local file "uploadtest.jpg" is the file whose contents is sent; and "file23" is the file name sent to the client (which can be anything),  and "fileup4.pdf" is the actual local file read and sent to the client. In this case files are in the application home directory (see \fBhow_vely_works\fP), but in general you can specify a relative or absolute path:
+
+.RS 4
+.EX
+
+call-web "http://website.com" response resp response-code rc status len \\
+    request-body files "file1"="uploadtest.jpg", "file23"="fileup4.pdf"
+
+.EE
+.RE
+
+You can specify both "files" and "fields" fields, for instance (along with getting error text and status):
+
+.RS 4
+.EX
+
+call-web "http://website.com/app_name/some_request" response resp response-code rc status len 
+    request-body fields "source"="web","act"="setcookie" \\
+        files "file1"="uploadtest.jpg", "file23"="fileup4.pdf" \\
+    status define st error err
+
+.EE
+.RE
+
+You can specify a maximum of 1000 files and fields.
+
+- Non-structured content
+To send any arbitrary (non-structured) content in the request body, such as JSON text for example, use "payload" subclause:
+
+.RS 4
+.EX
+
+call-web "https://website.com" response resp \\
+    request-headers content-type "application/json" \\
+    request-body payload "{ \\
+        \[char92]"employee\[char92]": { \\
+            \[char92]"name\[char92]":       \[char92]"sonoo\[char92]", \\
+            \[char92]"salary\[char92]":      56000, \\
+            \[char92]"married\[char92]":    true \\
+        } \\
+    }"  
+
+.EE
+.RE
+
+Optional "payload-length" subclause can be specified to denote the length of body content:
+
+.RS 4
+.EX
+
+read-file "somefile" to define file_contents status define file_length
+call-web "https://website.com" response resp \\
+    request-body payload file_contents \\
+    payload-length file_length
+
+.EE
+.RE
+
+If "payload-length" is not used, then it is assumed to be the length of string <payload>.
+
+.LP
+.B REQUEST HEADERS
+.LP
+
+If your request has a body (i.e. "request-body" clause is used), you can set the content type with "content-type" subclause of a request-headers clause:
+
+.RS 4
+.EX
+
+call-web "https://<web address>/resource" request-headers \\
+    content-type "application/json" \\
+    request-body payload some.json
+
+.EE
+.RE
+
+Note that using "content-type" without the request body may be ignored by the server processing your request or may cause it to consider the request invalid. If "content-type" is not used, the default is generally "multipart/form-data" if "fields" or "files" subclause(s) are used with "body-request" clause, or "application/x-www-form-urlencoded" otherwise. Thus, if you use "payload" subclause to send other types of data, you should set content type explicitly.
+
+You can also specify custom request headers with "request-headers" clause, using "custom" subclause with a list of <header name>=<header value> pairs separated by a comma. For example, here custom header "Vely-header" has value of "Some_ID", and "Another-Header" a value of "New_ID":
+
+.RS 4
+.EX
+
+call-web "http://website.com/<app name>/<request name>?act=get_file" response resp response-code rc status len \\
+    request-headers custom "Vely-header"="Some_ID", "Another-Header"="New_ID"
+
+.EE
+.RE
+
+On the receiving side you can get any such custom header by using "header" clause of the \fBget-req\fP statement:
+
+.RS 4
+.EX
+
+get-req header "Vely-header" to define hvh0
+get-req header "Another-Header" to define hvh1
+
+.EE
+.RE
+
+
+.SH EXAMPLES
+Get the web page and print it out:
+
+.RS 4
+.EX
+
+call-web "https://website.com/page.html" response define resp 
+p-out resp
+
+.EE
+.RE
+
+Get the "JPG" image from the web and save it to a file "pic.jpg":
+
+.RS 4
+.EX
+
+call-web "https://website.com/images/someimg.jpg" status define wlen response define resp
+write-file "pic.jpg" from resp length wlen
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

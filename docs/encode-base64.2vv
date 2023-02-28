@@ -1,0 +1,80 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+encode-base64 \-  (base64)
+.SH PURPOSE
+Base64 encode.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+encode-base64 <data> to [ define ] <output data> \\
+    [ input-length <input length> ] \\
+    [ output-length [ define ] <output length> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+encode-base64 will encode <data> into base64 string <output data>, which is \fBallocated memory\fP. 
+
+If "input-length" clause is used, then <input length> is the number of bytes encoded, otherwise <data> is treated as a null-terminated string and its length determined. 
+
+The result is stored in <output data> (in "to" clause), which can be created with optional "define". The length of the encoded string can be obtained via "output-length" clause in <output length>, which can be created with optional "define".
+
+Base64-encoded strings are often used where binary data needs to be in a format that complies with certain text-based protocols, such as in attaching documents in email, or embedding binary documents (such as "JPG" files for example) in web pages, such as with images with "data:image/jpg;base64..." specified, etc.
+
+.SH EXAMPLES
+Simple example that encodes a string and then decodes, and checks if they match:
+
+.RS 4
+.EX
+
+// Original string, generally this would be binary data in most cases
+char dt[]="  oh well  ";
+
+// Encode in base64
+encode-base64 dt to define out_dt 
+
+decode-base64 out_dt to define new_dt
+
+if (!strcmp (dt, new_dt)) {
+    @Success!
+} else {
+    @Failure!
+}
+
+.EE
+.RE
+
+In the next example, "input-length" and "output-length" clauses are used, and only a partial of the input string is encoded. The length of the final decoded string, as well as the string itself is checked against the original:
+
+.RS 4
+.EX
+
+ // Original string, generally this would be binary data in most cases
+char dt[]="  oh well  ";
+
+// Encode in base64, encode only 6 bytes
+encode-base64 dt input-length 6 to define out_dt output-length define out_len
+
+decode-base64 out_dt input-length out_len to define new_dt output-length define new_len
+
+if (new_len != 6) {
+    @Failure!
+} else {
+    @Success!
+}
+
+if (!strncmp(dt,new_dt,6)) {
+   @Success!
+} else {
+   @Failure!
+}
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIBase64\fP ( \fBdecode-base64\fP   \fBencode-base64\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

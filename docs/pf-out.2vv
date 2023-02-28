@@ -1,0 +1,66 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+pf-out \-  (output)
+.SH PURPOSE
+Outputs a formatted string without encoding.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+pf-out [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [ , <expression> ]...
+
+.EE
+.RE
+
+.SH DESCRIPTION
+pf-out formats a string according to the <format> string and a list of variable-type <expression>s (in the same way C's "printf()" does) and then outputs the result without any encoding (meaning a string is output exactly as it is, and the client may interpret such text in any way it sees fit). The result is sent to a client that made the request. If another string is built by using \fBwrite-string\fP, then the result is output into the buffer that builds a new string.
+
+<format> string must be present. If you'd like to know the number of bytes written out, use the optional "bytes-written" clause prior to <format>, in which case <bytes> holds the number of bytes written. If this variable is not defined, use "define" clause to create it within the statement. There must be at least one <expression> (it means if you want to print out a simple string literal you still have to use "%s" as format).
+
+If the optional "to-error" clause is used, the output is sent to "stderr", or standard output stream.
+
+.SH EXAMPLES
+To output data (the string output is "the number is 20" and the number of bytes written is in variable "bwritten"):
+
+.RS 4
+.EX
+
+pf-out bytes-written define bwritten "%s is %d", "the number", 20
+
+.EE
+.RE
+
+The following is writing to client, outputting text for which the browser will interpret tags "<br/>" and "<hr/>" as a line break and a horizontal line and display them as such:
+
+.RS 4
+.EX
+
+pf-out "<hr/> %s <br/>", "This is a non-encoded output"
+
+.EE
+.RE
+
+Create a query text string by means of \fBwrite-string\fP statement:
+
+.RS 4
+.EX
+
+void get_table_data (const char *table_name, num id_num)
+{
+ 
+   //
+   // Construct the run-time text of dynamic SQL
+   //
+   write-string define qry_txt
+   @select * from <<pf-out "%s where id="%lld", table_name, id_num>>
+   end-write-string
+ 
+}
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

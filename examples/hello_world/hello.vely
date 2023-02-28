@@ -1,0 +1,7 @@
+#include "vely.h"
+
+void hello()
+{
+   out-header default
+   @Hello World!
+}

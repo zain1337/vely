@@ -1,0 +1,48 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+vely_architecture \- Vely documentation (general)
+.SH DESCRIPTION
+
+.LP
+.B ARCHITECTURE OVERVIEW
+.LP
+
+A Vely program works as a \fBrequest\fP-reply processor. It can be either an application server or a command-line program that processes GET, POST, PUT, PATCH, DELETE or any other HTTP requests. 
+
+When it is an application server, it runs as \fBFastCGI\fP (FCGI) server processes that clients access through reverse proxies (typically web servers like Apache or Nginx). Any number of such Vely FCGI processes can run, including a dynamic number determined by the request load (ranging from 0 resident processes to any maximum number specified). Each Vely FCGI process handles one request at a time, and any number of such processes work in parallel, which means code and libraries used do not have to be thread-safe. Vely application layer is separate from the presentation (eg. web server) and data (eg. database) layers. These layers can run on multiple tiers, separated not only functionally, but physically as well (meaning they can run on different real or virtual hardware), improving scalability, reliability and security.
+
+When a Vely application runs in the \fBcommand_line\fP, a request is handled by a single execution of a compiled program. This option may be suitable for batch jobs, for use in shell scripts, as well as any other situation where it is more useful or convenient to execute a command-line program. Note that a command-line program can double as \fBCGI\fP (Common Gateway Interface) programs as well; this option may be suitable when high performance is not needed, or for other reasons.
+
+A Vely program can access database, internet/network, file system or any other computing resource.
+(Image arch1.png not available in man page, see web page documentation)
+
+.LP
+.B EXECUTION FLOWCHART
+.LP
+
+Before the very first request a Vely program serves, startup code in optional _startup.vely executes. Every request must have an application name and a request name in its \fBrequest_URL\fP (for instance "do_something"). Before handling this request, an optional before-request handler in _before.vely executes. Vely's request dispatcher will route the request to a function with the same name (in this case "void do_something()") that must reside in a file with the same name (which is do_something.vely). After the code in that file executes, an after-request handler in _after.vely executes (optional). This concludes request processing. Note that any .vely file name that starts with an underscore is a non-request file, that is, it doesn't process any requests and its code is used in other .vely files.
+(Image arch3.png not available in man page, see web page documentation)
+
+.LP
+.B PERFORMANCE AND STABILITY
+.LP
+
+Vely applications are native executables by design. This approach avoids performance loss associated with other schemes, such as byte-code, interpreters and similar. Consequently, small memory footprint is achieved with minimal code overhead and by using on-demand dynamic libraries whenever possible; less memory consumption and higher performance allow for better scaling in high-demand environments, with cloud applications and IOT (Internet of Things) being an example. 
+
+FastCGI server processes generally stay up across any number of requests, increasing response time. The balance between the number of processes and the memory usage during high request loads can be achieved with adaptive feature of \fBvf\fP, Vely's FastCGI process manager. Since Vely processes running in parallel are single-threaded, programming with Vely does not present challenges of thread-based programming and increases run-time stability.
+
+Vely supports use of prepared database queries with true automatic unlimited reuse across any number of requests; database connections are persistent and stay connected for the life of the server process.  
+
+As far as stability, Vely \fBstatement_APIs\fP are designed for safety, ease of use, encapsulation and to some extent abstraction of tasks required, making it more difficult to write unstable code. Handling of \fBallocated memory\fP includes memory tracking and garbage collection, preventing memory leaks which can be fatal to long running processes; similarly, files open with file-handling statements are automatically closed at the end of each request, serving the same purpose. Request-processing and process daemon-izing infrastructure is included. Where possible, use Vely statements and infrastructure instead of pure C in order to get the most of stability enhancing benefits.
+
+.LP
+.B FROM SOURCE CODE TO EXECUTABLE
+.LP
+
+All Vely code is in .vely files, which contain C code with Vely used freely within. To create an executable program, \fBvv\fP utility will preprocess .vely files into 100% C code, and link it. Linkage uses various libraries (database, internet etc.), and those are dynamically linked only if needed, keeping the executable the smallest possible. When code changes, Vely FCGI manager (\fBvf\fP) will restart the server (optional).
+(Image arch2.png not available in man page, see web page documentation)
+Vely programs are built in a single command-line step, and ready to use immediately (see \fBvv\fP). Flexible architecture means the exact same source code can run both as a server application (such as web application back-end) and a command-line program.
+
+Read more about \fBhow_vely_works\fP.
+.SH SEE ALSO
+ \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

@@ -1,0 +1,30 @@
+#include "vely.h"
+
+void json_all() {
+    out-header default
+
+    input-param json_text
+
+    // Parse json text and display any error and the position of it
+    new-json define json from json_text status define st error-text define etext error-position define epos
+    if (st != VV_OKAY) {
+        @Could not parse JSON! Error [<<p-out etext>>] at position <<p-num epos>>.
+        exit-request
+    }
+
+    // Traverse JSON document, node by node, display as a table of all data nodes
+    read-json json traverse begin
+    @<table border='1'>
+    while (1)
+    {
+        read-json json traverse key define k value define v type define t status define s
+        if (s != VV_OKAY) break; 
+        // Display name, value and type (ignore boolean and type since we don't have them)
+        @<tr> 
+            @<td><<p-out k>></td> <td><<p-out v>></td> 
+            @<td><<p-out t==VV_JSON_TYPE_NUMBER?"Number":(t==VV_JSON_TYPE_STRING?"String":"Other")>></td>
+        @</tr>
+    }
+    @</table>
+
+}

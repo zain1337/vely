@@ -1,0 +1,40 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+delete-cookie \-  (cookies)
+.SH PURPOSE
+Deletes a cookie.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+delete-cookie <cookie name> [ path <cookie path> ] [ status [ define ] <status> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+delete-cookie marks a cookie named <cookie name> for deletion, so it is sent back in the reply telling the client (such as browser) to delete it. 
+
+<cookie name> is a cookie that was either received from the client as a part of the request, or was added with \fBset-cookie\fP. 
+
+A cookie can be deleted before or after sending out a header (see \fBout-header\fP). However a cookie must be deleted prior to outputting any actual response (such as with \fBoutput_statement\fP or \fBp-out\fP for example), or the program will error out and stop.
+
+<status> is the integer variable (which can be created with "define" if it does not exist) that will be -1 if the cookie did not exist, or 0 or greater if it did.
+
+The same cookie name may be stored under different URL paths. You can use the optional "path" clause to specify <cookie path> to ensure the desired cookie is deleted. 
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+delete-cookie "my_cookie"
+delete-cookie "my_cookie" path "/path"
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fICookies\fP ( \fBdelete-cookie\fP   \fBget-cookie\fP   \fBset-cookie\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

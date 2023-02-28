@@ -1,0 +1,22 @@
+#include "vely.h"
+
+void orders()
+{
+    out-header use content-type "application/json"
+
+    get-req method to define req_method
+
+    if (req_method == VV_POST) {
+        input-param item_id
+        if (item_id[0] == 0) create_order (); else add_to_order();
+    }
+    else if (req_method == VV_PUT) update_order (); 
+    else if (req_method == VV_GET) list_orders ();
+    else if (req_method == VV_DELETE) { 
+        input-param item_id
+        if (item_id[0] == 0) delete_order (); else {
+            set-input "quantity" = "0"
+            update_order (); 
+        }
+    }
+}

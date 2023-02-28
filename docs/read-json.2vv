@@ -1,0 +1,215 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+read-json \-  (JSON)
+.SH PURPOSE
+Parse JSON text and get values.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+// Random access to JSON data:
+
+read-json <json> key <key> \\
+    value [ define ] <value> \\
+    [ status [ define ] <status> ]
+    [ type [ define ] <type> ]
+
+// Sequential access to JSON data:
+
+read-json <json> traverse begin
+
+read-json <json> traverse \\
+    key [ define ] <key> \\
+    value [ define ] <value> \\
+    [ status [ define ] <status> ] \\
+    [ type [ define ] <type> ] 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+read-json will obtain the values from <json> variable that was produced by parsing JSON text with \fBnew-json\fP. 
+
+.LP
+.B WITHOUT "TRAVERSE" CLAUSE
+.LP
+
+key/value pairs are accessed with "key" clause specifying a normalized key name, which is the value's name preceded with the names of all objects and array members leading up to it, separated by a comma, with each name quoted. The actual <value> is obtained with "value" clause, and the <type> of value can be obtained with optional "type" clause.
+
+The <status> variable in "status" clause is either VV_OKAY on success (meaning value is obtained) or VV_ERR_EXIST if not found. The value is stored in string variable <value> specified in "value" clause.  
+
+<value>, <type> and <status> can be created with optional "define".
+
+Optional number <type> in "type" clause will contain the type of data, which can be VV_JSON_TYPE_STRING, VV_JSON_TYPE_NUMBER, VV_JSON_TYPE_REAL, VV_JSON_TYPE_BOOL or VV_JSON_TYPE_NULL  for a string, integer, decimal, boolean and null value respectively.
+
+.LP
+.B WITH "TRAVERSE" CLAUSE
+.LP
+
+This allows sequential access to JSON values. No key is specified, rather key/value pairs are obtained in sequence from beginning to the end. <key> can be created with optional "define". The other clauses used are the same as without "traverse". 
+
+.LP
+.B RANDOM ACCESS VIA BUILT-IN HASH
+.LP
+
+You can access randomly any number, string, boolean or null value within a JSON document without having to create a matching structure in your program. Internally, Vely creates a hash table for fast and direct access to any key/value pair (see \fBnew-json\fP).
+
+.LP
+.B KEYS (NORMALIZED NAMES)
+.LP
+
+<key> in "key" clause is a normalized name of any given leaf node in JSON text. This means every non-leaf node is included (such as arrays and objects), separated by a dot ("."), and arrays are indexed with "[]". An example would be:
+
+.RS 4
+.EX
+
+"menu"."popup"."menuitem"[1]."onclick"
+
+.EE
+.RE
+
+For instance, the above is a normalized name in this JSON text with the value of "OpenDoc()":
+
+.RS 4
+.EX
+
+{"menu": {
+  "id": "file",
+  "value": "File",
+  "popup": {
+    "menuitem": [
+      {"value": "New", "onclick": "CreateNewDoc()"},
+      {"value": "Open", "onclick": "OpenDoc()"},
+      {"value": "Close", "onclick": "CloseDoc()"}
+    ]
+  }
+}
+
+.EE
+.RE
+
+the normalized names for all leaf nodes are:
+
+.RS 4
+.EX
+
+"menu"."id"
+"menu"."value"
+"menu"."popup"."menuitem"[0]."value"
+"menu"."popup"."menuitem"[0]."onclick"
+"menu"."popup"."menuitem"[1]."value"
+"menu"."popup"."menuitem"[1]."onclick"
+"menu"."popup"."menuitem"[2]."value"
+"menu"."popup"."menuitem"[2]."onclick"
+
+.EE
+.RE
+
+The code to parse this JSON text might then look like:
+
+.RS 4
+.EX
+
+// Json text
+char json_text[] =\\
+"{\[char92]"menu\[char92]":\\
+{\[char92]"id\[char92]": \[char92]"file\[char92]",\\
+\[char92]"value\[char92]": \[char92]"File\[char92]",\\
+\[char92]"popup\[char92]":\\
+    {\[char92]"menuitem\[char92]":\\
+        [{\[char92]"value\[char92]": \[char92]"New\[char92]", \[char92]"onclick\[char92]": \[char92]"CreateNewDoc()\[char92]"},\\
+        {\[char92]"value\[char92]": \[char92]"Open\[char92]", \[char92]"onclick\[char92]": \[char92]"OpenDoc()\[char92]"},\\
+        {\[char92]"value\[char92]": \[char92]"Close\[char92]", \[char92]"onclick\[char92]": \[char92]"CloseDoc()\[char92]"}\\
+        ]\\
+    }\\
+}\\
+}\en";
+
+// Parse json text
+new-json define json_var from json_text status define st error-text define errt error-position define errp
+if (st != VV_OKAY) {
+    @Could not parse json, error <<p-out errt>> at position <<p-num errp>>
+} else {
+    @Json parsed okay.
+}
+
+// Get value based on key
+read-json json_var key "menu"."popup"."menuitem"[1]."onclick" value define val status st
+if (st != VV_OKAY) {
+    @Could not find json key
+} else {
+    @Key value is <<p-out val>>
+}
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+Json parsed okay.
+Key value is OpenDoc()
+
+.EE
+.RE
+
+
+.LP
+.B VALUES
+.LP
+
+All values are always returned as strings. This is because in many cases that's how they are used in an application and converting them to other types (like numbers) and back again would affect performance. 
+
+Vely checks type validity - for example an invalid integer or decimal number will produce an error. If you need to convert a value to a number you can use C's library functions like atoll() or atof(). 
+
+String values are returned encoded as UTF8, and any escaped characters (like \en or \et) are converted to their binary equivalent (use "noencode" in \fBnew-json\fP to skip this). Such encoded strings can be output anywhere, from a terminal to a client (like browser).
+
+.LP
+.B WALK THROUGH JSON DOCUMENT
+.LP
+
+Use "traverse" clause to access JSON nodes sequentially, one by one, from the beginning to the end. Use "traverse begin" to rewind to the beginning, and then read data using "traverse" with "key" clause.
+
+The following code loops through all the leaf nodes of a JSON document - you can also use it to examine a JSON document with unknown structure:
+
+.RS 4
+.EX
+
+// Parse JSON
+new-json define jv from json_text 
+
+// Position at the beginning of the JSON document
+read-json jv traverse begin
+
+// Loop through all JSON leaf nodes, obtain normalized name, type and value
+while (1)
+{
+    // Get nodes' key, value and type. Check status for end of loop detection.
+    read-json jv traverse key define k value define v type define t status define s
+
+    if (s != VV_OKAY) break; // end of loop
+
+    // Output name, value and type
+    pf-out "Name [%s], value [%s], type [%lld]\en", k, v, t
+}
+
+.EE
+.RE
+
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+read-json jv key "glossary"."title" value d
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIJSON\fP ( \fBdelete-json\fP   \fBnew-json\fP   \fBread-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

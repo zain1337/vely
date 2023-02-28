@@ -1,0 +1,15 @@
+#include "vely.h"
+
+void delete_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    begin-transaction 
+    run-query @db_shopping ="delete from orders where orderID='%s'" : order_id \
+        no-loop affected-rows define order_rows
+    run-query @db_shopping ="delete from orderItems where orderID='%s'" : order_id \
+        no-loop affected-rows define item_rows
+    commit-transaction
+    @{ "orders":"<<p-num order_rows>>", "items":"<<p-num item_rows>>" }
+}

@@ -1,0 +1,46 @@
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2017 DaSoftver LLC.
+
+policy_module(vv, 2.0.0)
+
+########################################
+#
+# Declarations
+#
+
+#create vv file type
+type vvfile_t;
+files_type(vvfile_t);
+
+
+#create vv execute type
+type vv_t;
+domain_type(vv_t)
+
+#create fcgi port type for vely
+type vvport_t;
+corenet_port(vvport_t)
+
+#make execute type be the same as unconfined_t
+optional_policy(`
+     unconfined_domain(vv_t)
+')
+
+require {
+    type unconfined_t;
+    role unconfined_r;
+}
+
+#add to unconfine role
+role unconfined_r types vv_t;
+#set transition on execution of vvfile_t (by the unconfined process) to vv_t type
+type_transition unconfined_t vvfile_t : process vv_t;
+#allow transition from unconfined to vv_t
+allow unconfined_t vv_t : process transition;
+#allow execution of vvfile_t by the unconfined (which will then transion as above)
+allow unconfined_t vvfile_t : file { execute read getattr };
+#allow vv_t process domain to actually execute the vvfile_t
+allow vv_t vvfile_t : file {  ioctl read getattr lock execute execute_no_trans entrypoint open} ;
+#allow vely port to bind
+allow vv_t vvport_t:tcp_socket { connect bind name_bind accept listen};
+

@@ -1,0 +1,24 @@
+#SPDX-License-Identifier: EPL-2.0
+#Copyright 2018 DaSoftver LLC.
+
+Source: vely
+Section: utils
+Priority: optional
+Maintainer: Dasoftver <vely@vely.dev>
+#To install build dependencies:
+#sudo apt update
+#sudo apt -y install devscripts equivs build-essential lintian
+#mk-build-deps -i -s sudo debian/control
+Build-Depends: gnupg, libssl-dev, curl, libcurl4, libcurl4-openssl-dev, libmariadb-dev, zlib1g-dev, devscripts, dpkg-sig, reprepro, debhelper(>= 11), libfcgi-dev, libpq-dev, libsqlite3-dev
+Standards-Version: 4.1.2
+Homepage: https://vely.dev
+Vcs-Browser: https://vely.dev
+
+Package: vely
+Architecture: any
+#libfcgi-bin is for cgi-fcgi utility
+Depends: build-essential, apt-transport-https, libssl-dev, curl, libcurl4, libcurl4-openssl-dev, libmariadb-dev, zlib1g-dev, ${shlibs:Depends}, ${misc:Depends}, libfcgi-bin, libfcgi-dev, libpq-dev, libsqlite3-dev
+Description: Framework for C programming language.
+ Rapid development of web and command-line applications.
+
+

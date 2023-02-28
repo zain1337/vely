@@ -1,0 +1,66 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+read-fifo \-  (FIFO)
+.SH PURPOSE
+Reads key/value pair from a FIFO list.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+read-fifo <list> \\
+    key [ define ] <key> \\
+    value [ define ] <value>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+read-fifo retrieves a key/value pair from the FIFO <list>, storing them into <key> (in "key" clause) and <value> (in "value" clause), both of which can be created as strings with optional "define".
+
+Once a key/value pair has been retrieved, the next use of \fBread-fifo\fP will obtain the following pair, in the same order they were put in. If the obtained <key> is NULL, the end of the list was reached. \fBread-fifo\fP starts with the first key/value pair put in, and moves forward from there, unless \fBrewind-fifo\fP is called, which positions back to the first pair.
+
+.SH EXAMPLES
+In this example, a FIFO list is created, and two key/value pairs added. They are then retrieved in a loop and printed out (twice with rewind), and then the list is purged:
+
+.RS 4
+.EX
+
+// Create a list
+new-fifo mylist
+
+// Add data to the list
+write-fifo mylist key "key1" value "value1"
+write-fifo mylist key "some2" value "other2"
+
+while (1) {
+    // Get data from the list
+    read-fifo mylist key define k value define v
+
+    // Check if no more data
+    if (k == NULL) {
+        break;
+    }
+
+    @Obtained key <<p-out k>> with value <<p-out v>>
+}
+
+// Go through the list again, use rewind-fifo for that
+rewind-fifo mylist
+
+while (1) {
+    read-fifo mylist key define k value define v
+    if (k == NULL) {
+        break;
+    }
+    @Again obtained key <<p-out k>> with value <<p-out v>>
+}
+
+purge-fifo mylist
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
