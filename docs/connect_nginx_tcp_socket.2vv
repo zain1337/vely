@@ -4,7 +4,9 @@ connect_nginx_tcp_socket \- Vely documentation (web_servers)
 .SH DESCRIPTION
 This shows how to connect your application listening at TCP port <port number> (started with "-p" option in \fBvf\fP) to Nginx web server.
 
-- Step 1:
+
+.B - Step 1
+:
 You will need to edit the Nginx configuration file. For Ubuntu and similar:
 
 .RS 4
@@ -36,7 +38,9 @@ location /<app path> { include /etc/nginx/fastcgi_params; fastcgi_pass  127.0.0.
 .EE
 .RE
 
-- Step 2:
+
+.B - Step 2
+:
 Finally, restart Nginx:
 
 .RS 4

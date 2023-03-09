@@ -9,7 +9,7 @@ Deletes a cookie.
 .RS 4
 .EX
 
-delete-cookie <cookie name> [ path <cookie path> ] [ status [ define ] <status> ]
+delete-cookie <cookie name> [ path <cookie path> ] [ status [ define ] <status> ] [ secure <secure> ]
 
 .EE
 .RE
@@ -17,11 +17,13 @@ delete-cookie <cookie name> [ path <cookie path> ] [ status [ define ] <status> 
 .SH DESCRIPTION
 delete-cookie marks a cookie named <cookie name> for deletion, so it is sent back in the reply telling the client (such as browser) to delete it. 
 
+Newer client implementations require a cookie deletion to use a secure context if the cookie is considered secure, and it is recommended to use "secure" clause to delete such a cookie. This is the case when either "secure" clause is used without optional boolean expression <secure>, or if <secure> evaluates to true.
+
 <cookie name> is a cookie that was either received from the client as a part of the request, or was added with \fBset-cookie\fP. 
 
 A cookie can be deleted before or after sending out a header (see \fBout-header\fP). However a cookie must be deleted prior to outputting any actual response (such as with \fBoutput_statement\fP or \fBp-out\fP for example), or the program will error out and stop.
 
-<status> is the integer variable (which can be created with "define" if it does not exist) that will be -1 if the cookie did not exist, or 0 or greater if it did.
+<status> is the integer variable (which can be created with optional "define") that will be -1 if the cookie did not exist, or 0 or greater if it did.
 
 The same cookie name may be stored under different URL paths. You can use the optional "path" clause to specify <cookie path> to ensure the desired cookie is deleted. 
 
@@ -31,7 +33,8 @@ The same cookie name may be stored under different URL paths. You can use the op
 .EX
 
 delete-cookie "my_cookie"
-delete-cookie "my_cookie" path "/path"
+bool is_secure = true;
+delete-cookie "my_cookie" path "/path" secure is_secure
 
 .EE
 .RE

@@ -31,6 +31,7 @@ void vely_flush_trace();
 void vely_write_ereport(const char *errtext, vely_config *pc);
 void vely_read_child (int ofd, char **out_buf, num *out_len);
 void vely_gen_header_end ();
+void vely_check_set_cookie (const char *name, const char *val, const char *secure, const char *samesite, const char *httponly, char *safety_clause, size_t safety_clause_len);
 // write-string macros
 #define VV_WRSTR_CUR (vely_get_config()->ctx.req->curr_write_to_string)
 #define VV_WRSTR (vely_get_config()->ctx.req->write_string_arr[VV_WRSTR_CUR])
@@ -220,10 +221,57 @@ void vely_output_http_header(vely_input_req *req)
     vely_send_header(req);
 }
 
+void vely_check_set_cookie (const char *name, const char *val, const char *secure, const char *samesite, const char *httponly, char *safety_clause, size_t safety_clause_len)
+{
+    VV_TRACE("");	
+    const char *chk = name;
+    // Per rfc6265, cookie name must adhere to this and be present
+    while (*chk != 0)
+    {
+        if (*chk < 33 || *chk == 127 || // this excludes space, tab and control chars
+            *chk == '(' || *chk == ')' || *chk == '@' || *chk == ',' || *chk == ';' || *chk == ':' || *chk == '\\' ||
+            *chk == '"' || *chk == '/' || *chk == '[' || *chk == ']' || *chk == '?' || *chk == '=' ||
+            *chk == '{' || *chk == '}')
+        {
+            vely_report_error ("Cookie name [%s] is invalid at [%s]", name, chk);
+        }
+        chk ++;
+    }
+    if (name[0] == 0) vely_report_error ("Cookie name is empty");
+    // Per rfc6265, cookie value must adhere to this and be present
+    chk = val;
+    while (*chk != 0)
+    {
+        if (*chk < 33 || *chk == 127 || // this excludes space, tab and control chars
+            *chk == ',' || *chk == ';' || *chk == '\\' ||
+            (*chk == '"' && (chk != val && *(chk+1) != 0))) // quote is allowed only as first and last byte, not inside
+        {
+            vely_report_error ("Cookie value [%s] is invalid at [%s]", val, chk);
+        }
+        chk ++;
+    }
+    if (val[0] == 0) vely_report_error ("Cookie value is empty");
+    if (strcmp(secure, "Secure; ") && strcmp (secure, ""))
+    {
+        vely_report_error ("Cookie 'secure' can be only on or off, it is [%s]", secure);
+    }
+    if (strcmp(httponly, "HttpOnly; ") && strcmp (httponly, ""))
+    {
+        vely_report_error ("Cookie HttpOnly can be only on or off, it is [%s]", httponly);
+    }
+    if (samesite[0] != 0 && strcmp(samesite, "Strict") && strcmp (samesite, "Lax") && strcmp (samesite, "None"))
+    {
+        vely_report_error ("Cookie SameSite can be only empty, Strict, Lax or None");
+    }
+    if (samesite[0] != 0) snprintf (safety_clause, safety_clause_len, "; %s%sSameSite=%s", secure, httponly, samesite);
+    else snprintf (safety_clause, safety_clause_len, "; %s%s", secure, httponly);
+}
+
+
 // 
 // Sets cookie that's to be sent out when header is sent. req is input request, cookie_name is the name of the cookie,
 // cookie_value is its value, path is the URL for which cookie is valid, expires is the date of exiration.
-// SameSite is strict by default to prevent cross-site request exploitations, for enhanced safety. Otherwise samesite can be
+// SameSite is empty by default. Strict is to prevent cross-site request exploitations, for enhanced safety. Otherwise samesite can be
 // Strict, Lax or None.
 // httponly can be either "HttpOnly; " or empty string
 // cookies[].is_set_by_program is set to  1 if this is the cookie we changed (i.e. not original in the web input).
@@ -238,19 +286,7 @@ void vely_set_cookie (vely_input_req *req, const char *cookie_name, const char *
     }
 
     char safety_clause[200];
-    if (strcmp(secure, "secure; ") && strcmp (secure, ""))
-    {
-        vely_report_error ("Cookie 'secure' can be only on or off");
-    }
-    if (strcmp(httponly, "HttpOnly; ") && strcmp (httponly, ""))
-    {
-        vely_report_error ("Cookie HttpOnly can be only on or off");
-    }
-    if (strcmp(samesite, "Strict") && strcmp (samesite, "Lax") && strcmp (samesite, "None"))
-    {
-        vely_report_error ("Cookie SameSite can be only Strict, Lax or None");
-    }
-    snprintf (safety_clause, sizeof(safety_clause), "; %s%sSameSite=%s", secure, httponly, samesite);
+    vely_check_set_cookie (cookie_name, cookie_value, secure, samesite, httponly, safety_clause, sizeof(safety_clause));
 
     num ind;
     char *exp = NULL;
@@ -380,7 +416,7 @@ char *vely_find_cookie (vely_input_req *req, const char *cookie_name, num *ind, 
 // cookies[].is_set_by_program is set to  1 if this is the cookie we deleted (i.e. not original in the web input).
 // If path is specified, we use it; if not, we assume it was the same default one (which generally works unless
 // you mix different paths, such as via different reverse proxies
-num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path)
+num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path, const char *secure)
 {
     VV_TRACE ("");
 
@@ -392,14 +428,16 @@ num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char
     {
         vely_free (req->cookies[ci].data);
         char del_cookie[300];
+    	char safety_clause[200];
+    	vely_check_set_cookie (cookie_name, "deleted", secure, "", "", safety_clause, sizeof(safety_clause));
         if (path != NULL)  rpath=path;
         if (rpath != NULL)
         {
-            snprintf (del_cookie, sizeof (del_cookie), "%s=deleted; Path=%s; Expires=Thu, 01 Jan 1970 00:00:00 GMT", cookie_name, rpath);
+            snprintf (del_cookie, sizeof (del_cookie), "%s=deleted; Path=%s; Max-Age=0; Expires=Thu, 01 Jan 1970 01:01:01 GMT%s", cookie_name, rpath, safety_clause);
         }
         else
         {
-            snprintf (del_cookie, sizeof (del_cookie), "%s=deleted; Expires=Thu, 01 Jan 1970 00:00:00 GMT", cookie_name);
+            snprintf (del_cookie, sizeof (del_cookie), "%s=deleted; Max-Age=0; Expires=Thu, 01 Jan 1970 01:01:01 GMT%s", cookie_name, safety_clause);
         }
         req->cookies[ci].data = vely_strdup (del_cookie);
         req->cookies[ci].is_set_by_program = 1;

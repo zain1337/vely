@@ -9,13 +9,13 @@ Count substrings.
 .RS 4
 .EX
 
-count-substring <substring> in <string> to [ define ] <count> [ case-insensitive ]
+count-substring <substring> in <string> to [ define ] <count> [ case-insensitive [ <case-insensitive> ] ]
 
 .EE
 .RE
 
 .SH DESCRIPTION
-count-substring counts the number of occurrences of <substring> in <string> and stores the result in <count> (specified in "to" clause), which can be created with "define" if it does not exist. By default, search is case-sensitive. If you use "case-insensitive" clause, however, the search is case-insensitive.
+count-substring counts the number of occurrences of <substring> in <string> and stores the result in <count> (specified in "to" clause), which can be created with "define" if it does not exist. By default, search is case-sensitive. If you use "case-insensitive" clause without boolean expression <case-insensitive>, or if <case-insensitive> evaluates to true, then the search is case-insensitive.
 
 If <substring> is empty ("") or NULL, <count> is 0.
 

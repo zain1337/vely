@@ -189,7 +189,9 @@ vf -m quit file_manager
 .EE
 .RE
 
-- SELinux and TCP ports
+
+.B - SELinux and TCP ports
+
 If you are using \fBSELinux\fP and have it enabled, then you must make the TCP socket accessible to the web server and Vely:
 
 .RS 4
@@ -208,7 +210,9 @@ Without this step, the application will appear to not work.
 
 This shows how to connect your application listening at TCP port 2310 (started with "-p" option in \fBvf\fP) to Apache web server.
 
-- Step 1:
+
+.B - Step 1
+:
 To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
 
 .RS 4
@@ -262,7 +266,9 @@ LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
 
 .RE
 
-- Step 2:
+
+.B - Step 2
+:
 Edit the Apache configuration file:
 
 .RS 4
@@ -319,7 +325,9 @@ ProxyPass "/file_manager" fcgi://127.0.0.1:2310/
 .EE
 .RE
 
-- Step 3:
+
+.B - Step 3
+:
 Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
 
 .RS 4

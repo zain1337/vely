@@ -13,8 +13,8 @@ set-cookie <cookie name>=<cookie value> \\
     [ expires <expiration> ] \\
     [ path <path> ] \\
     [ same-site "Lax"|"Strict"|"None" ] \\
-    [ no-http-only ] \\
-    [ secure ]
+    [ no-http-only [ <no-http-only> ] ] \\
+    [ secure [ <secure> ] ]
 
 .EE
 .RE
@@ -28,9 +28,9 @@ Cookie's <path> is specified with "path" clause. The default is the URL path of 
 
 Whether a cookie applies to the same site is given with "same-site" clause along with possible values of "Lax", "Strict" or "None". 
 
-By default a cookie is not accessible to client scripting (i.e. "HttpOnly") -you can change this with "no-http-only" clause.
+By default a cookie is not accessible to client scripting (i.e. "HttpOnly") -you can change this with "no-http-only" clause. That will be the case if "no-http-only" clause is used without optional bool expression <no-http-only>, or if <no-http-only> evaluates to true.
 
-Use "secure" if a secure connection (https) is used, in order to specify this cookie is available only with a secure connection.
+Use "secure" if a secure connection (https) is used, in order to specify this cookie is available only with a secure connection. That will be the case if "secure" is used without optional bool expression <secure>, or if <secure> evaluates to true.
 
 Cookies are commonly used for session maintenance, tracking and other purposes. Use \fBget-cookie\fP and \fBdelete-cookie\fP together with set-cookie to manage cookies.
 

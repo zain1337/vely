@@ -14,7 +14,7 @@ Get data from hash table.
 read-hash <hash> \\
     key <key> \\
     value [ define ] <value> \\
-    [ delete ] \\
+    [ delete [ <delete> ] ] \\
     [ status [ define ] <status> ]
 
 // Sequential access to hash data:
@@ -36,7 +36,7 @@ read-hash <hash> traverse \\
 
 read-hash will obtain <value> (in "value" clause) based on a <key> (in "key" clause) from <hash> created by \fBnew-hash\fP. <value> can be created as a string with optional "define", but in general can be a pointer of any type.
 
-You can also delete the key/value pair from the hash by using optional "delete" clause - the <value> is still obtained though it is no longer in the hash table.
+You can also delete the key/value pair from the hash by using optional "delete" clause - the <value> is still obtained though it is no longer in the hash table. The key/value pair is deleted if "delete" clause is used without optional boolean expression <delete>, or if <delete> evaluates to true.
 
 If no <key> was found in the hash table, optional <status> (in "status" clause) is VV_ERR_EXIST and <value> is NULL, otherwise it is VV_OKAY. A number <status> can be created with optional "define".
 

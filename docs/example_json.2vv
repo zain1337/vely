@@ -146,7 +146,9 @@ vf -m quit json
 
 This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
 
-- Step 1:
+
+.B - Step 1
+:
 You will need to edit the Nginx configuration file. For Ubuntu and similar:
 
 .RS 4
@@ -178,7 +180,9 @@ location /json { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/li
 .EE
 .RE
 
-- Step 2:
+
+.B - Step 2
+:
 Finally, restart Nginx:
 
 .RS 4

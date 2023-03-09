@@ -12,7 +12,7 @@ Write to a file.
 write-file <file> | ( file-id <file id> ) \\
     from <content> \\
     [ length <length> ] \\
-    [ position <position> | append ] \\
+    [ ( position <position> ) | ( append [ <append> ] ) ] \\
     [ status [ define ] <status> ]
 
 .EE
@@ -28,8 +28,7 @@ This is a simple method of writing a file. File named <file> is opened, data wri
 
 write-file writes <content> to <file>, which is either a full path of the file or a path relative to the application home directory (see \fBhow_vely_works\fP).
 
-If an optional "append" is used, the <content> is appended to the file; otherwise the file is overwritten with <content>, unless "position" clause is used in which case file is not overwritten and <content> is written at byte <position>. Note that <position> can be beyond the end of file, and null-bytes are written between the current end of file and <position>.
-
+If "append" clause is used without optional boolean expression <append>, or if <append> evaluates to true, the <content> is appended to the file; otherwise the file is overwritten with <content>, unless "position" clause is used in which case file is not overwritten and <content> is written at byte <position>. Note that <position> can be beyond the end of file, and null-bytes are written between the current end of file and <position>.
 
 File is created if it does not exist (even if "append" is used), unless "position" clause is used in which case file must exist. 
 
@@ -48,7 +47,7 @@ If "position" clause is used, then data is written starting from byte <position>
 
 If "length" is not used, then a string is written to a file, and the number of bytes written is the length of that string. If "length" is specified, then exactly <length> bytes is written and <content> can hold a binary value or a string.
 
-If "append" clause is used, then file pointer is set at the end of file and data written.
+If "append" clause is used without optional boolean expression <append>, or if <append> evaluates to true, then file pointer is set at the end of file and data written.
 
 If "status" clause is used, then the number of bytes written is stored to <status>, unless error occurred, in which case <status> has the error code. The error code can be VV_ERR_POSITION (if <position> is negative or file does not support it), VV_ERR_WRITE (if there is an error writing file) or VV_ERR_OPEN if file is not open. Note that no partial data will be written; if all of data cannot be written to the file, then none will be written, and in that case an error of VV_ERR_WRITE will be reported in <status>.
 

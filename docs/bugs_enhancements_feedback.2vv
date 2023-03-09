@@ -1,9 +1,0 @@
-.TH VELY 2vv $VERSION $DATE Development Tools
-.SH NAME
-bugs_enhancements_feedback \- Vely documentation (feedback)
-.SH DESCRIPTION
-To report bugs or suggest improvements, send email to vely@vely.dev, however note 1) that any submission via email must not be confidential, proprietary or contain patented information, and 2) any such submission is property of Dasoftver LLC without compensation to you, and 3) there is no obligation to review or respond to it.
-
-Read more about contributions policy \fBhere\fP.
-.SH SEE ALSO
- \fIFeedback\fP ( \fBbugs_enhancements_feedback\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

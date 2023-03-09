@@ -59,7 +59,9 @@ int result = vv_fc_request (&req);
 .EE
 .RE
 
-- Return value
+
+.B - Return value
+
 The following are possible return values from "vv_fc_request()":
 
 .RS 4
@@ -158,7 +160,9 @@ VV_FC_ERR_TIMEOUT if the request timed out based on "timeout" parameter or other
 .RE
 
 
-- Server reply
+
+.B - Server reply
+
 The server replies with data that is split in two. One part is the actual result of processing (called "stdout" or standard output), and the other is the error messages (called "stderr" or standard error).
 
 All Vely output goes to "stdout", except from \fBreport-error\fP and \fBpf-out\fP/\fBpf-url\fP/\fBpf-web\fP (with "to-error" clause) which goes to "stderr". The two outputs can be comingled in any way; the client will properly separate the two and present them as two messages in reply.

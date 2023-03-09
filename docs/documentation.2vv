@@ -26,8 +26,6 @@ documentation \- Vely documentation (documentation)
 
 \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  ) 
 
-\fIFeedback\fP ( \fBbugs_enhancements_feedback\fP  ) 
-
 \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  ) 
 
 \fIFiles\fP ( \fBclose-file\fP   \fBcopy-file\fP   \fBdelete-file\fP   \fBfile-position\fP   \fBfile_storage\fP   \fBfile_uploading\fP   \fBlock-file\fP   \fBopen-file\fP   \fBread-file\fP   \fBread-line\fP   \fBrename-file\fP   \fBstat-file\fP   \fBtemporary_file\fP   \fBuniq-file\fP   \fBunlock-file\fP   \fBwrite-file\fP  ) 

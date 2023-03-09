@@ -12,7 +12,7 @@ Encrypt data.
 encrypt-data <data> to [ define ] <result> 
     [ input-length <input length> ] \\
     [ output-length [ define ] <output length> ] \\
-    [ binary ] \\
+    [ binary [ <binary> ] ] \\
     ( password <password> \\
         [ salt <salt> [ salt-length <salt length> ] ] \\
         [ iterations <iterations> ] \\
@@ -82,9 +82,9 @@ Different encrypted messages should have a different IV value, which is specifie
 .B ENCRYPTED DATA
 .LP
 
-The encrypted data is stored in <result> (in "to" clause), which you can create with optional "define". <result> is \fBallocated memory\fP. The encrypted data can be a binary data (if "binary" clause is present, which is binary-mode encryption) or if not, it will be a null-terminated string (which is character-mode encryption), consisting of hexadecimal characters (i.e. ranging from "0" to "9" and "a" to "f"). Character mode of encryption is convenient if the result of encryption should be a human readable string, or for the purposes of non-binary storage in the database.
+The encrypted data is stored in <result> (in "to" clause), which you can create with optional "define". <result> is \fBallocated memory\fP. The encrypted data can be a binary data (if "binary" clause is present without optional boolean expression <binary>, or if <binary> evaluates to true), which is binary-mode encryption; or if not, it will be a null-terminated string, which is character-mode encryption, consisting of hexadecimal characters (i.e. ranging from "0" to "9" and "a" to "f"). Character mode of encryption is convenient if the result of encryption should be a human readable string, or for the purposes of non-binary storage in the database.
 
-If "binary" clause is specified, then "output-length" must be present and the length of the binary encrypted data will be in <output length> , which can be created with optional "define". In any case, if used, <output length> has the length of the encrypted data, which is the exact byte count in binary mode, or the length of encrypted string in character mode (i.e. the number of character bytes excluding the terminating null byte).
+If this is a binary-mode encryption, then "output-length" clause can be used to get the length of the binary encrypted data in <output length> , which can be created with optional "define". In any case, if used, <output length> has the length of the encrypted data, which is the exact byte count in binary mode, or the length of encrypted string in character mode (i.e. the number of character bytes excluding the terminating null byte).
 
 .LP
 .B CACHING KEY

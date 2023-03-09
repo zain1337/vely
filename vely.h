@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.4.0"
+#define VV_VERSION "16.6.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -689,7 +689,7 @@ void vely_write_to_string_notrim ();
 num _vely_check_memory(void *ptr);
 void vely_set_cookie (vely_input_req *req, const char *cookie_name, const char *cookie_value, const char *ypath, const char *expires, const char *samesite, const char *httponly, const char *secure);
 char *vely_find_cookie (vely_input_req *req, const char *cookie_name, num *ind, const char **path, char **exp);
-num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path);
+num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path, const char *secure);
 num vely_decode (num enc_type, char *v, num inlen);
 char *vely_lower(char *s);
 char *vely_upper(char *s);

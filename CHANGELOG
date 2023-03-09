@@ -1,10 +1,6 @@
-Vely release notes for 16.4.0
+Vely release notes for 16.6.0
 
-- Minor: Vely licensing changed from LGPL-3 to EPL-2 (Eclipse Public License 2).
-- Minor: new FastCGI client C API provides the ability to write standalone programs that connect to any FastCGI server.
-- Minor: pf-out, pf-url, pf-web now have to-error clause to write to stderr stream.
-- Minor: added -i option to vv as support for FastCGI C API library, producing the include and library flags for gcc.
-- Release: fixed bug in vv where it crashes when using --app-path with bad data.
-- Minor: vf will now kill children server processes if parent is killed. This allows for clean restarts.
-- Minor: added flush-output statement for partial output in a long-running request.
+- Minor: added dynamic boolean expression support for previously static true/false flags in the following statements: count-substring, decrypt/encrypt-data, derive-key, hash-string, match-regex, out-header, send-file, read-hash, set-cookie, delete-cookie, write-file. This change allows for less code that is easier to read. Each flag that is enhanced signifies a static choice (such as download in send-file); now however, each such flag will also have an optional boolean expression that allows run-time selection.
+- Minor: added secure clause in delete-cookie since newer changes in popular browsers require this option when deleting a secure cookie.
+- Minor: added checks for cookie name/value per RFC6265; SameSite clause is undefined now by default because newer changes correlate this value with Secure flag.
 

@@ -16,9 +16,10 @@ match-regex <pattern> in <target> \\
             [ status [ define ] <status> ] )  \\
     | \\
         ( status [ define ] <status> \\
-            [ case-insensitive ] [ single-match ] ) \\
+            [ case-insensitive [ <case-insensitive> ] ] [ single-match [ <single-match> ] ] ) \\
     ] \\
-    [ cache ]
+    [ cache ] \\
+    [ clear-cache <clear cache> ) 
 
 .EE
 .RE
@@ -30,9 +31,9 @@ Both the search and replacement use \fBextended regex syntax\fP (ERE) from the  
 
 If "replace-with" is not specified, then the number of matched <pattern>s within <target> is given in <status> number variable, which in this case must be specified.
 
-If "case-insensitive" is used, then searching for pattern is case insensitive. By default, it is case sensitive.
+If "case-insensitive" is used without optional boolean expression <case-insensitive>, or if <case-insensitive> evaluates to true, then searching for pattern is case insensitive. By default, it is case sensitive.
 
-If "single-match" is specified, then only the very first occurrence of <pattern> in <target> is processed. Otherwise, all occurrences are processed.
+If "single-match" is specified without optional boolean expression <single-match>, or if <single-match> evaluates to true, then only the very first occurrence of <pattern> in <target> is processed. Otherwise, all occurrences are processed.
 
 <result> and <status> variables can be created within the statement with "define" clause.
 
@@ -42,9 +43,21 @@ If the pattern is bad (i.e. <pattern> is not a correct regular expression), Vely
 .B CACHING AND PERFORMANCE
 .LP
 
-If "cache" clause is used, then regex compilation of <pattern> will be done only once and saved for future use. You can use this only if <pattern> is an immutable string. If <pattern> changes dynamically, do not use "cache". However, if <pattern> does not change (as it is the case in a vast majority of cases), there is a significant performance benefit when match-regex executes repeatedly (which is true in case of web applications or in any kind of loop). 
+If "cache" clause is used, then regex compilation of <pattern> will be done only once and saved for future use. There is a significant performance benefit when match-regex executes repeatedly with "cache" (such as in case of web applications or in any kind of loop). If <pattern> changes and you need to recompile it once in a while, use "clear-cache" clause. <clear cache> is a "bool" variable; the regex cache is cleared if it is true, and stays if it is false. For example:
 
-While every pattern is different, even a relatively small one was shown in tests to speed up the match-regex by about 500%, or 5x faster. Use cache whenever possible as it brings parsing performance close to its theoretical limits.
+.RS 4
+.EX
+
+bool cl_c;
+if (q == 0) cl_c = true; else cl_c = false;
+match-regex ps in look_in replace-with "Yes it is \\e1!" result res cache clear-cache cl_c
+
+.EE
+.RE
+
+In this case, when "q" is 0, cache will be cleared, and the pattern in variable "ps" will be recompiled. In all other cases, the last computed regex stays the same. 
+
+While every pattern is different, when using cache even a relatively small one was shown in tests to speed up the match-regex by about 500%, or 5x faster. Use cache whenever possible as it brings parsing performance close to its theoretical limits.
 
 .LP
 .B SUBEXPRESSIONS AND BACK-REFERENCING

@@ -10,7 +10,7 @@ Derive a key.
 .EX
 
 derive-key [ define ] <key> from <source> length <length> \\
-    [ binary ] \\
+    [ binary [ <binary> ] ] \\
     [ from-length <source length> ] \\
     [ digest <digest algorithm> ] \\
     [ salt <salt> [ salt-length <salt length> ] ] \\
@@ -37,7 +37,7 @@ The optional salt for key derivation can be given with <salt> in "salt" clause. 
 
 The number of iterations is given by <iterations> in "iterations" clause. The default is 1000 per \fBRFC 8018\fP, though depending on your needs and the quality of <source> you may choose a different value.
 
-By default, the derived key is produced as a null-terminated string in a hexadecimal form, where each byte is encoded as two-character hexadecimal characters, so its length is 2*<length>. If "binary" clause is used, the output is a binary string of <length> bytes, and a null byte is placed after it.
+By default, the derived key is produced as a null-terminated string in a hexadecimal form, where each byte is encoded as two-character hexadecimal characters, so its length is 2*<length>. If "binary" clause is used without optional boolean expression <binary>, or if <binary> evaluates to true, then the output is a binary string of <length> bytes, and a null byte is placed after it.
 
 Key derivation is often used when storing password-derivatives in the database (with salt), and also for symmetrical key generation.
 

@@ -20,7 +20,7 @@ query-result <column name> \\
 .SH DESCRIPTION
 Use query-result to obtain query results. An instance of query-result obtains a string value of a single query column named <column name>. Note that <column name> can be a computed column, and is not necessarily the same as a table column.
 
-If query-result is used without "to" clause, then the result is printed out. If "to" clause is used, then the result is not printed out, rather it is stored into a string variable <result>, which can be created with optional "define" clause. <result> is \fBallocated memory\fP
+If query-result is used without "to" clause, then the result is printed out. If "to" clause is used, then the result is not printed out, rather it is stored into a string variable <result>, which can be created with optional "define" clause. <result> is \fBallocated memory\fP.
 
 Without "to" clause, the result can be either not encoded (if "noencode" clause is used), URL encoded (if "urlencode" is used) or web (HTML) encoded (if "webencode" is used) - by default, webencode is used. With "to" clause (i.e. if the result is stored in a variable <result>), then no encoding takes place (you can then use \fBencode-url\fP or \fBencode-web\fP to convert it as desired).
 

@@ -12,7 +12,7 @@ Decrypt data.
 decrypt-data <data> to [ define ] <result> \\
     [ input-length <input length> ] \\
     [ output-length [ define ] <output length> ] \\
-    [ binary ] \\
+    [ binary [ <binary> ] ] \\
     ( password <password> \\
         [ salt <salt> [ salt-length <salt length> ] ] \\
         [ iterations <iterations> ] \\
@@ -32,7 +32,7 @@ If "input-length" clause is not used, the data to decrypt is considered to be a 
 
 "output-length" clause lets you obtain the number of bytes in decrypted data in <output length>, which can be created with optional "define". The result of decryption is in <result> (in "to" clause) and can be created with optional "define". <result> is \fBallocated memory\fP.
 
-If data was encrypted with "binary" clause, you must decrypt it with the same, and if it was without such clause in \fBencrypt-data\fP, then you must not use it in decrypt-data either. The reason for this is obvious - binary mode of encryption is encrypted data in its shortest form, and character mode (without "binary") is the same data converted to a hexadecimal string - thus decryption must first convert such data back to binary before decrypting.
+If data was encrypted in binary mode (see \fBencrypt-data\fP), you must decrypt it with the same, and if it wasn't, then you must not use it in decrypt-data either. The reason for this is obvious - binary mode of encryption is encrypted data in its shortest form, and character mode (without "binary" or if <binary> evaluates to false) is the same data converted to a hexadecimal string - thus decryption must first convert such data back to binary before decrypting.
 
 The cipher and digest algorithms (if specified as <cipher algorithm> and <digest algorithm> in "cipher" and "digest" clauses respectively) must match what was used in \fBencrypt-data\fP.
 

@@ -90,7 +90,9 @@ The result of call-web (which is <result>) can be a text value or a binary value
 
 In order to include request body, for instance to send files, use "request-body" clause. Request body is typically used with POST, PUT or PATCH methods. Even though not common, you can also use it with GET, DELETE or any other custom method, such as for example if the resource you wish to identify requires binary data; perhaps a disposable image is used to identify the resource. 
 
-- Structured content
+
+.B - Structured content
+
 Use "fields" and/or "files" subclauses to send a structured body request in the form of name/value pairs, the same as sent from an HTML form. To do that, you can specify fields with "fields" subclause in the form of <field name>=<field value> pairs separated by a comma. For instance, here two fields are set (field "source" with value "web" and field "act" with value "setcookie"):
 
 .RS 4
@@ -128,7 +130,9 @@ call-web "http://website.com/app_name/some_request" response resp response-code 
 
 You can specify a maximum of 1000 files and fields.
 
-- Non-structured content
+
+.B - Non-structured content
+
 To send any arbitrary (non-structured) content in the request body, such as JSON text for example, use "payload" subclause:
 
 .RS 4

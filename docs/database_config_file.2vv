@@ -1,19 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-database_config_file \-  (database)
-.SH PURPOSE
-Create database connection.
-
-.SH SYNTAX
-
-.RS 4
-.EX
-
-See description.
-
-.EE
-.RE
-
+database_config_file \- Vely documentation (database)
 .SH DESCRIPTION
 Vely application can use any number of databases, with each specified by a database configuration file. This file provides database name, login and connection settings and preferences.
 

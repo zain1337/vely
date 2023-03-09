@@ -439,6 +439,7 @@ void on_error_act (char *on_error_cont, char *on_error_exit, char *act);
 void envsub ();
 void vely_is_valid_app_path (const char *name);
 void query_result (vely_gen_ctx *gen_ctx, const char *mtext);
+char *opt_clause(const char *clause, const char *param, const char *antiparam);
 
 
 //
@@ -446,6 +447,42 @@ void query_result (vely_gen_ctx *gen_ctx, const char *mtext);
 // Implementation of functions used in VELY alone
 //
 //
+
+
+
+//
+// Returns code for optional clause. This is a clause where it may not have any data
+// or it may. For example:
+// set-cookie ... secure
+// or
+// set-cookie ... secure true|false
+// If true|false, then it's either secure or not. Without true|false then it's secure.
+// This helps write easier code.
+// clause is "secure" in this case (the clause), "param" is what is generated if it applies
+// and "antiparam" is what is generated if it does not apply which is if clause is NULL or
+// it's there but false.
+//
+char *opt_clause(const char *clause, const char *param, const char *antiparam)
+{
+    char *res = NULL;
+    if (clause != NULL)
+    {
+        if (clause[0] != 0) // there is true|false
+        {
+            res = vely_malloc(strlen(clause)+strlen(param)+strlen(antiparam) + 30);
+            sprintf (res, "((%s)?(%s):(%s))", clause, param, antiparam);
+        }
+        else // clause is present but no true|false
+        {
+            res = vely_strdup(param);
+        }
+    }
+    else // clause is not present (NULL)
+    {
+        res = vely_strdup(antiparam);
+    }
+    return res;
+}
 
 //
 // This processes query-result statement, see documentation
@@ -629,8 +666,8 @@ void process_http_header (const char *statement, const char *header, const char 
         custom = find_keyword (mheader, VV_KEYCUSTOM, 1);
         if (request == 0)
         {
-            carve_statement (&download, statement, VV_KEYDOWNLOAD, 0, 0);
-            carve_statement (&etag, statement, VV_KEYETAG, 0, 0);
+            carve_statement (&download, statement, VV_KEYDOWNLOAD, 0, 2);
+            carve_statement (&etag, statement, VV_KEYETAG, 0, 2);
             carve_statement (&filename, statement, VV_KEYFILENAME, 0, 1);
             carve_statement (&cachecontrol, statement, VV_KEYCACHECONTROL, 0, 1);
             carve_statement (&nocache, statement, VV_KEYNOCACHE, 0, 0);
@@ -639,16 +676,22 @@ void process_http_header (const char *statement, const char *header, const char 
         }
         carve_statement (&ctype, statement, VV_KEYCONTENTTYPE, 0, 1);
         carve_statement (&custom, statement, VV_KEYCUSTOM, 0, 1);
+
+        char *downloadc = opt_clause(download, "\"attachment\"", "NULL");
+        char *etagc = opt_clause(etag, "1", "0");
+
         if (nocache != NULL && cachecontrol != NULL) _vely_report_error( "both no-cache and cache-control specified, only one can be used");
         // gen header
         if (ctype != NULL) oprintf ("(%s).ctype = %s;\n", temp_header, ctype);
-        if (download != NULL) oprintf ("(%s).disp = \"attachment\";\n", temp_header);
-        if (etag != NULL) oprintf ("(%s).etag = 1;\n", temp_header);
+        if (download != NULL) oprintf ("(%s).disp = %s;\n", temp_header, downloadc);
+        if (etag != NULL) oprintf ("(%s).etag = %s;\n", temp_header, etagc);
         if (filename != NULL) oprintf ("(%s).file_name = %s;\n", temp_header, filename);
         if (statusid != NULL) oprintf ("(%s).status_id = %s;\n", temp_header, statusid);
         if (statustext != NULL) oprintf ("(%s).status_text = %s;\n", temp_header, statustext);
         if (cachecontrol != NULL) oprintf ("(%s).cache_control = %s;\n", temp_header, cachecontrol);
         if (nocache != NULL) oprintf ("(%s).cache_control = \"max-age=0, no-cache\";\n", temp_header);
+        vely_free(downloadc);
+        vely_free(etagc);
         // get custom fields
         if (custom != NULL)
         {
@@ -1451,7 +1494,8 @@ char *find_keyword(const char *str, const char *find, num has_spaces)
 // found with find_keyword() before calling this function for any of them.
 // This function MUST be called for ALL statement options - if not then some statement values will contain other statement and will be 
 // INCORRECT. 
-// 'has_data' is 0 if the option is alone without data, for example 'no-cert'. Typically it's 1.
+// 'has_data' is 0 if the option is alone without data, for example 'no-cert'. Typically it's 1. It can also be 2, which is
+// when there may be data after it, but it may also be missing.
 //
 void carve_statement (char **statement, const char *statement_name, const char *keyword, num is_mandatory, num has_data)
 {
@@ -1461,17 +1505,27 @@ void carve_statement (char **statement, const char *statement_name, const char *
     //
     if (*statement != NULL) 
     {
-        // keyword that is not a 'human word' may have no space at the end, such as =, ==, !=
-        if (has_data == 1 && keyword[strlen(keyword)-1]!=' ' && isalpha(keyword[0]))
+        int ksize = strlen(keyword);
+        // keyword that is not a 'human word' may have no space at the end, such as =, ==, != (hence isalpha() check)
+        // also keyword may be " ", which is the very first space after the statement name, like in get-cookie
+        // but keyword[ksize-1] being ' ' is when there's supposed to be data afterwards
+        if (has_data > 0 && keyword[ksize-1]!=' ' && isalpha(keyword[0]))
         {
             // any keyword that has data must have trailing space
-            _vely_report_error( "Internal: keyword [%s] is missing trailing space", keyword);
+            // but if has_data is 2, data may be missing after keyword (see above)
+            if (has_data != 2) _vely_report_error( "Internal: keyword [%s] is missing trailing space", keyword);
         }
         char *end_of_url = *statement;
         // advance past the keyword
-        *(*statement = (*statement + strlen (keyword)-1)) = 0;
+        *(*statement = (*statement + ksize-1)) = 0;
         (*statement)++;
-        *end_of_url = 0;
+        if (has_data == 2)
+        {
+            // advance passed any white spaces, this is important when has_data is 2, so we know if there is something there or not
+            // if what follows is a keyword, it will be cut off by the processing of that keyword and still be empty
+            while (isspace(**statement)) (*statement)++;
+        }
+        *end_of_url = 0; // cut off keyword, so previous clause ends at the beginning of the next one
 
         if (has_data==0)
         {
@@ -3022,12 +3076,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
 
                         carve_statement (&to, "count-substring", VV_KEYTO, 1, 1);
                         carve_statement (&in, "count-substring", VV_KEYIN, 1, 1);
-                        carve_statement (&case_insensitive, "count-substring", VV_KEYCASEINSENSITIVE, 0, 0);
+                        carve_statement (&case_insensitive, "count-substring", VV_KEYCASEINSENSITIVE, 0, 2);
+
+                        char *case_insensitivec = opt_clause(case_insensitive, "0", "1");
 
                         define_statement (&to, VV_DEFNUM);
 
-                        oprintf ("%s=vely_count_substring (%s, %s, %d);\n", to, in, mtext, case_insensitive!=NULL?0:1);
-
+                        oprintf ("%s=vely_count_substring (%s, %s, %s);\n", to, in, mtext, case_insensitivec);
+                        vely_free(case_insensitivec);
 
 
                         continue;
@@ -3053,11 +3109,13 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         carve_statement (&salt, "derive-key", VV_KEYSALT, 0, 1);
                         carve_statement (&salt_len, "derive-key" , VV_KEYSALTLENGTH, 0, 1);
                         carve_statement (&iterations, "derive-key", VV_KEYITERATIONS, 0, 1);
-                        carve_statement (&binary, "derive-key", VV_KEYBINARY, 0, 0);
+                        carve_statement (&binary, "derive-key", VV_KEYBINARY, 0, 2);
 
                         define_statement (&mtext, VV_DEFSTRING);
 
-                        oprintf ("%s=vely_derive_key( %s, %s, %s, %s, %s, %s, %s, %s );\n", mtext, from, fromlen==NULL?"-1":fromlen, digest==NULL?VV_DEF_DIGEST:digest, iterations==NULL?"-1":iterations, salt==NULL?"NULL":salt, salt_len==NULL?"0":salt_len, length, binary==NULL?"false": "true");
+                        char *binaryc = opt_clause(binary, "true", "false");
+                        oprintf ("%s=vely_derive_key( %s, %s, %s, %s, %s, %s, %s, %s );\n", mtext, from, fromlen==NULL?"-1":fromlen, digest==NULL?VV_DEF_DIGEST:digest, iterations==NULL?"-1":iterations, salt==NULL?"NULL":salt, salt_len==NULL?"0":salt_len, length, binaryc);
+                        vely_free(binaryc);
 
 
                         continue;
@@ -3074,13 +3132,15 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
 
                         carve_statement (&to, "hash-string", VV_KEYTO, 1, 1);
                         carve_statement (&digest, "hash-string", VV_KEYDIGEST, 0, 1);
-                        carve_statement (&binary, "hash-string", VV_KEYBINARY, 0, 0);
+                        carve_statement (&binary, "hash-string", VV_KEYBINARY, 0, 2);
                         carve_statement (&olen, "hash-string", VV_KEYOUTPUTLENGTH, 0, 1);
 
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&olen, VV_DEFNUM);
 
-                        oprintf ("%s=vely_hash_data (%s, %s, %s, %s%s%s);\n", to, mtext, digest==NULL?VV_DEF_DIGEST:digest, binary==NULL?"false":"true", olen==NULL?"NULL":"&(",olen==NULL?"":olen,olen==NULL?"":")");
+                        char *binaryc = opt_clause(binary, "true", "false");
+                        oprintf ("%s=vely_hash_data (%s, %s, %s, %s%s%s);\n", to, mtext, digest==NULL?VV_DEF_DIGEST:digest, binaryc, olen==NULL?"NULL":"&(",olen==NULL?"":olen,olen==NULL?"":")");
+                        vely_free(binaryc);
 
 
 
@@ -3282,7 +3342,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         carve_statement (&salt_len, enc?"encrypt-data":"decrypt-data" , VV_KEYSALTLENGTH, 0, 1);
                         carve_statement (&iterations, enc?"encrypt-data":"decrypt-data", VV_KEYITERATIONS, 0, 1);
                         carve_statement (&to, enc?"encrypt-data":"decrypt-data" , VV_KEYTO, 1, 1);
-                        carve_statement (&binary, enc?"encrypt-data":"decrypt-data", VV_KEYBINARY, 0, 0);
+                        carve_statement (&binary, enc?"encrypt-data":"decrypt-data", VV_KEYBINARY, 0, 2);
                         carve_statement (&cipher, enc?"encrypt-data":"decrypt-data", VV_KEYCIPHER, 0, 1);
                         carve_statement (&digest, enc?"encrypt-data":"decrypt-data", VV_KEYDIGEST, 0, 1);
                         carve_statement (&cache, enc?"encrypt-data":"decrypt-data", VV_KEYCACHE, 0, 0);
@@ -3291,6 +3351,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&outlength, VV_DEFNUM);
 
+                        char *binaryc = opt_clause(binary, "1", "0");
                         if (ccache != NULL && cache == NULL) _vely_report_error( "clear-cache cannot be used without cache in encrypt/decrypt-data statement");
 
                         if (iv == NULL)
@@ -3303,25 +3364,6 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                             if (salt_len != NULL) _vely_report_error( "cannot specify salt-len without salt in encrypt/decrypt-data statement");
                             salt="NULL";
                         }
-                        if (binary == NULL) binary="0"; else 
-                        {
-                            binary="1";
-                            if (enc) 
-                            {
-                                if (outlength == NULL)
-                                {
-                                    _vely_report_error( "output-length must be specified if binary encryption is used in encrypt/decrypt-data statement");
-                                }
-                            } 
-                            else 
-                            {
-                                if (inlength == NULL)
-                                {
-                                    _vely_report_error( "input-length must be specified if binary encryption is used in encrypt/decrypt-data statement");
-                                }
-
-                            }
-                        }
 
                         char *to_crypt = mtext;
                         
@@ -3333,6 +3375,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                             oprintf ("if ((%s)) {if (_vv_e_ctx%lld != NULL) EVP_CIPHER_CTX_free(_vv_e_ctx%lld); _vv_e_ctx%lld = NULL;}\n", ccache, encrypt_count, encrypt_count, encrypt_count);
                         }
                         oprintf ("if (_vv_e_ctx%lld == NULL) { _vv_e_ctx%lld = EVP_CIPHER_CTX_new(); vely_get_enc_key(%s, %s, %s, %s, %s?_vv_e_ctx%lld:NULL, %s?_vv_e_ctx%lld:NULL, %s, %s);}\n", encrypt_count, encrypt_count, password, salt, salt_len == NULL ? "0":salt_len, iterations==NULL?"-1":iterations, enc?"true":"false", encrypt_count, (!enc)?"true":"false", encrypt_count, cipher==NULL?VV_DEF_CIPHER:cipher, digest==NULL?VV_DEF_DIGEST:digest);
+                        // regardless of whether input-length is used or not, we have it set
                         if (inlength != NULL)
                         {
                             oprintf ("num _vv_encrypt_count%lld = %s;\n", encrypt_count, inlength);
@@ -3341,13 +3384,15 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         {
                             oprintf ("num _vv_encrypt_count%lld = strlen(%s);\n", encrypt_count, to_crypt);
                         }
-                        oprintf ("%s = %s(_vv_e_ctx%lld, (unsigned char*)(%s), &_vv_encrypt_count%lld, %s, (unsigned char*)(%s));\n", to, enc?"vely_encrypt":"vely_decrypt", encrypt_count, to_crypt, encrypt_count, binary, iv==NULL?"NULL":iv);
+                        oprintf ("%s = %s(_vv_e_ctx%lld, (unsigned char*)(%s), &_vv_encrypt_count%lld, %s, (unsigned char*)(%s));\n", to, enc?"vely_encrypt":"vely_decrypt", encrypt_count, to_crypt, encrypt_count, binaryc, iv==NULL?"NULL":iv);
+                        // regardless of whether output-length is used or not, we have it set
                         if (outlength != NULL)
                         {
                             oprintf ("%s=_vv_encrypt_count%lld;\n", outlength, encrypt_count);
                         }
                         if (cache == NULL) oprintf ("EVP_CIPHER_CTX_free(_vv_e_ctx%lld);\n", encrypt_count);
                         encrypt_count++;
+                        vely_free(binaryc);
 
 
                         continue;
@@ -3840,8 +3885,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         carve_statement (&replace_with, "match-regex", VV_KEYREPLACEWITH, 0, 1);
                         carve_statement (&result, "match-regex", VV_KEYRESULT, 0, 1);
                         carve_statement (&status, "match-regex", VV_KEYSTATUS, 0, 1);
-                        carve_statement (&case_insensitive, "match-regex", VV_KEYCASEINSENSITIVE, 0, 0);
-                        carve_statement (&single_match, "match-regex", VV_KEYSINGLEMATCH, 0, 0);
+                        carve_statement (&case_insensitive, "match-regex", VV_KEYCASEINSENSITIVE, 0, 2);
+                        carve_statement (&single_match, "match-regex", VV_KEYSINGLEMATCH, 0, 2);
+
+                        char *case_insensitivec = opt_clause(case_insensitive, "1", "0");
+                        char *single_matchc = opt_clause(single_match, "1", "0");
 
                         if (result != NULL && replace_with == NULL)
                         {
@@ -3876,8 +3924,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                             oprintf ("if ((%s)) {if (%s != NULL) regfree(%s); %s = NULL;}\n", ccache, regname, regname, regname);
                         }
 
-                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", case_insensitive==NULL?"0":"1", single_match==NULL?"0":"1", cache==NULL?"":"&",cache==NULL?"NULL":regname);
-                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, case_insensitive==NULL?"0":"1", single_match==NULL?"0":"1", cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        vely_free(case_insensitivec);
+                        vely_free(single_matchc);
 
                         regex_cache++;
                         continue;
@@ -4257,14 +4307,20 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         carve_statement (&exp, "set-cookie", VV_KEYEXPIRES, 0, 1);
                         carve_statement (&path, "set-cookie", VV_KEYPATH, 0, 1);
                         carve_statement (&samesite, "set-cookie", VV_KEYSAMESITE, 0, 1);
-                        carve_statement (&nohttponly, "set-cookie", VV_KEYNOHTTPONLY, 0, 0);
-                        carve_statement (&secure, "set-cookie", VV_KEYSECURE, 0, 0);
+                        carve_statement (&nohttponly, "set-cookie", VV_KEYNOHTTPONLY, 0, 2);
+                        carve_statement (&secure, "set-cookie", VV_KEYSECURE, 0, 2); // may have data
                         carve_statement (&eq, "set-cookie", VV_KEYEQUALSHORT, 1, 1);
+
+                        char *secc = opt_clause(secure, "\"Secure; \"", "\"\"");
+                        char *httpc = opt_clause(nohttponly, "\"\"", "\"HttpOnly; \"");
 
                         // enforce that Strict is the default for SameSite and HttpOnly is the default
                         oprintf("vely_set_cookie (vely_get_config()->ctx.req, %s, %s, %s, %s, %s, %s, %s);\n", mtext, eq,
                             path == NULL ? "NULL" : path, exp == NULL ? "NULL" : exp, samesite == NULL ? "\"Strict\"" : samesite,
-                            nohttponly == NULL ? "\"HttpOnly; \"" : "\"\"", secure != NULL ? "\"secure; \"" : "\"\"");
+                            httpc, secc);
+
+                        vely_free(secc);
+                        vely_free(httpc);
 
                         continue;
                     }
@@ -4290,11 +4346,17 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         i = newI;
                         char *path = find_keyword (mtext, VV_KEYPATH, 1);
                         char *st = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *secure = find_keyword (mtext, VV_KEYSECURE, 1);
+
+                        carve_statement (&secure, "delete-cookie", VV_KEYSECURE, 0, 2);
                         carve_statement (&path, "delete-cookie", VV_KEYPATH, 0, 1);
                         carve_statement (&st, "delete-cookie", VV_KEYSTATUS, 0, 1);
                         define_statement (&st, VV_DEFNUM);
 
-                        oprintf("%s%svely_delete_cookie (vely_get_config()->ctx.req, %s, %s);\n", st!=NULL ? st:"",st!=NULL ?"=":"", mtext, path==NULL?"NULL":path); 
+                        char *secc = opt_clause(secure, "\"Secure; \"", "\"\"");
+
+                        oprintf("%s%svely_delete_cookie (vely_get_config()->ctx.req, %s, %s, %s);\n", st!=NULL ? st:"",st!=NULL ?"=":"", mtext, path==NULL?"NULL":path, secc ); 
+                        vely_free(secc);
 
                         continue;
                     }
@@ -4464,7 +4526,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         char *fileid = find_keyword (mtext, VV_KEYFILEID, 1);
 
                         carve_statement (&from, "write-file", VV_KEYFROM, 1, 1);
-                        carve_statement (&append, "write-file", VV_KEYAPPEND, 0, 0);
+                        carve_statement (&append, "write-file", VV_KEYAPPEND, 0, 2);
                         carve_statement (&length, "write-file", VV_KEYLENGTH, 0, 1);
                         carve_statement (&status, "write-file", VV_KEYSTATUS, 0, 1);
                         carve_statement (&pos, "write-file", VV_KEYPOSITION, 0, 1);
@@ -4472,12 +4534,15 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
 
                         define_statement (&status, VV_DEFNUM);
 
+                        char *appendc = opt_clause(append, "1", "0");
+
                         if (append != NULL && pos!=NULL) _vely_report_error( "'append' and 'position' cannot both be in write-file statement");
 
                         if (length==NULL) length="0";
 
-                        if (fileid != NULL) oprintf("%s%svely_write_file_id (*((%s)->f), %s, %s, %s, %s, %s);\n", status!=NULL ? status:"",status!=NULL ?"=":"",fileid, from, length, append==NULL?"0":"1", pos == NULL ? "0":pos, pos==NULL?"0":"1");
-                        else oprintf("%s%svely_write_file (%s, %s, %s, %s, %s, %s);\n", status!=NULL ? status:"",status!=NULL ?"=":"",mtext, from, length, append==NULL?"0":"1", pos == NULL ? "0":pos, pos==NULL?"0":"1");
+                        if (fileid != NULL) oprintf("%s%svely_write_file_id (*((%s)->f), %s, %s, %s, %s, %s);\n", status!=NULL ? status:"",status!=NULL ?"=":"",fileid, from, length, appendc, pos == NULL ? "0":pos, pos==NULL?"0":"1");
+                        else oprintf("%s%svely_write_file (%s, %s, %s, %s, %s, %s);\n", status!=NULL ? status:"",status!=NULL ?"=":"",mtext, from, length, appendc, pos == NULL ? "0":pos, pos==NULL?"0":"1");
+                        vely_free(appendc);
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "read-file", &mtext, &msize, 0, &vely_is_inline)) != 0)
@@ -4616,11 +4681,12 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         else
                         {
                             carve_statement (&key, "read-hash", VV_KEYKEY, 1, 1);
-                            carve_statement (&del, "read-hash", VV_KEYDELETE0, 0, 0);
+                            carve_statement (&del, "read-hash", VV_KEYDELETE0, 0, 2);
                             carve_statement (&st, "read-hash", VV_KEYSTATUS, 0, 1);
                             carve_statement (&val, "read-hash", VV_KEYVALUE, 1, 1);
                         }
 
+                        char *delc = opt_clause(del, "1", "0");
 
                         define_statement (&val, VV_DEFSTRING);
                         if (trav != NULL)
@@ -4635,7 +4701,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
 
                         if (trav == NULL)
                         {
-                            oprintf("%s=vely_find_hash (%s, %s, %s, %s%s%s);\n", val,mtext, key, del==NULL?"0":"1", st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")");
+                            oprintf("%s=vely_find_hash (%s, %s, %s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")");
                         }
                         else
                         {
@@ -4643,6 +4709,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                             if (beg != NULL) oprintf ("vely_rewind_hash(%s);\n", mtext);
                             if (key != NULL) oprintf("%s=vely_next_hash (%s, (void*)&(%s));\n", key, mtext, val);
                         }
+                        vely_free(delc);
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "delete-mem", &mtext, &msize, 0, &vely_is_inline)) != 0)  

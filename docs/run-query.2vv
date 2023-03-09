@@ -47,7 +47,9 @@ Optional <database> is specified in "@" clause and is the name of the \fBdatabas
 .B OUTPUT
 .LP
 
-- output clause
+
+.B - output clause
+
 The optional "output" clause is a comma-delimited list of the query's output columns. These column names are used in \fBquery-result\fP to get the columns values. The column names do not need to match the actual query column names, rather you can name them anyway you want, as long as they positionally correspond. 
 
 If optional "define" is used, then string variables with the same name are created for each column and query's output assigned to them, in which case each name must be a valid C identifier name. For example:
@@ -80,7 +82,9 @@ end-loop
 
 Note that the result obtained via "define" is always unencoded. If you need different encoding or other details about the result, use \fBquery-result\fP.
 
-- unknown-output clause
+
+.B - unknown-output clause
+
 If for some reason you don't know the number of output columns of the query (for instance in "SELECT * from ..." kind of query), use "unknown-output" clause, in which case you can use "column-data", "column-names" and "column-count" to get the query metadata in order to obtain the results. If you use neither "output" nor "unknown-output" clause, then your query has no output columns, for example it might be an "INSERT" or "DELETE" statement, or a DDL statement like "CREATE TABLE".
 
 .LP

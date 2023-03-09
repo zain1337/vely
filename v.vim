@@ -356,6 +356,8 @@ syn region vv_r_construct_delete_cookie start="^[[:space:]]*delete-cookie" skip=
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_delete_cookie,vv_r_inline_delete_cookie,vv_r_at
     syn match vv_h_construct_delete_cookie "^[[:space:]]*delete-cookie" contained containedin=vv_r_construct_delete_cookie
     syn match vv_h_clause_delete_cookie " path \@=" contained containedin=vv_r_construct_delete_cookie
+    syn match vv_h_clause_delete_cookie " secure \@=" contained containedin=vv_r_construct_delete_cookie
+    syn match vv_h_clause_delete_cookie " secure$" contained containedin=vv_r_construct_delete_cookie
     syn match vv_h_clause_delete_cookie " status \@=" contained containedin=vv_r_construct_delete_cookie
     syn match vv_h_clause_delete_cookie "[=]\@<=define \@=" contained containedin=vv_r_construct_delete_cookie
     syn match vv_h_clause_delete_cookie " define \@=" contained containedin=vv_r_construct_delete_cookie
