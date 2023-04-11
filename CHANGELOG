@@ -1,6 +1,6 @@
-Vely release notes for 16.6.0
+Vely release notes for 16.7.0
 
-- Minor: added dynamic boolean expression support for previously static true/false flags in the following statements: count-substring, decrypt/encrypt-data, derive-key, hash-string, match-regex, out-header, send-file, read-hash, set-cookie, delete-cookie, write-file. This change allows for less code that is easier to read. Each flag that is enhanced signifies a static choice (such as download in send-file); now however, each such flag will also have an optional boolean expression that allows run-time selection.
-- Minor: added secure clause in delete-cookie since newer changes in popular browsers require this option when deleting a secure cookie.
-- Minor: added checks for cookie name/value per RFC6265; SameSite clause is undefined now by default because newer changes correlate this value with Secure flag.
+- Minor: added on-error-exit, on-error-continue, error and error-text to begin,commit and rollback transaction.
+- Release: added current year to vv -v.
+- Release: documentation update and 10 new functional tests.
 

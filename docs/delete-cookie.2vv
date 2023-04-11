@@ -23,7 +23,7 @@ Newer client implementations require a cookie deletion to use a secure context i
 
 A cookie can be deleted before or after sending out a header (see \fBout-header\fP). However a cookie must be deleted prior to outputting any actual response (such as with \fBoutput_statement\fP or \fBp-out\fP for example), or the program will error out and stop.
 
-<status> is the integer variable (which can be created with optional "define") that will be -1 if the cookie did not exist, or 0 or greater if it did.
+<status> (in the optional "status" clause) is the integer variable (which can be created with optional "define") that will be -1 if the cookie did not exist, or 0 or greater if it did.
 
 The same cookie name may be stored under different URL paths. You can use the optional "path" clause to specify <cookie path> to ensure the desired cookie is deleted. 
 

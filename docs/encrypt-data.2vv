@@ -9,7 +9,7 @@ Encrypt data.
 .RS 4
 .EX
 
-encrypt-data <data> to [ define ] <result> 
+encrypt-data <data> to [ define ] <result> \\
     [ input-length <input length> ] \\
     [ output-length [ define ] <output length> ] \\
     [ binary [ <binary> ] ] \\

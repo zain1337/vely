@@ -208,4 +208,4 @@ Vely \fBstatement_APIs\fP use mostly strings (char* type) and numbers ("num" typ
 
 Do not use object names (such as variables, functions, types) that start with "_vv", "_vely", "vv" or "vely" as those are reserved by Vely.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

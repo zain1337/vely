@@ -996,7 +996,7 @@ void query_execution (vely_gen_ctx *gen_ctx, const num run_query, const num quer
         if (vp->err != NULL)
         {
             oprintf("%s = _vv_err_%s;\n", vp->err, gen_ctx->qry[query_id].name);
-        }
+        } 
         if (vp->errtext != NULL)
         {
             oprintf("%s = _vv_errm_%s;\n", vp->errtext, gen_ctx->qry[query_id].name);
@@ -2521,9 +2521,23 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         VV_GUARD
                         i = newI+newI1;
                         char *database = find_keyword (mtext, VV_KEYAT, 0);
+                        char *oncont = find_keyword (mtext, VV_KEYONERRORCONTINUE, 1);
+                        char *onexit = find_keyword (mtext, VV_KEYONERROREXIT, 1);
+                        char *errt = find_keyword (mtext, VV_KEYERRORTEXT, 1);
+                        char *err = find_keyword (mtext, VV_KEYERROR, 1);
                         carve_statement (&database, "rollback-transaction", VV_KEYAT, 0, 1);
+                        carve_statement (&oncont, "rollback-transaction", VV_KEYONERRORCONTINUE, 0, 0);
+                        carve_statement (&onexit, "rollback-transaction", VV_KEYONERROREXIT, 0, 0);
+                        carve_statement (&errt, "rollback-transaction", VV_KEYERRORTEXT, 0, 1);
+                        carve_statement (&err, "rollback-transaction", VV_KEYERROR, 0, 1);
+                        define_statement (&errt, VV_DEFCONSTSTRING);
+                        define_statement (&err, VV_DEFCONSTSTRING);
                         get_db_config (database);
-                        oprintf("vely_rollback (\"%s\");\n", mtext);
+                        //erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect
+                        oprintf("vely_rollback (\"%s\", %s, %s%s%s, %s%s%s);\n", mtext, oncont!=NULL?"VV_ON_ERROR_CONTINUE":(onexit!=NULL?"VV_ON_ERROR_EXIT":"VV_OKAY"),
+                            err!=NULL?"&(":"", err !=NULL?err:"NULL", err!=NULL?")":"", 
+                            errt!=NULL?"&(":"", errt !=NULL?errt:"NULL", errt!=NULL?")":""
+                            );
                         continue;
                     }
                     else if (((newI=recog_statement(line, i, "on-error", &mtext, &msize, 0, &vely_is_inline)) != 0)) // commit transaction
@@ -2551,9 +2565,23 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         VV_GUARD
                         i = newI+newI1;
                         char *database = find_keyword (mtext, VV_KEYAT, 0);
+                        char *oncont = find_keyword (mtext, VV_KEYONERRORCONTINUE, 1);
+                        char *onexit = find_keyword (mtext, VV_KEYONERROREXIT, 1);
+                        char *errt = find_keyword (mtext, VV_KEYERRORTEXT, 1);
+                        char *err = find_keyword (mtext, VV_KEYERROR, 1);
                         carve_statement (&database, "commit-transaction", VV_KEYAT, 0, 1);
+                        carve_statement (&oncont, "commit-transaction", VV_KEYONERRORCONTINUE, 0, 0);
+                        carve_statement (&onexit, "commit-transaction", VV_KEYONERROREXIT, 0, 0);
+                        carve_statement (&errt, "commit-transaction", VV_KEYERRORTEXT, 0, 1);
+                        carve_statement (&err, "commit-transaction", VV_KEYERROR, 0, 1);
+                        define_statement (&errt, VV_DEFCONSTSTRING);
+                        define_statement (&err, VV_DEFCONSTSTRING);
                         get_db_config (database);
-                        oprintf("vely_commit (\"%s\");\n", mtext);
+                        //erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect
+                        oprintf("vely_commit (\"%s\", %s, %s%s%s, %s%s%s);\n", mtext, oncont!=NULL?"VV_ON_ERROR_CONTINUE":(onexit!=NULL?"VV_ON_ERROR_EXIT":"VV_OKAY"),
+                            err!=NULL?"&(":"", err !=NULL?err:"NULL", err!=NULL?")":"", 
+                            errt!=NULL?"&(":"", errt !=NULL?errt:"NULL", errt!=NULL?")":""
+                            );
                         continue;
                     }
                     // Checking for non-mandatory (6th param is 1) MUST be done first.
@@ -2563,10 +2591,23 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         VV_GUARD
                         i = newI+newI1;
                         char *database = find_keyword (mtext, VV_KEYAT, 0);
+                        char *oncont = find_keyword (mtext, VV_KEYONERRORCONTINUE, 1);
+                        char *onexit = find_keyword (mtext, VV_KEYONERROREXIT, 1);
+                        char *errt = find_keyword (mtext, VV_KEYERRORTEXT, 1);
+                        char *err = find_keyword (mtext, VV_KEYERROR, 1);
                         carve_statement (&database, "begin-transaction", VV_KEYAT, 0, 1);
+                        carve_statement (&oncont, "begin-transaction", VV_KEYONERRORCONTINUE, 0, 0);
+                        carve_statement (&onexit, "begin-transaction", VV_KEYONERROREXIT, 0, 0);
+                        carve_statement (&errt, "begin-transaction", VV_KEYERRORTEXT, 0, 1);
+                        carve_statement (&err, "begin-transaction", VV_KEYERROR, 0, 1);
+                        define_statement (&errt, VV_DEFCONSTSTRING);
+                        define_statement (&err, VV_DEFCONSTSTRING);
                         get_db_config (database);
-
-                        oprintf("vely_begin_transaction (\"%s\");\n", mtext);
+                        //erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect
+                        oprintf("vely_begin_transaction (\"%s\", %s, %s%s%s, %s%s%s);\n", mtext, oncont!=NULL?"VV_ON_ERROR_CONTINUE":(onexit!=NULL?"VV_ON_ERROR_EXIT":"VV_OKAY"),
+                            err!=NULL?"&(":"", err !=NULL?err:"NULL", err!=NULL?")":"", 
+                            errt!=NULL?"&(":"", errt !=NULL?errt:"NULL", errt!=NULL?")":""
+                            );
                         continue;
                     }
                     // Checking for non-mandatory (6th param is 1) MUST be done first.

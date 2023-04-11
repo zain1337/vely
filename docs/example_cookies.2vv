@@ -281,6 +281,7 @@ sudo systemctl restart httpd
 .EE
 .RE
 
+Note: you must not have any other URL resource that starts with "/cookies" (such as for example "/cookies.html" or "/cookies_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/cookies", see \fBrequest_URL\fP.
 
 
 .LP

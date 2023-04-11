@@ -117,13 +117,13 @@ The number of rows returned by a query can be obtained in optional <row count> i
 .B ERROR HANDLING
 .LP
 
-The query's error code is available in  <error> variable in optional "error" clause - this code is always "0" if query is successful. The <error> code may or may not be a number but is always returned as a string value. <error> is \fBallocated memory\fP. In case of error, error text is available in optional "error-text" clause in <error text>, which is \fBallocated memory\fP.
+The error code is available in  <error> variable in optional "error" clause - this code is always "0" if successful. The <error> code may or may not be a number but is always returned as a string value. <error> is \fBallocated memory\fP. In case of error, error text is available in optional "error-text" clause in <error text>, which is \fBallocated memory\fP.
 
-"on-error-continue" clause specifies that \fBrequest\fP processing will continue in case of error, whereas "on-error-exit" clause specifies that it will exit. This setting overrides database-level \fBon-error\fP for this specific query only. If you use "on-error-continue", be sure to check the error code.
+"on-error-continue" clause specifies that \fBrequest\fP processing will continue in case of error, whereas "on-error-exit" clause specifies that it will exit. This setting overrides database-level \fBon-error\fP for this specific statement only. If you use "on-error-continue", be sure to check the error code.
 
 <error> and <error text> can be created with optional "define".
 
-Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP)
+Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP).
 
 .LP
 .B RUN-PREPARED-QUERY

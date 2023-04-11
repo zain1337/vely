@@ -1,0 +1,88 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+why_C_and_Vely \- Vely documentation (general)
+.SH DESCRIPTION
+Why C and why Vely?
+
+.LP
+.B C
+.LP
+
+Writing programs in C generally results in fastests and smallest programs, which is the reason why it's widely used in system programming and infrastructure software. C is also the \fBgreenest programming language\fP, which means if all programs were written in C, there would be considerably less emissions, water use and pollution, not to mention we would all enjoy faster software that requires less hardware and consequently less use of resources. 
+
+On the other hand, C can be tricky because of memory management and low-level constructs. That's the reason why you might not have picked up C for your next project. That may change with Vely.
+
+.LP
+.B VELY
+.LP
+
+Vely is a framework for C that lets you rapidly build server-side applications of maximum possible performance with code that's ergonomic, easy to write and read, and considerably safer than C alone, because you do not need to allocate/free memory, or worry about buffer overruns or memory violations. You also get automatic memory allocation/garbage collector and automatic file closing.
+
+Vely \fBstatements\fP are embedded in C code and designed to be declarative, i.e. a single line of code performs a task that is meaningful to a human, and without having to know details of how exactly to do it. Such tasks include building strings, querying databases, outputting data, file manipulation, memory structures like hash and fifo, program execution, encryption, encoding, JSON parsing, web stuff like cookies, input parameters, uploading and downloading files, request handling, daemonizing etc. - in short, lots of high-level stuff you need every day and don't want to spend time reinventing the wheel. 
+
+Vely generates C underneath for several reasons. It is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
+
+Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means all the important and difficult parts are done by single-line Vely statements. The purpose of C is then just a "programming glue" that binds together your application and business logic.
+
+.LP
+.B SIMPLE AND PRACTICAL
+.LP
+
+Vely statements look nothing like C, or for that matter like many other popular languages. They are simple and you write them inside C code so there is no need to learn anything new about the layer underneath; C is quite simple and well-known. 
+
+Most of Vely statements generate a number of C statements. Still, their scope is typically narrow and the generated code is shallow and direct, similar to what an experienced C programmer would write, incurring virtually no loss of performance. Vely's design omits the classic API look and feel on purpose and focuses on simplicity. The arguments are specified in any order by naming their purpose. 
+
+Vely is about practical, actual needs people have; it's about productivity, safety and performance. The idea is to not sacrifice performance at all, and to improve productivity and safety significantly.
+
+.LP
+.B WHAT IT IS, AND WHAT IT ISN'T
+.LP
+
+Vely is not a language. It is a better way to API. As a founding layer, C is a great compromise: rapid and easy development on top of a simple programming base with improved safety and arguably the best performance. This is especially true in the Cloud, where smaller and faster means less CPU seconds, less RAM, less money spent, less energy used and less emissions. And \fBMoore's law\fP may or may not be failing, but it will take significantly more funding, time and expenditure of all kinds to keep it going, and at some point it may no longer. 
+
+In short, the goal of Vely is to lend the superior performance of C to general-purpose application development, and especially web applications. Regardless of what kind of hardware you run, or whatever kind of software you're designing, ultimately, performance matters.
+
+.LP
+.B WHAT DOES VELY LOOK LIKE
+.LP
+
+Here's an example that lists employees, writes output to file "employees", and then displays the result in a web page or on the command line - all this in less than 30 lines of code:
+
+.RS 4
+.EX
+
+void list_employees() {
+    out-header default
+    @<html><body>
+
+    char *header = make_header(); // write any C code
+    p-out header
+
+    // Create report in outmsg string and fill it with database query result
+    write-string define outmsg
+        // Get data from the database
+        run-query ="select name, salary from employees order by name" output name, salary
+            @Name: <<query-result name>>
+            @<br/>
+            @Salary: <<query-result salary>>
+            @<br/><br/>
+        end-query
+    end-write-string
+
+    // Write report to a file and then to the client
+    write-file "employees" from outmsg status define st
+    if (st<0) {
+        @Error in writing file (<<pf-out "%lld", st>>)
+        exit-request
+    } else {
+        p-out outmsg
+    }
+    @</body></html>
+}
+
+.EE
+.RE
+
+Highlighted with Vely's \fBsyntax_highlighting\fP using \fB2html\fP.
+.SH SEE ALSO
+ \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

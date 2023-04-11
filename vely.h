@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.6.0"
+#define VV_VERSION "16.7.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -661,9 +661,9 @@ void vely_get_stack(const char *fname);
 vely_dbc *vely_get_db_connection (num abort_if_bad);
 #endif
 void vely_close_db_conn ();
-void vely_begin_transaction(const char *t);
-num vely_commit(const char *t);
-num vely_rollback(const char *t);
+num vely_begin_transaction(const char *t, char erract, const char **err, const char **errt);
+num vely_commit(const char *t, char erract, const char **err, const char **errt);
+num vely_rollback(const char *t, char erract, const char **err, const char **errt);
 void vely_get_insert_id(char *val, num sizeVal);
 void vely_select_table (char *s, num *arow, num *nrow, num *ncol, char ***col_names, char ***data, num **dlen, const char **er, const char **errm, char is_prep, void **prep, num paramcount, char **params, char erract);
 void _vely_trace(num trace_level, const char *fromFile, num fromLine, const char *fromFun, const char *format, ...) __attribute__((format(printf, 5, 6)));

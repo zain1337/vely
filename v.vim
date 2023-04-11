@@ -1260,6 +1260,12 @@ syn region vv_r_construct_begin_transaction start="^[[:space:]]*begin-transactio
     syn match vv_h_construct_begin_transaction "^[[:space:]]*begin-transaction" contained containedin=vv_r_construct_begin_transaction
     syn match vv_h_clause_begin_transaction " @ \@=" contained containedin=vv_r_construct_begin_transaction
     syn match vv_h_clause_begin_transaction " @$" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " error \@=" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " error-text \@=" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " on-error-continue \@=" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " on-error-continue$" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " on-error-exit \@=" contained containedin=vv_r_construct_begin_transaction
+    syn match vv_h_clause_begin_transaction " on-error-exit$" contained containedin=vv_r_construct_begin_transaction
     syn match vv_h_clause_begin_transaction "[=]\@<=define \@=" contained containedin=vv_r_construct_begin_transaction
     syn match vv_h_clause_begin_transaction " define \@=" contained containedin=vv_r_construct_begin_transaction
     hi def link vv_h_clause_begin_transaction    velyClause
@@ -1270,6 +1276,12 @@ syn region vv_r_construct_commit_transaction start="^[[:space:]]*commit-transact
     syn match vv_h_construct_commit_transaction "^[[:space:]]*commit-transaction" contained containedin=vv_r_construct_commit_transaction
     syn match vv_h_clause_commit_transaction " @ \@=" contained containedin=vv_r_construct_commit_transaction
     syn match vv_h_clause_commit_transaction " @$" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " error \@=" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " error-text \@=" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " on-error-continue \@=" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " on-error-continue$" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " on-error-exit \@=" contained containedin=vv_r_construct_commit_transaction
+    syn match vv_h_clause_commit_transaction " on-error-exit$" contained containedin=vv_r_construct_commit_transaction
     syn match vv_h_clause_commit_transaction "[=]\@<=define \@=" contained containedin=vv_r_construct_commit_transaction
     syn match vv_h_clause_commit_transaction " define \@=" contained containedin=vv_r_construct_commit_transaction
     hi def link vv_h_clause_commit_transaction    velyClause
@@ -1294,6 +1306,12 @@ syn region vv_r_construct_rollback_transaction start="^[[:space:]]*rollback-tran
     syn match vv_h_construct_rollback_transaction "^[[:space:]]*rollback-transaction" contained containedin=vv_r_construct_rollback_transaction
     syn match vv_h_clause_rollback_transaction " @ \@=" contained containedin=vv_r_construct_rollback_transaction
     syn match vv_h_clause_rollback_transaction " @$" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " error \@=" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " error-text \@=" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " on-error-continue \@=" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " on-error-continue$" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " on-error-exit \@=" contained containedin=vv_r_construct_rollback_transaction
+    syn match vv_h_clause_rollback_transaction " on-error-exit$" contained containedin=vv_r_construct_rollback_transaction
     syn match vv_h_clause_rollback_transaction "[=]\@<=define \@=" contained containedin=vv_r_construct_rollback_transaction
     syn match vv_h_clause_rollback_transaction " define \@=" contained containedin=vv_r_construct_rollback_transaction
     hi def link vv_h_clause_rollback_transaction    velyClause
@@ -1304,6 +1322,12 @@ syn region vv_r_construct_end_query start="^[[:space:]]*end-query" skip="\\[[:sp
     syn match vv_h_construct_end_query "^[[:space:]]*end-query" contained containedin=vv_r_construct_end_query
     syn match vv_h_clause_end_query " @ \@=" contained containedin=vv_r_construct_end_query
     syn match vv_h_clause_end_query " @$" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " error \@=" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " error-text \@=" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " on-error-continue \@=" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " on-error-continue$" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " on-error-exit \@=" contained containedin=vv_r_construct_end_query
+    syn match vv_h_clause_end_query " on-error-exit$" contained containedin=vv_r_construct_end_query
     syn match vv_h_clause_end_query "[=]\@<=define \@=" contained containedin=vv_r_construct_end_query
     syn match vv_h_clause_end_query " define \@=" contained containedin=vv_r_construct_end_query
     syn match vv_h_clause_end_query "[=]\@<=define \@=" contained containedin=vv_r_construct_end_query

@@ -141,8 +141,11 @@ vely_dbc *vely_get_db_connection (num abort_if_bad)
              
 // 
 // Begin transaction. 
+// Returns 1 if okay, 0 if failed. It may just stop and report error, depending on on-error settings (both
+// erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+// err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-void vely_begin_transaction(const char *t)
+num vely_begin_transaction(const char *t, char erract, const char **err, const char **errt)
 {
     VV_TRACE("");
 
@@ -158,11 +161,16 @@ void vely_begin_transaction(const char *t)
     {   
         snprintf (start, sizeof(start), "start transaction %s", t);
     }
-    if (vely_execute_SQL (start, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, VV_OKAY) == NULL)
+// last param is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+    if (vely_execute_SQL (start, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, erract) == NULL)
     {
-        vely_report_error ("Cannot start transaction, error code [%s], error [%s]", er, errm);
+        VV_CURR_DB.is_begin_transaction = 0;
+        return 0;
     }
+    if (err != NULL) *err = er; else vely_free((void*)er);
+    if (errt != NULL) *errt = errm; else vely_free((void*)errm);
     VV_CURR_DB.is_begin_transaction = 1;
+    return 1;
 }
 
 // 
@@ -184,7 +192,7 @@ void vely_check_transaction(num check_mode)
             VV_TRACE("Transaction rollbacked (check mode %lld)", check_mode);
             errdb = i;
             vely_get_config()->ctx.db->ind_current_db = i;
-            vely_rollback("");
+            vely_rollback("", VV_OKAY, NULL, NULL);
             vely_get_config()->ctx.db->ind_current_db = savedb;
             err =1;
         }
@@ -198,9 +206,11 @@ void vely_check_transaction(num check_mode)
 
 // 
 // Commit transaction. 
-// Returns status of mysql_commit.
+// Returns 1 if okay, 0 if failed. It may just stop and report error, depending on on-error settings (both
+// erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+// err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-num vely_commit(const char *t)
+num vely_commit(const char *t, char erract, const char **err, const char **errt)
 {
     VV_TRACE("");
 
@@ -211,18 +221,24 @@ num vely_commit(const char *t)
     const char *errm="";
     char comm[512];
     snprintf (comm, sizeof(comm), "commit %s", t);
-    if (vely_execute_SQL (comm, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, VV_OKAY) == NULL)
+// last param is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+    if (vely_execute_SQL (comm, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, erract) == NULL)
     {
-        vely_report_error ("Cannot commit transaction, error code [%s], error [%s]", er, errm);
+        return 0;
     }
+    if (err != NULL) *err = er; else vely_free((void*)er);
+    if (errt != NULL) *errt = errm; else vely_free((void*)errm);
     return 1;
 }
 
 // 
 // Rollbacks the transaction. 
-// Returns status of mysql_rollback.
+// Returns 1 if okay, 0 if failed. It may just stop and report error, depending on on-error settings (both
+// global and per-statement).
+// erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+// err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-num vely_rollback(const char *t)
+num vely_rollback(const char *t, char erract, const char **err, const char **errt)
 {
     VV_TRACE("");
 
@@ -233,10 +249,13 @@ num vely_rollback(const char *t)
     const char *errm="";
     char rollb[512];
     snprintf (rollb, sizeof(rollb), "rollback %s", t);
-    if (vely_execute_SQL (rollb, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, VV_OKAY) == NULL)
+// last param is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
+    if (vely_execute_SQL (rollb, &rows, &er, &errm, 0, 0, 0, NULL, 0, NULL, erract) == NULL)
     {
-        vely_report_error ("Cannot rollback transaction, error code [%s], error [%s]", er, errm);
+        return 0;
     }
+    if (err != NULL) *err = er; else vely_free((void*)er);
+    if (errt != NULL) *errt = errm; else vely_free((void*)errm);
     return 1;
 }
 
@@ -325,8 +344,10 @@ vely_dbc *vely_execute_SQL (char *s,  num *arows, const char **er, const char **
     
     VV_TRACE ("Query executing: [%s]", s);
 
+    // init error code/message
     char *oker =  vely_strdup("0"); // success for error in query-result#...,error...
     *er = oker;
+    *err_message = VV_EMPTY_STRING;
 
     num execres = 0;
     if (VV_CURR_DB.db_type == VV_DB_POSTGRES)

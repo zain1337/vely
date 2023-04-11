@@ -126,11 +126,18 @@ Vely documentation provides a concise BNF-like notation of how each statement wo
 .RS 4
 .EX
 
-encrypt-data <data> to [ define ] <result> password <password> \\
+encrypt-data <data> to [ define ] <result> \\
     [ input-length <input length> ] \\
-    [ salt <salt> ] \\
     [ output-length [ define ] <output length> ] \\
-    [ binary ] \\
+    [ binary [ <binary> ] ] \\
+    ( password <password> \\
+        [ salt <salt> [ salt-length <salt length> ] ] \\
+        [ iterations <iterations> ] \\
+        [ cipher <cipher algorithm> ] \\
+        [ digest <digest algorithm> ]
+        [ cache ]
+        [ clear-cache <clear cache> ) \\
+    [ init-vector <init vector> ]
 
 .EE
 .RE

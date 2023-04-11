@@ -2,73 +2,221 @@
 .SH NAME
 vely \- Vely documentation (general)
 .SH DESCRIPTION
+Vely official web page
+
+.B - The power of C
+
+C is the \fBfastest and most energy-efficient\fP programming language. Buffer overwrites, memory management and low-level coding may have been reasons you'd choose another language in the past. Vely changes that by turning C into a rapid software development platform that's safer and easier. You can develop cloud applications, middleware, database applications or anything else and benefit from C's high performance at the same time. There is no need to compromise between the two. Moore's Law is slowing down and it's time to transition away from the bloated programming languages and frameworks, and towards efficiency and high performance. From the \fBMIT Technology review\fP: "Thompson and his colleagues showed that they could get a computationally intensive calculation to run some 47 times faster just by switching from ... a popular general-purpose programming language, to the more efficient C". More on \fBwhy C and why Vely\fP.
+
+.B - Free Open Source framework
+
+Vely is a general-purpose framework for building high-performance and lighweight software applications, based on C programming language. It is especially well suited for web applications. It's Free \fBOpen Source\fP (under the \fBEclipse Public License 2 (EPL-2)\fP), created by \fBSergio Mijatovic\fP. 
+
+.B - Start now
+
+You don't need to be a C expert. Install \fBin minutes\fP, then try \fB123_hello_world\fP and \fBexamples\fP for everything from a database example and a file manager to a multitenant SaaS application. 
+
+.B - Application server
+
+Run a FastCGI application server that is accessible from Apache, Nginx or any other web server in minutes, for enhanced performance, safety and stability.
+
+.B - Database support
+
+Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP). 
+
+.B - Support for everything, do anything
+
+Vely \fBstatements\fP are \fBprecompiled\fP into C code, and cover web, database, strings, files, flow and execution, encoding/encryption, REST, JSON, time, error handling, daemon-izing code and other common tasks (see \fBdocumentation\fP). They are safer than C (no need to allocate memory or free it, avoiding major pitfalls) and very easy - generally one-liners, largely self-explanatory and more powerful than traditional API. Vely code is a breeze to read - it's just as important as the ease of writing it. Same code works for both web applications and \fBcommand_line\fP programs. Easily \fBcontainerize_application\fPs. 
+
+.B - Native and simple
+
+Vely applications are 100% native high-performance and low-footprint \fIwithout interpreters or byte-code schemes\fP. Vely is not object-oriented, it's declarative and functional. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. It's time to help the Earth while making programming easier and applications faster!
+
+.B - Standards-based
+
+A Vely application works by processing standard HTTP requests, which simplifies the program interface across the board. Each \fBrequest_URL\fP by default states the application name and a request name which is the source file handling it. So, "/appname/mycode" means that application name is "appname" and that "mycode()" function defined in file mycode.vely will execute. Read more about \fBvely_architecture\fP and \fBhow_vely_works\fP.
+
+.B - Quality and continuous testing
+
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1419 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+
+.B - Report bugs, request features, contact
+
+Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
+\fBhl
 
 .LP
-.B WHAT IS VELY
+.B NEWS
 .LP
 
-Vely is a general-purpose framework for building high-performance software applications. It is especially well suited for web applications. It's Free \fBOpen Source\fP (under the \fBEclipse Public License 2 (EPL-2)\fP), created by \fBSergio Mijatovic\fP. 
 
-Vely is based on C programming language to achieve performance goals. However, Vely is for everyone. You don't need to be a C expert. Check out \fBexamples\fP and \fBdocs\fP and see just how easy it is to rapidly build 100% native high-performance/low-footprint web applications, \fIwithout interpreters or byte-code schemes\fP.  Vely is not object-oriented, but rather it's declarative and functional. This makes it simple to work with. More on \fBwhy Vely\fP.
-
-C is the \fBgreenest programming language\fP, meaning it consumes the least amount of energy and resources. Read about \fBwhy C\fP is a great base for Vely framework.
-
-Vely has \fBstatements\fP that you use in C code just as you would any API. They are \fBprecompiled\fP into C code, and cover just about anything: web, database, strings, files, flow and execution, encoding/encryption, REST, JSON, time, error handling, daemon-izing code, and other common tasks (see \fBdocumentation\fP). Vely statements are safer, largely self-explanatory and easier to write and maintain, and are more powerful than traditional C API. They also make code easy to read; that's just as important, if not more so, as the ease of writing code.
-
-Use Vely to create web applications, including REST APIs, or write \fBcommand_line\fP programs. Same code works as both. Web applications run as FastCGI servers with standard reverse proxies such as Apache or Nginx for enhanced performance, safety and stability. Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP). Write middleware, database applications, services software, data integration, Internet Of Things (IOT) or just about anything. It is well-suited for cloud applications due to low resource requirements and because it is easy to \fBcontainerize_application\fPs.
-
-Try \fB123_hello_world\fP for a Hello World web application in minutes. Then, try \fBexamples\fP for everything from a database example and a file manager to a multitenant SaaS application.
-
-A Vely application works by processing standard HTTP requests. This standardizes the program interfaces across the board. This interface is extremely simple. Each \fBrequest_URL\fP by default states an application name and a request name which is the source file handling it. So, "/appname/mycode" means that application name is "appname" and that "mycode()" function defined in file mycode.vely will execute. Read more about \fBvely_architecture\fP and \fBhow_vely_works\fP.
-
-Vely creates a Makefile for you and figures out libraries that need to be used. Your source code directory will be automatically scanned and made into an application. Suppose you write a Vely \fBstatement\fP like this:
 
 .RS 4
-.EX
+\[bu]    
+\fI2023-03-08\fP
+Vely release notes for 16.6.0
+- Minor: added dynamic boolean expression support for previously static true/false flags in the following statements: count-substring, decrypt/encrypt-data, derive-key, hash-string, match-regex, out-header, send-file, read-hash, set-cookie, delete-cookie, write-file. This change allows for less code that is easier to read. Each flag that is enhanced signifies a static choice (such as download in send-file); now however, each such flag will also have an optional boolean expression that allows run-time selection.
+- Minor: added secure clause in delete-cookie since newer changes in popular browsers require this option when deleting a secure cookie.
+- Minor: added checks for cookie name/value per RFC6265; SameSite clause is undefined now by default because newer changes correlate this value with Secure flag.
 
-call-web "http://website.com" response resp response-code rc \\
-    status len request-body files "file1"="uploadtest", "file23"="fileup4"
-
-.EE
 .RE
 
-Vely will generate the C code to effectively POST a form to website.com that sends two local files to that server, and will get you the response code and status back. You can do this by using cURL library, but it will take quite a bit of C coding to do this. And there are many different combinations and things you can do, and the code gets generated to do it quickly, efficiently and safer each time, taking care of much error handling and edge cases automatically. The same goes for \fBexec-program\fP, \fBrun-query\fP, \fBsend-file\fP, \fBencrypt-data\fP, \fBread-json\fP etc. All these things you can program yourself in C, but these statements are flexible and will quickly and safely do what you need. Code example (highlighted with Vely's \fBsyntax_highlighting\fP using \fB2html\fP):
 
 .RS 4
-.EX
+\[bu]    
+\fI2023-02-27\fP
+Vely release notes for 16.4.0
+- Minor: Vely licensing changed from LGPL-3 to EPL-2 (Eclipse Public License 2).
+- Minor: new FastCGI client C API provides the ability to write standalone programs that connect to any FastCGI server.
+- Minor: pf-out, pf-url, pf-web now have to-error clause to write to stderr stream.
+- Minor: added -i option to vv as support for FastCGI C API library, producing the include and library flags for gcc.
+- Release: fixed bug in vv where it crashes when using --app-path with bad data.
+- Minor: vf will now kill children server processes if parent is killed. This allows for clean restarts.
+- Minor: added flush-output statement for partial output in a long-running request.
 
-void list_employees() {
-    out-header default
-    @<html><body>
-
-    char *header = make_header(); // write any C code
-    p-out header
-
-    // Create report in outmsg string and fill it with database query result
-    write-string define outmsg
-        // Get data from the database
-        run-query ="select name, salary from employees order by name" output name, salary
-            @Name: <<query-result name>>
-            @<br/>
-            @Salary: <<query-result salary>>
-            @<br/><br/>
-        end-query
-    end-write-string
-
-    // Write report to a file and then to the client
-    write-file "employees" from outmsg status define st
-    if (st<0) {
-        @Error in writing file (<<pf-out "%lld", st>>)
-        exit-request
-    } else {
-        p-out outmsg
-    }
-    @</body></html>
-}
-
-.EE
 .RE
 
-Each Vely release must pass tests on every platform where it's available before it's released. There are currently 1404 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. See \fBarticles\fP for more about Vely and how-to's.
 
-Contact at \fBvelydev@gmail.com\fP - send questions, bugs or suggest new features.
+.RS 4
+\[bu]    
+\fI2023-01-18\fP
+Vely release notes for 15.2.0
+- Release: memory handling improvements: faster clearing of memory on allocation.
+- Minor: automatic closing of open-files. 
+- Minor: set errno to 0 when error is set by Vely to indicate error was not reported by the operating system.
+- Minor: added new file handling statements with file-id clause that increase performance: open-file, close-file, file-position and read-file, write-file.
+- Minor: added digest, binary and output-length clauses to hash-string for more useful output.
+- Minor: added derive-key statement in cryptography.
+- Release: fixed bug in encode-hex where some inputs would not encode correctly.
+- Release: tracing is now faster as it is conditionally included or excluded at code generation time.
+- Minor: added clear-cache to match-regex.
+- Minor: added salt-length, init-vector(IV) and iterations clauses to encrypt-data and decrypt-data.
+- Minor: added cache/clear-cache to encrypt-data and decrypt-data for caching of keys.
+- Minor: added PBKDF2 key generation.
+- Minor: added random-crypto generator which is cryptographically secure pseudo random generator (CSPRNG).
+- Minor: improved performance and memory usage of memory allocator by adding tracking of free memory list.
+- Minor: added block-size and init clauses to new-mem statement for more useful and faster memory allocation.
+- Minor: added binary clause to random-string statement for increased performance when needing purely binary output.
+- Release: documented each Vely statement that allocates memory so it can be released in a loop or a long running request.
+- Release: added 140 new tests.
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-12-29\fP
+Vely release notes for 15.1.0
+- Release: json parsing performance improvement
+- Release: fixed issue with certain crypto algorithms not found
+- Release: improved hashing performance 4x times
+- Release: added 22 new tests
+- Release: report native OpenSSL errors
+- Minor: added ability to choose any cipher for encryption
+- Minor: added ability to choose any digest for encryption
+- Minor: added ability to choose any digest for hashing
+- Release: added how-to encryption article
+- Minor: added path_info/query_string and request_method to command line execution generator (vv -r)
+- Release: using digest and cipher fetching for openssl 3
+- Release: fixed issue with docker test
+- Release: added stress test for crypto
+- Release: added web site articles as a category for documentation
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-12-19\fP
+Vely release notes for 15.0.0
+- Minor: added 'define' to 'output' clause in run-query statement so that query output variables can be defined in the query itself. This makes query code shorter and easier to work with.
+- Minor: added set-input statement to dynamically change the value of an input parameter in the request handler.
+- Release: enforce that content length must be present if content type specified in a request.
+- Release: fixed bug where input parameter or query result name could not begin with underscore.
+- Major: removed url-param statement as it is harder to meaningfully manipulate both query string and path segments; use match-regex instead.
+- Minor: added '-r' option to vv to produce a helper output on how to specify HTTP environment variables for running a command-line program or FastCGI client.
+- Release: fixed bug where hyphens in query string parameter names do not get converted to underscores.
+- Release: increased performance of vv application building by fixing cache for database settings.
+- Major: removed 'url' clause in get-req as superfluous; obtain query string, path segments etc. by using get-sys with variables like QUERY_STRING, SCRIPT_NAME, PATH_INFO etc. Added 'Getting URL' to documentation detailing this.
+- Minor: added ability to process any kind of request method, aside from standard REST methods such as GET, PUT, POST, PATCH, DELETE. For example, a request method 'NEWMETHOD' can be used and processed like any other.
+- Release: added REST API example (shopping application).
+- Release: documentation typos fixed.
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-11-29\fP
+Vely release notes for 14.2.0
+- Minor: simplified URLs to access applications. Path-based URLs are now the default form of URL. This means a URL path in form of /app-path/request-name followed by optional REST-style parameters and a query string. This kind of URL is easier to read and write, general-purpose, and flexible for both REST and non-REST usage. The existing normalized URL will still be available.
+- Minor: examples updated with new URL defaults; old ones still work the same to ensure backward compatibility.
+- Release: documentation on URL structure and URL building simplified and a number of erratas fixed.
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-11-20\fP
+Vely release notes for 14.1.2
+- Release: fix environment substitution issue for docker tests
+Vely release notes for 14.1.0
+- Release: bug fix with db config file when it ends with a dollar sign
+- Release: better documentation for request URLs (REST), clearer explanation of URL types
+- Release: changed environment variable substitution from gnu envsubst to Vely's own, equally fast but much smaller
+- Release: added more tests; now over 1050 Vely functional tests
+- Minor: added -u option to vv to perform environment substitutin at will
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-11-17\fP
+Vely release notes for 14.0.0
+- Minor: Added REST API URL capability with application path and request expressions
+- Minor: Added --path option in vv to specify application path for REST requests
+- Minor: Added PUT, PATCH, DELETE, OPTIONS and any arbitrary request methods support 
+- Minor: Added REST to multitenant SaaS example
+- Minor: Added request-body and payload/payload-length to support any content type in call-web statement
+- Minor: Added content-type to call-web statement
+- Minor: Added request method to call-web statement
+- Minor: Added content-type to get-req statement
+- Minor: Added request method to get-req statement
+- Minor: Added header clause to get-req statement
+- Minor: Added p-path statement for building links and forms for REST and normalized URLs
+- Minor: Added path clause to get-app statement
+- Minor: Added environment variables to database configuration files for easier and safer deployment
+- Minor: Added support for SCRIPT_NAME and PATH_INFO environment variables for web and command-line programs
+- Major: Renamed post clause to request-body in call-web, and headers to response-headers 
+- Release: Added a number of documentation articles for new features in this release
+- Release: Refactor variable space in generated code and vv to avoid conflicts with environment
+- Release: Added JSON example
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-10-10\fP
+Vely release notes for 13.0.10
+- Release: several bugs in examples fixed 
+- Release: documentation update, especially with new example format
+- Release: OpenSUSE support is now for Tumbleweed
+- Release: update package files
+- Release: additional tests for exit-code
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fI2022-10-07\fP
+Vely release notes for 13.0.2
+- Release: fixed bug where exit-code sometimes does not set command line program exit code correctly
+
+.RE
+
+
+For more news, \fBclick here\fP.

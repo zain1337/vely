@@ -193,6 +193,7 @@ sudo systemctl restart nginx
 .EE
 .RE
 
+Note: you must not have any other URL resource that starts with "/json" (such as for example "/json.html" or "/json_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/json", see \fBrequest_URL\fP.
 
 .LP
 .B ACCESS APPLICATION SERVER FROM THE BROWSER
