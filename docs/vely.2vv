@@ -38,7 +38,7 @@ A Vely application works by processing standard HTTP requests, which simplifies 
 
 .B - Quality and continuous testing
 
-Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1419 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1433 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
 
 .B - Report bugs, request features, contact
 
@@ -49,6 +49,17 @@ Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
 .B NEWS
 .LP
 
+
+
+.RS 4
+\[bu]    
+\fI2023-04-10\fP
+Vely release notes for 16.7.0
+- Minor: added on-error-exit, on-error-continue, error and error-text to begin,commit and rollback transaction.
+- Release: added current year to vv -v.
+- Release: documentation update and 10 new functional tests.
+
+.RE
 
 
 .RS 4
@@ -206,15 +217,6 @@ Vely release notes for 13.0.10
 - Release: OpenSUSE support is now for Tumbleweed
 - Release: update package files
 - Release: additional tests for exit-code
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-10-07\fP
-Vely release notes for 13.0.2
-- Release: fixed bug where exit-code sometimes does not set command line program exit code correctly
 
 .RE
 

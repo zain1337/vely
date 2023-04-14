@@ -55,7 +55,8 @@
 #define VV_KEYONERROREXIT "on-error-exit"
 #define VV_KEYERRNO "errno"
 #define VV_KEYPREFIX "prefix "
-#define VV_KEYNAME "name"
+#define VV_KEYNAME0 "name"
+#define VV_KEYNAME "name "
 #define VV_KEYPUT "put"
 #define VV_KEYGET "get "
 #define VV_KEYSET "set "
@@ -338,6 +339,7 @@ typedef struct s_vely_db_parse {
     char *errtext;
     char *arows;
     char *rcount;
+    char *name;
 } vely_db_parse;
 
 
@@ -397,7 +399,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name);
 void _vely_report_error (const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
 num recog_statement (char *cinp, num pos, char *opt, char **mtext, num *msize, num isLast, num *is_inline);
 num find_query (vely_gen_ctx *gen_ctx);
-void new_query (vely_gen_ctx *gen_ctx, const char *qry);
+void new_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
 num get_col_ID (vely_gen_ctx *gen_ctx, num qry_name, const char *column_out);
 void oprintf (const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
 void get_passed_whitespace (char **s);
@@ -440,6 +442,8 @@ void envsub ();
 void vely_is_valid_app_path (const char *name);
 void query_result (vely_gen_ctx *gen_ctx, const char *mtext);
 char *opt_clause(const char *clause, const char *param, const char *antiparam);
+void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
+void free_query (const char *qryname);
 
 
 //
@@ -886,6 +890,41 @@ void process_query (vely_gen_ctx *gen_ctx, const num query_result, const num run
     }
 }
 
+
+//
+// Name a query. By default, a query is numbered (as in 0,1,2..), but if you give it a name, it must be a valid C name
+// gen_ctx is a query context, vp is the context of a parsed run-query statement
+//
+void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
+{
+    assert (vp);
+    static vely_fifo *qnames = NULL; // fifo list of all names, cannot keep in context, since we
+                                     // overwrite inactive queries with active ones
+    if (qnames == NULL) vely_store_init(&qnames); // init list of names originally
+    if (vp->name != NULL)
+    {
+        num n_len = strlen (vp->name);
+        vely_trim (vp->name, &n_len);
+        if (vely_is_valid_param_name (vp->name) != 1)
+        {
+            _vely_report_error(VV_NAME_INVALID, vp->name);
+        }
+        snprintf (gen_ctx->qry[query_id].name, sizeof (gen_ctx->qry[query_id].name), "_vv_qryname_%s", vp->name);
+        vely_rewind(qnames); // rewind the list to search
+        while (1)
+        { // get query names one by one and check if duplicate
+            char *one_name;
+            vely_retrieve (qnames, NULL, &one_name);
+            if (one_name==NULL) break;
+            if (!strcmp (one_name, vp->name)) {
+                _vely_report_error( "Query with the name [%s] already exists", vp->name);
+            }
+        } 
+        vely_store(qnames, NULL, vely_strdup(vp->name)); // store name for future lookup
+    }
+    else snprintf (gen_ctx->qry[query_id].name, sizeof (gen_ctx->qry[query_id].name), "_vv_qryname_%lld", gen_ctx->total_queries);
+}
+
 //
 // Examine proposed query statement, perform checks to its validity, and generate initial defining code for it.
 // gen_ctx is execution context, vp has all clauses parsed out
@@ -895,7 +934,7 @@ void prepare_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
     assert (vp->eq); // must be non NULL by parsing 
 
     // new_query either adds a query or uses existing one
-    new_query (gen_ctx, vp->eq);
+    new_query (gen_ctx, vp);
 
     // get query output columns (or unknown)
     get_query_output (gen_ctx, vp); 
@@ -930,7 +969,7 @@ void prepare_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
     oprintf("VV_UNUSED (_vv_err_%s);\n", gen_ctx->qry[query_id].name);
     oprintf("char **_vv_data_%s = NULL;\n", gen_ctx->qry[query_id].name);
     oprintf("VV_UNUSED (_vv_data_%s);\n", gen_ctx->qry[query_id].name);
-    oprintf("char **_vv_col_names_%s;\n", gen_ctx->qry[query_id].name);
+    oprintf("char **_vv_col_names_%s = NULL;\n", gen_ctx->qry[query_id].name);
     oprintf("VV_UNUSED (_vv_col_names_%s);\n", gen_ctx->qry[query_id].name);
     // allocate SQL buffer
     oprintf("static char *_vv_sql_buf_%s;\n", gen_ctx->qry[query_id].name);
@@ -951,6 +990,30 @@ void prepare_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
     // unique void * for prepared stmt, important to be NULL. It is only non-NULL when it has been prepared. 
     // It cannot be deallocated (when connection goes down) if we cannot distinguish whether it has been prepared or not
     oprintf("static void *_vv_sql_prep_%s = NULL;\nVV_UNUSED(_vv_sql_prep_%s);\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
+}
+
+
+//
+// Free resources used by query
+// gen_ctx is execution context, qryname is the name of the query
+//
+void free_query (const char *qryname)
+{
+    char qname[VV_MAX_QUERYNAME_LEN+1];
+    snprintf (qname, sizeof (qname), "_vv_qryname_%s", qryname);
+    // qname itself is just sql text
+    // the error msg/cde are either VV_EMPTY_STRING or allocated, so they can be freed
+    oprintf("vely_free(_vv_errm_%s);\n", qname);
+    oprintf("vely_free(_vv_err_%s);\n", qname);
+    // free data if there, also free each individual chunk
+    oprintf("if (_vv_data_%s != NULL) { num i; for (i=0;i<_vv_ncol_%s*_vv_nrow_%s;i++) vely_free(_vv_data_%s[i]); vely_free(_vv_data_%s);}\n", qname, qname, qname, qname, qname);
+    // free names if there, also free each individual chunk
+    oprintf("if (_vv_col_names_%s != NULL) {num i; for (i=0;i<_vv_ncol_%s;i++) vely_free(_vv_col_names_%s[i]); vely_free (_vv_col_names_%s);}\n", qname, qname, qname, qname);
+    // free length of data if there
+    oprintf ("if (_vv_dlen_%s != NULL) vely_free (_vv_dlen_%s);\n", qname, qname);
+    // _vv_sql_buf_... is freed if it was allocated, it is a dynamic buffer for SQL text to be executed, search on it
+    // _vv_sql_params_... is freed if it was allocated, it's dynamic params when statement is prepared
+    // _vv_sql_prep is allocated once with strdup() and never freed unless re-prepared, just a unique pointer, search on it
 }
 
 
@@ -1184,6 +1247,8 @@ void generate_sql_code (vely_gen_ctx *gen_ctx, char is_prep)
 
     // deallocate _vv_sql_buf_<query name> if not prepared and no input params (which is the condition for it to be allocated)
     if (gen_ctx->qry[query_id].qry_found_total_inputs > 0 && is_prep == 0) oprintf("vely_free (_vv_sql_buf_%s);\n", gen_ctx->qry[query_id].name);
+    // deallocate SQL params used for prepared query
+    oprintf("if (_vv_sql_params_%s != NULL) vely_free (_vv_sql_params_%s);\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
 }
 
 //
@@ -1241,7 +1306,7 @@ void statement_SQL (vely_gen_ctx *gen_ctx, char is_prep)
         // So no vely_ alloc functions, as they are deallocated at the end of the request
         // Also set void** as prepared statement pointer, so it can be cleared when connection is lost (vely_db_prep() call)
         oprintf("if (_vv_sql_buf_set_%s==0) {if ((_vv_sql_buf_%s=strdup(%s))==NULL) vely_report_error(\"Cannot allocate query [%s] for a prepared statement\");_vv_sql_buf_set_%s=1; vely_db_prep(&_vv_sql_prep_%s); }\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
-    oprintf("if (_vv_qry_executed_%s == 1) {vely_report_error(\"Query [%s] has executed the second time; if you want to execute the same query twice in a row without a run-query, use different queries with the same query text (or variable) if that is your intention, file [%s], line number [%lld] \");}\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, src_file_name, lnum);
+        oprintf("if (_vv_qry_executed_%s == 1) {vely_report_error(\"Query [%s] has executed the second time; if you want to execute the same query twice in a row without a run-query, use different queries with the same query text (or variable) if that is your intention, file [%s], line number [%lld] \");}\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, src_file_name, lnum);
     }
 
     // with dynamic queries, we cannot count how many '%s' in SQL text (i.e. inputs) there are. 
@@ -1259,8 +1324,6 @@ void statement_SQL (vely_gen_ctx *gen_ctx, char is_prep)
         // So make it a simple copy, as it's all that's needed.
         // is_prep can be 0 or 1 here, if 1, this is prepared statement without any input params
         //
-        oprintf("_vv_sql_paramcount_%s = 0;\n", gen_ctx->qry[query_id].name);
-        oprintf("_vv_sql_params_%s = NULL;\n", gen_ctx->qry[query_id].name);
         // for non-prepared statements without any input params, just use the query text
         if (is_prep == 0) oprintf("_vv_sql_buf_%s=%s;\n", gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
     }
@@ -2049,13 +2112,14 @@ num get_col_ID (vely_gen_ctx *gen_ctx, num qry_name, const char *column_out)
 
 
 // 
-// Add new query. gen_ctx is the context, orig_qry is the SQL text of query.
+// Add new query. gen_ctx is the context, vp is the query parsing context.
 // Error messages are emitted if there are syntax errors.
 //
-void new_query (vely_gen_ctx *gen_ctx, const char *orig_qry)
+void new_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
 {
     assert (gen_ctx);
-    assert (orig_qry);
+    assert (vp);
+    const char *orig_qry = vp->eq; // orig_qry is the SQL text of query
 
     //
     // This creates new query, nested if needed, gen_ctx->curr_qry_ptr is the depth of it and 
@@ -2099,7 +2163,7 @@ void new_query (vely_gen_ctx *gen_ctx, const char *orig_qry)
     // create name for a query, it's an internal unique name. It is based on total # of queries so far,
     // since there can be many queries on the same level, say query (id 0), inside of it query (id 1), then
     // both end, so the next one is id 0 again, and one inside it id 1 again.
-    snprintf (gen_ctx->qry[query_id].name, sizeof (gen_ctx->qry[query_id].name), "_vv_qryname_%lld", gen_ctx->total_queries);
+    name_query (gen_ctx, vp);
     gen_ctx->qry[query_id].returns_tuple = 1;
     gen_ctx->qry[query_id].qry_found_total_inputs = 0;
     gen_ctx->qry[query_id].unknown_output = 0;
@@ -2642,6 +2706,20 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         
                         continue;
                     }
+                    else if ((newI1=recog_statement(line, i, "delete-query", &mtext, &msize, 0, &vely_is_inline)) != 0)
+                    {
+                        VV_GUARD
+                        i = newI1;
+
+                        // trim query name, or generated code will be incorrect
+                        char *qname = vely_strdup(mtext);
+                        num lname = strlen (qname);
+                        vely_trim (qname, &lname);
+                        // free query generate code
+                        free_query (qname);
+
+                        continue;
+                    }
                     else if ((newI1=recog_statement(line, i, "query-result", &mtext, &msize, 0, &vely_is_inline)) != 0)
                     {
                         VV_GUARD
@@ -2691,6 +2769,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         vp.errtext = find_keyword (mtext, VV_KEYERRORTEXT, 1);
                         vp.arows = find_keyword (mtext, VV_KEYAFFECTEDROWS, 1);
                         vp.rcount = find_keyword (mtext, VV_KEYROWCOUNT, 1);
+                        vp.name = find_keyword (mtext, VV_KEYNAME, 1);
 
                         //
                         // Carving must be after find_keyword
@@ -2712,6 +2791,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         carve_statement (&(vp.errtext), "run-query", VV_KEYERRORTEXT, 0, 1);
                         carve_statement (&(vp.arows), "run-query", VV_KEYAFFECTEDROWS, 0, 1);
                         carve_statement (&(vp.rcount), "run-query", VV_KEYROWCOUNT, 0, 1);
+                        carve_statement (&(vp.name), "run-query", VV_KEYNAME, 0, 1);
 
 
                         //
@@ -3443,14 +3523,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         VV_GUARD
                         i = newI;
                         char *path = find_keyword (mtext, VV_KEYPATH0, 1);
-                        char *basename = find_keyword (mtext, VV_KEYNAME, 1);
+                        char *basename = find_keyword (mtext, VV_KEYNAME0, 1);
                         char *type = find_keyword (mtext, VV_KEYTYPE0, 1);
                         char *size = find_keyword (mtext, VV_KEYSIZE0, 1);
                         char *to = find_keyword (mtext, VV_KEYTO, 1);
 
                         carve_statement (&to, "stat-file", VV_KEYTO, 1, 1);
                         carve_statement (&path, "stat-file", VV_KEYPATH0, 0, 0);
-                        carve_statement (&basename, "stat-file", VV_KEYNAME, 0, 0);
+                        carve_statement (&basename, "stat-file", VV_KEYNAME0, 0, 0);
                         carve_statement (&type, "stat-file", VV_KEYTYPE0, 0, 0);
                         carve_statement (&size, "stat-file", VV_KEYSIZE0, 0, 0);
 
@@ -4027,7 +4107,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         // First we MUST get each options position
                         //
                         char *appdir = find_keyword (mtext, VV_KEYDIRECTORY, 1);
-                        char *name = find_keyword (mtext, VV_KEYNAME, 1);
+                        char *name = find_keyword (mtext, VV_KEYNAME0, 1);
                         char *tracedir = find_keyword (mtext, VV_KEYTRACEDIRECTORY, 1);
                         char *filedir = find_keyword (mtext, VV_KEYFILEDIRECTORY, 1);
                         char *uploadsize = find_keyword (mtext, VV_KEYUPLOADSIZE, 1);
@@ -4040,7 +4120,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         // After all options positions have been found, we must get the options
                         // for ALL of them
                         //
-                        carve_statement (&name, "get-app", VV_KEYNAME, 0, 0);
+                        carve_statement (&name, "get-app", VV_KEYNAME0, 0, 0);
                         carve_statement (&appdir, "get-app", VV_KEYDIRECTORY, 0, 0);
                         carve_statement (&tracedir, "get-app", VV_KEYTRACEDIRECTORY, 0, 0);
                         carve_statement (&filedir, "get-app", VV_KEYFILEDIRECTORY, 0, 0);
@@ -4082,7 +4162,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         // Look for each option and collect relevant info
                         // First we MUST get each options position
                         //
-                        char *name = find_keyword (mtext, VV_KEYNAME, 1);
+                        char *name = find_keyword (mtext, VV_KEYNAME0, 1);
                         char *method = find_keyword (mtext, VV_KEYMETHOD, 1);
                         char *ctype = find_keyword (mtext, VV_KEYCONTENTTYPE, 1);
                         char *data = find_keyword (mtext, VV_KEYDATA, 1);
@@ -4105,7 +4185,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, const char *file_name)
                         // After all options positions have been found, we must get the options 
                         // for ALL of them
                         //
-                        carve_statement (&name, "get-req", VV_KEYNAME, 0, 0);
+                        carve_statement (&name, "get-req", VV_KEYNAME0, 0, 0);
                         carve_statement (&method, "get-req", VV_KEYMETHOD, 0, 0);
                         carve_statement (&ctype, "get-req", VV_KEYCONTENTTYPE, 0, 0);
                         carve_statement (&data, "get-req", VV_KEYDATA, 0, 0);

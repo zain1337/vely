@@ -17,9 +17,9 @@ delete-mem <memory> status [ define ] <status>
 .SH DESCRIPTION
 delete-mem frees memory allocated by Vely. Do not use it on memory allocated by any C-library functions (such as malloc(), calloc() or realloc()).
 
-delete-mem will handle memory violations or invalid pointers, and will not error out if there is an issue (Vely handles SIGSEGV, SIGBUS and SIGABRT signals typically raised for most issues). Rather, you can obtain the status of freeing memory in variable <status> by using "status" clause (you can create this number variable with "define" if it does not exist). The reason for this is that freeing memory is in many cases unnecessary as Vely will automatically do so at the end of each request and problems in freeing memory will not affect doing so in the end.
+delete-mem will attempt to handle memory violations or invalid pointers, and may not \fBerror out\fP if there is an issue; if the error is too severe, it will error out. If it doesn't error out, you can obtain the status of freeing memory in variable <status> by using "status" clause (you can create this number variable with "define" if it does not exist). The reason for this is that freeing memory is in many cases unnecessary as Vely will automatically do so at the end of each request and problems in freeing memory will not affect doing so in the end.
 
-If <status> is VV_OKAY, the memory has been freed successfully. If <status> is VV_ERR_MEMORY, there was a problem; most likely <string> was not a valid memory pointer allocated by any of Vely statements; or it was a bad memory pointer for any number of reasons. Either way, delete-mem will not error out, and your program will continue.
+If <status> is VV_OKAY, the memory has been freed successfully. If <status> is VV_ERR_MEMORY, there was a problem; most likely <string> was not a valid memory pointer allocated by any of Vely statements; or it was a bad memory pointer for any number of reasons. 
 
 .SH EXAMPLES
 Allocate and free memory:

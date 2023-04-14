@@ -1163,6 +1163,7 @@ syn region vv_r_construct_run_query start="^[[:space:]]*run-query" skip="\\[[:sp
     syn match vv_h_clause_run_query " column-names \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " error \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " error-text \@=" contained containedin=vv_r_construct_run_query
+    syn match vv_h_clause_run_query " name \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " no-loop \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " no-loop$" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " on-error-continue \@=" contained containedin=vv_r_construct_run_query
@@ -1191,6 +1192,7 @@ syn region vv_r_construct_run_prepared_query start="^[[:space:]]*run-prepared-qu
     syn match vv_h_clause_run_prepared_query " column-names \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " error \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " error-text \@=" contained containedin=vv_r_construct_run_prepared_query
+    syn match vv_h_clause_run_prepared_query " name \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " no-loop \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " no-loop$" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " on-error-continue \@=" contained containedin=vv_r_construct_run_prepared_query
@@ -1239,6 +1241,14 @@ syn region vv_r_construct_query_result start="^[[:space:]]*query-result" skip="\
     hi def link vv_h_clause_query_result    velyClause
     hi def link vv_h_construct_query_result    velyConstruct
     hi def link vv_h_print_inline_query_result    velyConstruct
+syn region vv_r_construct_delete_query start="^[[:space:]]*delete-query" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_delete_query,vv_r_inline_delete_query,vv_r_at
+    syn match vv_h_construct_delete_query "^[[:space:]]*delete-query" contained containedin=vv_r_construct_delete_query
+    syn match vv_h_clause_delete_query "[=]\@<=define \@=" contained containedin=vv_r_construct_delete_query
+    syn match vv_h_clause_delete_query " define \@=" contained containedin=vv_r_construct_delete_query
+    hi def link vv_h_clause_delete_query    velyClause
+    hi def link vv_h_construct_delete_query    velyConstruct
+    hi def link vv_h_print_inline_delete_query    velyConstruct
 syn region vv_r_construct_current_row start="^[[:space:]]*current-row" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_current_row,vv_r_inline_current_row,vv_r_at
     syn match vv_h_construct_current_row "^[[:space:]]*current-row" contained containedin=vv_r_construct_current_row

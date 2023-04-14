@@ -56,7 +56,6 @@ extern num vely_in_request;
 
 // Set when we want to test for memory violation and not abend
 volatile num vely_test_mem=0; // if 1 we test for memory violation (SEGV or BUS). Set to 0 when done.
-sigjmp_buf vely_mem_jmp_buffer; // longjmp to vely_safe_free() if there is SEGV or BUSS and vely_test_mem is 1
 
 // Static variables to be used in the case of a crash
 static void *stack_dump[MAX_STACK_FRAMES]; // stack frame`
@@ -225,8 +224,6 @@ void signal_handler(int sig)
     // prevent fatal exit.
     // Save them first, because if testing for memory error (vely_test_mem == 1), we want them
     // restored when we return.
-    num save_vely_done_err_setjmp = vely_done_err_setjmp;
-    num save_vely_done_setjmp = vely_done_setjmp;
     vely_done_err_setjmp = 0;
     vely_done_setjmp = 0;
 
@@ -252,15 +249,6 @@ void signal_handler(int sig)
             if (vely_test_mem == 0 && sig == SIGABRT) vely_strncpy(expla, "Caught SIGABRT: usually caused by an abort() or assert()\n", MAX_EXPL_LEN - 1);
             if (vely_test_mem == 0 && sig == SIGBUS) vely_strncpy(expla, "Caught SIGBUS: bus error\n",  MAX_EXPL_LEN - 1);
             if (vely_test_mem == 0 && sig == SIGSEGV) vely_strncpy(expla, "Caught SIGSEGV: segmentation fault\n",  MAX_EXPL_LEN - 1);
-            // if in vely_set_free(), jump back there to ignore the error
-            if (vely_test_mem == 1) 
-            { 
-                vely_done_err_setjmp = save_vely_done_err_setjmp;
-                vely_done_setjmp = save_vely_done_setjmp;
-                vely_test_mem = 0; 
-                siglongjmp (vely_mem_jmp_buffer, 1); 
-                return; 
-            }
             break;
         case SIGHUP:
             vely_strncpy(expla, "Caught SIGHUP: hang up\n",  MAX_EXPL_LEN - 1);

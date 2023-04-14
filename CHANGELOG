@@ -1,6 +1,6 @@
-Vely release notes for 16.7.0
+Vely release notes for 16.8.0
 
-- Minor: added on-error-exit, on-error-continue, error and error-text to begin,commit and rollback transaction.
-- Release: added current year to vv -v.
-- Release: documentation update and 10 new functional tests.
+- Minor: added 'name' clause to run-query to be used with any statements that operate on a query afterwards.
+- Minor: added delete-query statement to release all memory associated with the query, including the query results.
+- Release: simplified checking for issues in freeing memory, with a significant performance improvement.
 

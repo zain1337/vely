@@ -251,21 +251,15 @@ VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe)
 //
 VV_MEMINLINE num vely_safe_free (void *ptr)
 {
-    //
-    // Setting jmp must be done before the potentially memory-violating operation, otherwise on error
-    // there would be nowhere to jump
-    //
-    num ret_val = sigsetjmp(vely_mem_jmp_buffer, 1); // set jump or jump to it from signal handler when memory error caught
-    if (ret_val == 1) { vely_test_mem = 0; VERR0; return VV_ERR_MEMORY; } // if 1, there was jump from signal handler, so just leave
-    // here, _vely_free() will either sigsegv (and go back to above sigsetjmp) or return false if memory bad
-    vely_test_mem = 1; // instruct signal handler to ignore SIGV or BUS
-    if (!_vely_free (ptr, 1)) {vely_test_mem = 0; VERR0; return VV_ERR_MEMORY; } // memory not valid
-    vely_test_mem = 0; // if no error, set back to no special handling
+    // this check will either catch error or SIGSEGV
+    if (!_vely_free (ptr, 1)) {VERR0; return VV_ERR_MEMORY; } // memory not valid
     return VV_OKAY;
 }
 
 // 
-// Input and return the same as for free()
+// Similar to free(), returns true if okay, false if not. If check is 1, it 
+// checks if memory is valid. This isn't foolproof, because it may sigseg if memory outside
+// of process memory space.
 // Checks memory to make sure it's valid block allocated here.
 //
 VV_MEMINLINE bool _vely_free (void *ptr, char check)
@@ -290,9 +284,8 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
         // Check if the pointer is valid. At this point it's either sigsegv or the pointers do
         // not match.
         //
-        static char *dum = "x";
-        if (r < 0 || r >= vm_curr) {*dum=0; return false;} // assigning dum causes sigsegv
-        if (vm[r].ptr != ((unsigned char*)ptr-VELYALIGN)) {*dum=0;return false;}
+        if (r < 0 || r >= vm_curr) { return false;} 
+        if (vm[r].ptr != ((unsigned char*)ptr-VELYALIGN)) {return false;}
         //
         // Now we know the pointer is valid (very high probability, chances of random point in memory having
         // the exact pointer to data passed to here are practially zero).

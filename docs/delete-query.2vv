@@ -1,0 +1,38 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+delete-query \-  (database)
+.SH PURPOSE
+Delete memory associated with a query.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+delete-query <query name>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+A named query (see clause "name" in \fBrun-query\fP) can be deleted with delete-query by specifying the <query name>. Deletion means that memory allocated for a query will be freed.
+
+Do not use \fBdelete-mem\fP to delete query data (such as error message, column name or data itself, for example) and delete-query at the same time, as that will result in a double freeing of memory. 
+
+delete-query will free the query results as well. Do not delete query if its results are still referenced afterwards. 
+
+See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+
+.SH EXAMPLES
+
+.RS 4
+.EX
+
+run-query @db="drop table if exists test" no-loop name drop_query
+delete-query drop_query
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBdelete-query\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

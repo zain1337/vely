@@ -19,6 +19,7 @@ run-query \\
     [ affected-rows [ define ] <affected rows> ] \\
     [ row-count [ define ] <row count> ] \\
     [ on-error-continue | on-error-exit ] \\
+    [ name <query name> ] \\
     [ column-count [ define ] <column count> ] \\
     [ column-names [ define ] <column names> ] \\
     [ column-data [ define ] <column data> ] \\
@@ -124,6 +125,12 @@ The error code is available in  <error> variable in optional "error" clause - th
 <error> and <error text> can be created with optional "define".
 
 Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP).
+
+.LP
+.B NAMING QUERY
+.LP
+
+A query can be named with an optional "name" clause by specifying <query name>. By default, a query is assigned a generated name. When a query is named, you can use other statements such as \fBdelete-query\fP that reference the name. A query name must be unique and you will receive an error if it is reused with different queries.
 
 .LP
 .B RUN-PREPARED-QUERY
@@ -287,4 +294,4 @@ run-query =myqry no-loop : stock_name, stock_price, stock_price
 .RE
 
 .SH SEE ALSO
- \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBdelete-query\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
