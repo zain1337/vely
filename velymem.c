@@ -15,13 +15,22 @@
 
 #include "vely.h"
 
-extern volatile num vely_test_mem; // set to 1 in vely_safe_free to ignore memory error and come back
-extern sigjmp_buf vely_mem_jmp_buffer; //longjmp to here in vely_safe_free() from signal handler when memory error caught
+// If vely_mem_os is true, then OS alloc is used (free(), malloc() etc). This is in between
+// guarded memory-cleanup off/on. One option was to add this memory to a current list. However, then
+// freeing at the end of request would be doing more work by having to filter out these, for no good
+// reason, other than to be able to "zap" all this memory at once. However, different requests may have
+// different memories used for different purposes and a single "zap" seems unlikely and thus useless.
+// For the same reason, no separate instances are used. This memory is not per "request name", it can be 
+// used in any request, so separate instance based on request name would be useless too. Another option was
+// to have "named" memory blocks that can be "zapped" based on name; similar issue. In addition, this all makes
+// sense only with a single process; in multiple processes the data spaces are separate so any kind of name doesnt
+// have much meaning anymore. So, basically, OS alloc remains very simple.
+bool vely_mem_os = false;
 
 // functions
 VV_MEMINLINE void *vely_vmset (void *p, num r);
 VV_MEMINLINE num vely_get_memory (void *ptr);
-const char *vely_out_mem_mess = "Out of memory for [%lld] bytes";
+char *vely_out_mem_mess = "Out of memory for [%lld] bytes";
 
 // Common empty string constant, used for initialization
 // When a variable has this value, it means it is freshly initialized and it
@@ -179,6 +188,14 @@ VV_MEMINLINE void *vely_vmset (void *p, num r)
 //
 VV_MEMINLINE void *_vely_malloc(size_t size)
 {
+    if (vely_mem_os) 
+    {
+        void *p = malloc(size);
+        if (p == NULL) 
+        {
+            vely_report_error (vely_out_mem_mess, size);
+        } else return p;
+    }
     size_t t;
     void *p = malloc (t=size + VELYALIGN);
     if (p == NULL) 
@@ -196,6 +213,14 @@ VV_MEMINLINE void *_vely_malloc(size_t size)
 //
 VV_MEMINLINE void *_vely_calloc(size_t nmemb, size_t size)
 {
+    if (vely_mem_os) 
+    {
+        void *p = calloc(nmemb, size);
+        if (p == NULL) 
+        {
+            vely_report_error (vely_out_mem_mess, nmemb*size);
+        } else return p;
+    }
     size_t t;
     void *p =  calloc (1, t=(nmemb*size + VELYALIGN));
     if (p == NULL) 
@@ -231,6 +256,18 @@ VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe)
     {
         return _vely_malloc (size);
     }
+
+    // if OS mem (i.e. not vely mem)
+    if (vely_mem_os) 
+    {
+        void *p = realloc(ptr, size);
+        if (p == NULL) 
+        {
+            vely_report_error (vely_out_mem_mess, size);
+        } else return p;
+    }
+
+
     num r = vely_get_memory(ptr);
     if (safe) 
     {
@@ -266,8 +303,12 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
 {
     //
     // if programmer mistakenly frees up VV_EMPTY_STRING, just ignore it
+    // this is true whether using vely mem or OS mem
     //
     if (ptr == VV_EMPTY_STRING || ptr == NULL) return true;
+
+    // if OS mem (i.e. not vely mem)
+    if (vely_mem_os) { free(ptr); return true;}
 
     //
     // Any point forward code can sigegv in this function or return false to indicate memory is bad
@@ -294,9 +335,9 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
 
     //
     // if memory on the list of freed blocks, just ignore it, otherwise double free or free
-    // of an invalid pointer ensues
+    // of an invalid pointer ensues. But do return an issue.
     //
-    if (vm[r].status & VV_MEM_FREE) return true;
+    if (vm[r].status & VV_MEM_FREE) return false;
 
     // free mem
     vm[r].ptr = NULL;
@@ -312,7 +353,7 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
 // 
 // Input and return the same as for strdup()
 //
-VV_MEMINLINE char *_vely_strdup (const char *s)
+VV_MEMINLINE char *_vely_strdup (char *s)
 {
    num l = strlen (s);
    char *n = (char*)_vely_malloc (l+1);
@@ -359,6 +400,7 @@ void vely_done ()
         }
         //VV_TRACE("Freeing vm");
         free (vm);
+        vm = NULL;
     }
 }
 

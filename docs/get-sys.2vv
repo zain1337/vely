@@ -20,7 +20,6 @@ get-sys \\
 .SH DESCRIPTION
 System-describing variables can be obtained with get-sys statement and the result stored into <variable>. The following system variables can be obtained:
 
-
 .RS 4
 \[bu]    
 "environment" returns the name of a given environment variable <var name> from the Operating System, such as in the following example, the HOME variable (i.e. the path to user's home directory):
@@ -34,7 +33,6 @@ get-sys environment "HOME" to define home_dir
 .RE
 
 Generally, environmental variable needs to be set before starting the \fBvf\fP program manager, or set during the program execution.
-
 
 .RE
 
@@ -52,24 +50,20 @@ get-sys web-environment "QUERY_STRING" to define home_dir
 
 Note that the same name can be used for both Operating System environment variable (the "environment" clause) and for Web Server environment variable ("web-environment" clause), hence two separate clauses for them.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "os-name" is the name of Operating System.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "os-version" is the version of Operating System.
-
-
 .RE
 
-Note that all these values are string constants.
+Note that all the string values above should be treated as constants - do not change them as that may cause program to malfunction. If you want to alter any of these values, make a copy first (see \fBcopy-string\fP).
 
 .SH EXAMPLES
 Get the name of the Operating System

@@ -19,8 +19,7 @@ decode-url will decode <string> (created by \fBencode-url\fP or other URL-encodi
 
 All encoded values (starting with %) are decoded, and "+" (plus sign) is converted to space. If there is an error (for example hexadecimal value following % is invalid), the decoding stops and whatever was decoded up to that point is the result, and the length reflects that.
 
-Note that <string> must not be a constant because decode-url will write into it. If it is a constant, make a copy of it first with \fBcopy-string\fP.
-See \fBencode-url\fP.
+Note that <string> must not be a constant because decode-url will write into it. If it is a constant, make a copy of it first with \fBcopy-string\fP. See \fBencode-url\fP.
 
 .SH EXAMPLES
 Decode URL-encoded string "str", after which it will hold a decoded string. "dec_len" will be the length (in bytes) of that string:

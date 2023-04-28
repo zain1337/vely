@@ -10,7 +10,7 @@ documentation \- Vely documentation (documentation)
 \fBNote\fP: All the topics below are available as a \fBsingle-page documentation\fP. You can also \fBdownload it\fP as a .tar.gz file and use it on your computer, host it on your web site etc.
 
 
-\fIApplication information\fP ( \fBget-app\fP  ) 
+\fIApplication information\fP ( \fBget-app\fP   \fBset-app\fP  ) 
 
 \fIBase64\fP ( \fBdecode-base64\fP   \fBencode-base64\fP  ) 
 
@@ -44,9 +44,11 @@ documentation \- Vely documentation (documentation)
 
 \fILicense\fP ( \fBlicense\fP  ) 
 
-\fIMemory\fP ( \fBdelete-mem\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  ) 
+\fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  ) 
 
 \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  ) 
+
+\fIProcess\fP ( \fBglobal_process_data\fP  ) 
 
 \fIProgram execution\fP ( \fBexec-program\fP   \fBexit-code\fP  ) 
 

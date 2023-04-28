@@ -12,7 +12,27 @@ int vely_errno=0;
 #include "vely.h"
 
 // Function prototypes
-num vely_core_write_file(FILE *f, num content_len, const char *content, char ispos, num pos);
+num vely_core_write_file(FILE *f, num content_len, char *content, char ispos, num pos);
+
+// 
+// Close trace file 
+// Returns VV_ERR_CLOSE if there is no context or not open, or the same
+// as vely_fclose() if it's open
+//
+num vely_close_trace ()
+{
+    vely_config *pc = vely_get_config();
+
+    if (pc == NULL) return VV_ERR_CLOSE;
+
+    // open trace file, for fcgi, it will not be NULL (from previous request)
+    if (pc->trace.f != NULL)
+    {
+        return vely_fclose(pc->trace.f);    
+    } else return VV_ERR_CLOSE;
+}
+
+
 
 // 
 // Open trace file and write begin-trace message
@@ -51,6 +71,9 @@ num vely_open_trace ()
     }
     return 0;
 }
+
+
+
 // 
 // Trace execution. This is called from VV_TRACE. 
 // 'trace_level' is currently always 1. It is compared with the trace parameter in debug file, which is currently
@@ -64,7 +87,7 @@ num vely_open_trace ()
 // Trace can be called from memory function like vely_realloc. 
 // If trace is called from anywhere else other than vely_* functions, it will  work the same way except there is no double calling of vely_check_memory.
 //
-void _vely_trace(num trace_level, const char *from_file, num from_line, const char *from_fun, const char *format, ...)
+void _vely_trace(num trace_level, const char *from_file, num from_line, const char *from_fun, char *format, ...)
 {
     vely_config *pc = vely_get_config();
     if (pc == NULL) return; // do nothing if no config
@@ -228,14 +251,14 @@ void vely_reset_config(vely_config *pc)
 //
 // Returns number of occurances of find in str
 //
-num vely_count_substring (const char *str, const char *find, num case_sensitive)
+num vely_count_substring (char *str, char *find, num case_sensitive)
 {
     VV_TRACE("");
     num count = 0;
     if (find == NULL || find[0] == 0) return 0;
     // here not empty or NULL
     num len = strlen (find);
-    const char *tmp = str;
+    char *tmp = str;
     while((tmp = (case_sensitive == 1 ? strstr(tmp, find) : strcasestr(tmp, find))) != NULL)
     {
        count++;
@@ -254,7 +277,7 @@ num vely_count_substring (const char *str, const char *find, num case_sensitive)
 // Returns length of subst string, or -1 if not enough memory. If -1, whatever substitutions could have been
 // made, were made, in which case use 'last' to know where we stopped.
 //
-num vely_replace_string (char *str, num strsize, const char *find, const char *subst, num all, char **last, num case_sensitive)
+num vely_replace_string (char *str, num strsize, char *find, char *subst, num all, char **last, num case_sensitive)
 {
     VV_TRACE("");
     assert (str);
@@ -374,7 +397,7 @@ char *vely_trim_ptr (char *str, num *len)
 // Returns VV_DIR if 'dir' is a directory,
 // VV_FILE if it's file, VV_ERR_FAILED if can't stat
 //
-num vely_file_type (const char *dir)
+num vely_file_type (char *dir)
 {
     VV_TRACE("");
     struct stat sb;
@@ -442,7 +465,7 @@ num vely_get_open_file_size(FILE *f)
 // fn is file name.
 // Returns size of the file, or -1 if file cannot be stat'
 //
-num vely_get_file_size(const char *fn)
+num vely_get_file_size(char *fn)
 {
     VV_TRACE("");
     struct stat st;
@@ -461,7 +484,7 @@ num vely_get_file_size(const char *fn)
 // underscores, and must not start with a digit.
 // Returns 1 if name is valid, 0 if not.
 //
-num vely_is_valid_param_name (const char *name)
+num vely_is_valid_param_name (char *name)
 {
     VV_TRACE ("");
     assert (name);
@@ -546,11 +569,13 @@ void vely_rewind (vely_fifo *fdata)
 
 // 
 // Purge all data from storage 'fdata' and initialize for another use.
+// If recreate is 1, then fifo is recreated and still available, otherwise it's utterly deleted
 //
-void vely_purge (vely_fifo *fdata)
+void vely_purge (vely_fifo **fdata_p, char recreate)
 {
     VV_TRACE ("");
-    assert (fdata != NULL);
+    assert (fdata_p != NULL);
+    vely_fifo *fdata = *fdata_p;
     fdata->retrieve_ptr = 0;
     while (fdata->retrieve_ptr < fdata->store_ptr)
     {
@@ -560,7 +585,8 @@ void vely_purge (vely_fifo *fdata)
     }
     if (fdata->item != NULL) vely_free (fdata->item);
     fdata->item = NULL;
-    vely_store_init (&fdata); // okay &fdata since fdata!=NULL
+    vely_free (fdata);
+    if (recreate) vely_store_init (fdata_p); // okay fdata_p since fdata_p!=NULL
 }
 
 
@@ -568,7 +594,7 @@ void vely_purge (vely_fifo *fdata)
 // The same as strncpy() except that zero byte is placed at the end and it returns
 // the length of the dest string.
 //
-num vely_strncpy(char *dest, const char *src, num max_len)
+num vely_strncpy(char *dest, char *src, num max_len)
 {
     VV_TRACE("");
     num len = strlen (src);
@@ -588,7 +614,7 @@ num vely_strncpy(char *dest, const char *src, num max_len)
 //
 // Initialize a string that is allocated on the heap, like malloc with value of string s
 //
-char *vely_init_string(const char *s)
+char *vely_init_string(char *s)
 {
     VV_TRACE("");
     if (s == NULL) return NULL;
@@ -602,7 +628,7 @@ char *vely_init_string(const char *s)
 // Get timezone that's local to this server.
 // Returns string in the format TZ=<timezone>, eg. TZ=MST
 //
-const char * vely_get_tz ()
+char * vely_get_tz ()
 {
     //
     // This static usage is okay because the timezone is the SAME for all modules that could
@@ -638,7 +664,7 @@ const char * vely_get_tz ()
 // string or not.
 // If there is not enough memory, vely_malloc will error out.
 //
-num vely_read_file (const char *name, char **data, num pos, num len)
+num vely_read_file (char *name, char **data, num pos, num len)
 {
     VV_TRACE ("");
 
@@ -750,7 +776,7 @@ num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos)
 // vlen is the length of v, -1 if strlen(), otherwise length
 // Returns length of an encoded string.
 //
-num vely_encode (num enc_type, const char *v, num vlen, char **res)
+num vely_encode (num enc_type, char *v, num vlen, char **res)
 {
     VV_TRACE("");
     return vely_encode_base (enc_type, v, vlen < 0 ? strlen(v) : (size_t)vlen, res, 1);
@@ -766,7 +792,7 @@ num vely_encode (num enc_type, const char *v, num vlen, char **res)
 // String v can be smaller than length vLen, vLen is the maximum number of characters encoded.
 // Returns length of an encoded string.
 //
-num vely_encode_base (num enc_type, const char *v, num vLen, char **res, num allocate_new)
+num vely_encode_base (num enc_type, char *v, num vLen, char **res, num allocate_new)
 {
     VV_TRACE("");
     assert (res != NULL);
@@ -827,7 +853,7 @@ num vely_encode_base (num enc_type, const char *v, num vLen, char **res, num all
 // as string and calculate length). Write to file 'f'.
 // Return # of bytes written or error. The caller can close the file if needed, it's not closed here.
 //
-num vely_core_write_file(FILE *f, num content_len, const char *content, char ispos, num pos)
+num vely_core_write_file(FILE *f, num content_len, char *content, char ispos, num pos)
 {
     if (content_len==0) content_len=strlen(content);
     if (ispos == 1)  // positioning beyond the end of file is allowed. The gap will be filled with \0
@@ -858,7 +884,7 @@ num vely_core_write_file(FILE *f, num content_len, const char *content, char isp
 // position, or number of bytes written, which is always the number of bytes requested (otherwise it's an error).
 // Maximum size of file is in 0..maxlonglong range.
 //
-num vely_write_file (const char *file_name, const char *content, num content_len, char append, num pos, char ispos)
+num vely_write_file (char *file_name, char *content, num content_len, char append, num pos, char ispos)
 {
     VV_TRACE("");
 
@@ -894,7 +920,7 @@ num vely_write_file (const char *file_name, const char *content, num content_len
 // position, or number of bytes written, which is always the number of bytes requested (otherwise it's an error).
 // Maximum size of file is in 0..maxlonglong range.
 //
-num vely_write_file_id (FILE *f, const char *content, num content_len, char append, num pos, char ispos)
+num vely_write_file_id (FILE *f, char *content, num content_len, char append, num pos, char ispos)
 {
     VV_TRACE("");
 
@@ -959,7 +985,7 @@ int vely_fclose (FILE *f)
 // so it's read/write for owner/group
 // Returns NULL if can't open, file pointer if it can
 //
-FILE *vely_fopen (const char *file_name, const char *mode)
+FILE *vely_fopen (char *file_name, char *mode)
 {
     VV_TRACE ("");
     FILE *f = fopen (file_name, mode);
@@ -985,13 +1011,13 @@ FILE *vely_fopen (const char *file_name, const char *mode)
 
 // Return name(id) of operating system
 //
-const char * vely_os_name() {return VV_OS_NAME;}
+char * vely_os_name() {return VV_OS_NAME;}
 
 
 //
 // Return version of operating system
 //
-const char * vely_os_version() {return VV_OS_VERSION;}
+char * vely_os_version() {return VV_OS_VERSION;}
 
 
 //
@@ -1007,10 +1033,10 @@ const char * vely_os_version() {return VV_OS_VERSION;}
 // Since a keyword may be contained in another (such as url and url-path in get-req), we also check that keyword
 // is followed by a space or a null.
 //
-char *vely_find_keyword0(const char *str, const char *find, num has_spaces, num paren)
+char *vely_find_keyword0(char *str, char *find, num has_spaces, num paren)
 {
-    const char *beg = str;
-    const char *f;
+    char *beg = str;
+    char *f;
     while (1)
     {
         if (find[0] == 0) f = beg + strlen (beg); else f = strstr (beg, find);
@@ -1044,7 +1070,7 @@ char *vely_find_keyword0(const char *str, const char *find, num has_spaces, num 
             num quotes = 0;
             num left_par = 0;
             num right_par = 0;
-            const char *go_forth = str; // start from the beginning of text
+            char *go_forth = str; // start from the beginning of text
             num within_string = 0;
             while (go_forth != f) // move forth until hitting the found keyword
             {

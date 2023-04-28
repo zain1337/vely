@@ -170,6 +170,18 @@ syn region vv_r_construct_delete_mem start="^[[:space:]]*delete-mem" skip="\\[[:
     hi def link vv_h_clause_delete_mem    velyClause
     hi def link vv_h_construct_delete_mem    velyConstruct
     hi def link vv_h_print_inline_delete_mem    velyConstruct
+syn region vv_r_construct_manage_memory start="^[[:space:]]*manage-memory" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_manage_memory,vv_r_inline_manage_memory,vv_r_at
+    syn match vv_h_construct_manage_memory "^[[:space:]]*manage-memory" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory " off \@=" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory " off$" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory " on \@=" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory " on$" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory "[=]\@<=define \@=" contained containedin=vv_r_construct_manage_memory
+    syn match vv_h_clause_manage_memory " define \@=" contained containedin=vv_r_construct_manage_memory
+    hi def link vv_h_clause_manage_memory    velyClause
+    hi def link vv_h_construct_manage_memory    velyConstruct
+    hi def link vv_h_print_inline_manage_memory    velyConstruct
 syn region vv_r_construct_read_hash start="^[[:space:]]*read-hash" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_read_hash,vv_r_inline_read_hash,vv_r_at
     syn match vv_h_construct_read_hash "^[[:space:]]*read-hash" contained containedin=vv_r_construct_read_hash
@@ -220,6 +232,8 @@ syn region vv_r_construct_resize_hash start="^[[:space:]]*resize-hash" skip="\\[
 syn region vv_r_construct_purge_hash start="^[[:space:]]*purge-hash" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_purge_hash,vv_r_inline_purge_hash,vv_r_at
     syn match vv_h_construct_purge_hash "^[[:space:]]*purge-hash" contained containedin=vv_r_construct_purge_hash
+    syn match vv_h_clause_purge_hash " delete \@=" contained containedin=vv_r_construct_purge_hash
+    syn match vv_h_clause_purge_hash " delete$" contained containedin=vv_r_construct_purge_hash
     syn match vv_h_clause_purge_hash "[=]\@<=define \@=" contained containedin=vv_r_construct_purge_hash
     syn match vv_h_clause_purge_hash " define \@=" contained containedin=vv_r_construct_purge_hash
     hi def link vv_h_clause_purge_hash    velyClause
@@ -277,6 +291,8 @@ syn region vv_r_construct_read_fifo start="^[[:space:]]*read-fifo" skip="\\[[:sp
 syn region vv_r_construct_purge_fifo start="^[[:space:]]*purge-fifo" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_purge_fifo,vv_r_inline_purge_fifo,vv_r_at
     syn match vv_h_construct_purge_fifo "^[[:space:]]*purge-fifo" contained containedin=vv_r_construct_purge_fifo
+    syn match vv_h_clause_purge_fifo " delete \@=" contained containedin=vv_r_construct_purge_fifo
+    syn match vv_h_clause_purge_fifo " delete$" contained containedin=vv_r_construct_purge_fifo
     syn match vv_h_clause_purge_fifo "[=]\@<=define \@=" contained containedin=vv_r_construct_purge_fifo
     syn match vv_h_clause_purge_fifo " define \@=" contained containedin=vv_r_construct_purge_fifo
     hi def link vv_h_clause_purge_fifo    velyClause
@@ -495,6 +511,16 @@ syn region vv_r_construct_set_req start="^[[:space:]]*set-req" skip="\\[[:space:
     hi def link vv_h_clause_set_req    velyClause
     hi def link vv_h_construct_set_req    velyConstruct
     hi def link vv_h_print_inline_set_req    velyConstruct
+syn region vv_r_construct_set_app start="^[[:space:]]*set-app" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_set_app,vv_r_inline_set_app,vv_r_at
+    syn match vv_h_construct_set_app "^[[:space:]]*set-app" contained containedin=vv_r_construct_set_app
+    syn match vv_h_clause_set_app " process-data \@=" contained containedin=vv_r_construct_set_app
+    syn match vv_h_clause_set_app " process-data$" contained containedin=vv_r_construct_set_app
+    syn match vv_h_clause_set_app "[=]\@<=define \@=" contained containedin=vv_r_construct_set_app
+    syn match vv_h_clause_set_app " define \@=" contained containedin=vv_r_construct_set_app
+    hi def link vv_h_clause_set_app    velyClause
+    hi def link vv_h_construct_set_app    velyConstruct
+    hi def link vv_h_print_inline_set_app    velyConstruct
 syn region vv_r_construct_flush_output start="^[[:space:]]*flush-output" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_flush_output,vv_r_inline_flush_output,vv_r_at
     syn match vv_h_construct_flush_output "^[[:space:]]*flush-output" contained containedin=vv_r_construct_flush_output
@@ -548,6 +574,8 @@ syn region vv_r_construct_get_app start="^[[:space:]]*get-app" skip="\\[[:space:
     syn match vv_h_clause_get_app " name \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " name$" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " path \@=" contained containedin=vv_r_construct_get_app
+    syn match vv_h_clause_get_app " process-data \@=" contained containedin=vv_r_construct_get_app
+    syn match vv_h_clause_get_app " process-data$" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " to \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " trace-directory \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " trace-directory$" contained containedin=vv_r_construct_get_app
@@ -1244,6 +1272,8 @@ syn region vv_r_construct_query_result start="^[[:space:]]*query-result" skip="\
 syn region vv_r_construct_delete_query start="^[[:space:]]*delete-query" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_delete_query,vv_r_inline_delete_query,vv_r_at
     syn match vv_h_construct_delete_query "^[[:space:]]*delete-query" contained containedin=vv_r_construct_delete_query
+    syn match vv_h_clause_delete_query " skip-data \@=" contained containedin=vv_r_construct_delete_query
+    syn match vv_h_clause_delete_query " skip-data$" contained containedin=vv_r_construct_delete_query
     syn match vv_h_clause_delete_query "[=]\@<=define \@=" contained containedin=vv_r_construct_delete_query
     syn match vv_h_clause_delete_query " define \@=" contained containedin=vv_r_construct_delete_query
     hi def link vv_h_clause_delete_query    velyClause

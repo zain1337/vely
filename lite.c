@@ -28,7 +28,7 @@ num vely_lite_checkc()
     return 1; // sqlite is a library, thus always "up" as long as the process is up
 }
 
-char *vely_lite_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er, char is_prep)
+char *vely_lite_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er, char is_prep)
 {
     VV_TRACE("");
     VV_UNUSED(is_prep);
@@ -37,7 +37,7 @@ char *vely_lite_errm(char *errm, num errmsize, const char *s, const char *sname,
 }
 
 
-char *vely_lite_error(const char *s, char is_prep)
+char *vely_lite_error(char *s, char is_prep)
 {
     VV_TRACE("");
     VV_UNUSED(s); // used only for tracing
@@ -82,7 +82,7 @@ int vely_lite_stmt_rows (char ***row, unsigned long **lens)
 int vely_lite_get_data ()
 {
     VV_TRACE("");
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     // get which file and line number is this going on at
     vely_location (&sname, &lnum, 0);
@@ -121,7 +121,7 @@ int vely_lite_get_data ()
             for (i = 0; i < qnumfields; i++) 
             {
                 // use EMPTY_STRING if null, so freeing works
-                const char *res = (const char*)sqlite3_column_text(VV_CURR_DB.dbc->sqlite.stmt, i);
+                char *res = (char*)sqlite3_column_text(VV_CURR_DB.dbc->sqlite.stmt, i);
                 (qlens)[cdata] = sqlite3_column_bytes(VV_CURR_DB.dbc->sqlite.stmt, i);
                 if (res == NULL)
                 {
@@ -180,7 +180,7 @@ void vely_lite_free()
     return;
 }
 
-const char *vely_lite_fieldname()
+char *vely_lite_fieldname()
 {
     VV_TRACE("");
     return (char*)sqlite3_column_name(VV_CURR_DB.dbc->sqlite.stmt, qcolid++);
@@ -311,7 +311,7 @@ void vely_lite_close_stmt (void *st)
 int vely_lite_prep_stmt(void **prep, char *stmt, num num_of_args)
 {
     VV_TRACE("");
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     vely_location (&sname, &lnum, 0);
 
@@ -385,7 +385,7 @@ num vely_lite_affected(char is_prep)
 // memory for to must be 2*len+1. *len  is the actual encoded length without zero byte counted.
 // Returns 0 for okay, 1 otherwise.
 //
-int vely_lite_escape(const char *from, char *to, num *len)
+int vely_lite_escape(char *from, char *to, num *len)
 {
     VV_TRACE("");
     memcpy (to, from, *len + 1);

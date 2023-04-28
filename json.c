@@ -132,6 +132,7 @@ void vely_del_json (vely_json *j)
     vely_delete_hash (&(j->hash), 0); // delete hash actually purges, but with 0 as second param, total deletion
                                 // if new-json is called again, it will create new hash
     j->node_c = 0;
+    vely_free (j); // delete the entire json structure
 }
 
 //

@@ -11,7 +11,7 @@
 #include <openssl/err.h>
 
 // Prototypes
-void vely_sec_err (const char *err);
+void vely_sec_err (char *err);
 
 
 //
@@ -38,7 +38,7 @@ void vely_sec_load_algos(void)
 // 'err' is vely messsage, which is supplemented with crypto-provider's message
 // it doesn't return, rather ends with fatal error
 //
-void vely_sec_err (const char *err)
+void vely_sec_err (char *err)
 {
     VV_TRACE("");
     BIO *bio = BIO_new (BIO_s_mem ()); // this can fail with NULL
@@ -59,7 +59,7 @@ void vely_sec_err (const char *err)
 // XX can be 64, 96 or some other number depending on digest.
 // if 'binary' is true, the output is binary and outlen is the length of output binary data
 //
-char *vely_hash_data( const char *val, const char *digest_name, bool binary, num *outlen )
+char *vely_hash_data( char *val, char *digest_name, bool binary, num *outlen )
 {
     VV_TRACE("");
     unsigned char hash[EVP_MAX_MD_SIZE + 1];
@@ -78,6 +78,7 @@ char *vely_hash_data( const char *val, const char *digest_name, bool binary, num
     char *p = out;
     EVP_DigestUpdate(mdctx, val,(unsigned int) msg_length);
     EVP_DigestFinal_ex(mdctx,binary?(unsigned char*)out:hash, (unsigned int*)&msg_length);
+    EVP_MD_CTX_free (mdctx);
 
     // if binary the output is done, set the output length
     if (binary) { if (outlen != NULL) *outlen = msg_length; return out; }
@@ -102,17 +103,18 @@ char *vely_hash_data( const char *val, const char *digest_name, bool binary, num
 // if binary is true, the output is binar of key_len length
 // The result is a zero-terminated string in hex representation.
 //
-char *vely_derive_key( const char *val, num val_len, const char *digest_name, num iter_count, const char *salt, num salt_len, num key_len, bool binary )
+char *vely_derive_key( char *val, num val_len, char *digest_name, num iter_count, char *salt, num salt_len, num key_len, bool binary )
 {
     VV_TRACE("");
-    const EVP_MD *dgst = NULL;
     // +1 as 0 is placed after each
     unsigned char *key = vely_malloc (key_len + 1);
 #if OPENSSL_VERSION_MAJOR  >= 3
 // in OpenSSL3, only if the implementation of digest exists, it will be non-NULL, while EV_get_digestbyname may return non-NULL
 // even if not existing
+    EVP_MD *dgst = NULL;
     dgst = EVP_MD_fetch(NULL, digest_name, NULL);
 #else
+    const EVP_MD *dgst = NULL;
     dgst = EVP_get_digestbyname(digest_name);
 #endif
     if(!dgst) { 
@@ -125,6 +127,10 @@ char *vely_derive_key( const char *val, num val_len, const char *digest_name, nu
     {
         vely_sec_err ("Cannot generate key");
     }
+#if OPENSSL_VERSION_MAJOR  >= 3
+    EVP_MD_free(dgst); // EVP_get_digestbyname doesn't need freeing
+#endif
+
     if (binary) 
     {
         key[key_len] = 0;
@@ -163,22 +169,22 @@ char *vely_derive_key( const char *val, num val_len, const char *digest_name, nu
 // Either e_ctx or d_ctx can be NULL (if we're only encrypting or decrypting).
 // Returns 0 if cannot produce the context, 1 if okay.
 //
-num vely_get_enc_key(const char *password, const char *salt, num salt_len, num iter_count, EVP_CIPHER_CTX *e_ctx, 
-             EVP_CIPHER_CTX *d_ctx, const char *cipher_name, const char *digest_name)
+num vely_get_enc_key(char *password, char *salt, num salt_len, num iter_count, EVP_CIPHER_CTX *e_ctx, 
+             EVP_CIPHER_CTX *d_ctx, char *cipher_name, char *digest_name)
 {
     VV_TRACE("");
 
 
-    const EVP_CIPHER *cipher;
-    const EVP_MD *dgst = NULL;
     // +1 as 0 is placed after each
     unsigned char key[EVP_MAX_KEY_LENGTH+EVP_MAX_IV_LENGTH+1];
 
 #if OPENSSL_VERSION_MAJOR  >= 3
 // in OpenSSL3, only if the implementation of cipher exists, it will be non-NULL, while EV_get_cipherbyname may return non-NULL
 // even if not existing
+    EVP_CIPHER *cipher;
     cipher = EVP_CIPHER_fetch(NULL, cipher_name, NULL);
 #else
+    const EVP_CIPHER *cipher;
     cipher = EVP_get_cipherbyname(cipher_name);
 #endif
     if(!cipher) { 
@@ -189,8 +195,10 @@ num vely_get_enc_key(const char *password, const char *salt, num salt_len, num i
 #if OPENSSL_VERSION_MAJOR  >= 3
 // in OpenSSL3, only if the implementation of digest exists, it will be non-NULL, while EV_get_digestbyname may return non-NULL
 // even if not existing
+    EVP_MD *dgst = NULL;
     dgst = EVP_MD_fetch(NULL, digest_name, NULL);
 #else
+    const EVP_MD *dgst = NULL;
     dgst = EVP_get_digestbyname(digest_name);
 #endif
     if(!dgst) { 
@@ -236,6 +244,10 @@ num vely_get_enc_key(const char *password, const char *salt, num salt_len, num i
             vely_sec_err ("Cannot decrypt");
         }
     }
+#if OPENSSL_VERSION_MAJOR  >= 3
+    EVP_MD_free(dgst); // EVP_get_digestbyname doesn't need freeing
+    EVP_CIPHER_free(cipher); // EVP_get_cipherbyname doesn't need freeing
+#endif
 
     return 1;
              
@@ -382,7 +394,7 @@ char *vely_decrypt(EVP_CIPHER_CTX *e, unsigned char *ciphertext, num *len, num i
 // Note: all b64 data must be produced on a single line, per openssl docs.
 // If in_len is -1, then it become the length of string in.
 //
-void vely_b64_encode(const char* in, num in_len, char** out, num* olen)
+void vely_b64_encode(char* in, num in_len, char** out, num* olen)
 { 
     VV_TRACE("");
     if (in_len == -1) in_len = strlen (in);
@@ -397,7 +409,7 @@ void vely_b64_encode(const char* in, num in_len, char** out, num* olen)
 // Note: all b64 data must be on a single line, per openssl docs.
 // If in_len is -1, then it become the length of string in.
 //
-void vely_b64_decode (const char* in, num ilen, char** out, num* olen) 
+void vely_b64_decode (char* in, num ilen, char** out, num* olen) 
 {
     VV_TRACE("");
     if (ilen == -1) ilen = strlen (in);

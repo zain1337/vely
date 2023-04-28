@@ -16,7 +16,7 @@ num vely_pg_checkc()
     return (PQstatus(VV_CURR_DB.dbc->pg.con) != CONNECTION_OK ? 0 : 1);
 }
 
-char *vely_pg_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er)
+char *vely_pg_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er)
 {
     VV_TRACE("");
     char *detail = PQresultErrorField(VV_CURR_DB.dbc->pg.res, PG_DIAG_MESSAGE_DETAIL);
@@ -24,7 +24,7 @@ char *vely_pg_errm(char *errm, num errmsize, const char *s, const char *sname, n
     return errm;
 }
 
-char *vely_pg_error(const char *s)
+char *vely_pg_error(char *s)
 {
     VV_TRACE("");
     VV_UNUSED(s); // used for tracing only
@@ -58,7 +58,7 @@ void vely_pg_free()
     VV_CURR_DB.dbc->pg.res = NULL;
 }
 
-const char *vely_pg_fieldname(num fnum)
+char *vely_pg_fieldname(num fnum)
 {
     VV_TRACE("");
     return PQfname(VV_CURR_DB.dbc->pg.res, fnum);
@@ -190,7 +190,7 @@ char *vely_pg_stmt(void **prep)
 int vely_pg_prep_stmt(void **prep, char *stmt, num num_of_args)
 {
     VV_TRACE("");
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     vely_location (&sname, &lnum, 0);
 
@@ -233,7 +233,7 @@ int vely_pg_prep_stmt(void **prep, char *stmt, num num_of_args)
 // Escape string for inclusion in quoted params. Postgres uses single quotes only, which cannot be changed.
 // memory for to must be 2*len+1. *len is the length of encoded string, not counting zero byte
 //
-int vely_pg_escape(const char *from, char *to, num *len)
+int vely_pg_escape(char *from, char *to, num *len)
 {
     VV_TRACE("");
     int err;

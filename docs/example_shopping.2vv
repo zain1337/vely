@@ -874,8 +874,8 @@ This will take order information from the list of orders (as directed by GET RES
 \[char35]include "vely.h"
 \[char35]include "shopping.h"
 
-void _json_from_order (const char *order_id, num curr_order, num order_count, 
-    const char *customer_id, const char *first_name, const char *last_name)
+void _json_from_order (char *order_id, num curr_order, num order_count, 
+    char *customer_id, char *first_name, char *last_name)
 {
     @   { 
     @       "orderID": "<<p-out order_id>>",
@@ -921,8 +921,8 @@ This file has a function declaration for _json_from_query() so it can be used in
 
 \[char35]include "vely.h"
 
-void _json_from_order (const char *order_id, num curr_order, num order_count, 
-    const char *customer_id, const char *first_name, const char *last_name);
+void _json_from_order (char *order_id, num curr_order, num order_count, 
+    char *customer_id, char *first_name, char *last_name);
 
 .EE
 .RE

@@ -21,6 +21,13 @@ _SYSTEMID=$(shell $$VV_LIBRARY_PATH/sys showid)
 # c/linker flags
 _CC=gcc
 
+#ASAN (internal)
+ifeq ($(strip $(VV_C_ASAN)),1)
+    _ASAN=-fsanitize=address -fsanitize-recover=address
+else
+    _ASAN=
+endif
+
 ifeq ($(strip $(VV_C_DEBUG)),1)
     _OPTIM_COMP=-g3 -DDEBUG -rdynamic
     _OPTIM_LINK=-rdynamic
@@ -40,7 +47,7 @@ else
     VV_FCGI_INCLUDE=
 endif
 
-_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP)
+_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
 
 
 
@@ -90,7 +97,7 @@ $(VV_BLD)/velyfcgiapp.o: $(VV_BLD)/blds
 	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -main -name "$(VV_C_NAME)" -max-upload "$(VV_C_MAXUPLOAD)" -app-path "$(VV_C_RESTPATH)" -trace "$(VV_C_TRACE)" -out $(VV_BLD)/velyfcgiapp.c
 	$(_CC) -c $(VV_BLD)/velyfcgiapp.c  $(_CFLAGS) -DCMOD -o $@ -I`pwd` 
 
-_LDFLAGS=-Wl,--no-undefined -Wl,--rpath=$(VV_LIBRARY_PATH) $(VV_C_LFLAGS)  -L$(VV_LIBRARY_PATH) $(_OPTIM_LINK)
+_LDFLAGS=-Wl,--no-undefined -Wl,--rpath=$(VV_LIBRARY_PATH) $(VV_C_LFLAGS)  -L$(VV_LIBRARY_PATH) $(_OPTIM_LINK) $(_ASAN)
 
 
 

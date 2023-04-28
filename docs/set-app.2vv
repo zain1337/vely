@@ -1,0 +1,46 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+set-app \-  (application_information)
+.SH PURPOSE
+Set process data.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+set-app process-data <data> 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+set-app sets information related to an application or a process that runs it. A process may handle one or more requests, hence such data is cross-request and process-wide in scope. Some of this information is used by Vely and some is used by you in your code.
+
+If you wish to set up \fBglobal_process_data\fP, you can do so by providing <data> in the "process-data" clause, which is a pointer to any type. Internally, this pointer is saved as void*, so it can be cast to anything. <data> can be retrieved later anywhere in any request served by the process with \fBget-app\fP (see "process-data" clause). 
+
+Process data has to be unmanaged memory because it is available across requests, see \fBmemory_handling\fP.
+
+.SH EXAMPLES
+To set global process data, for instance in _startup.vely (i.e. in \fBstartup_handler\fP):
+
+.RS 4
+.EX
+
+// Define global process memory pointer
+my_type *mydata;
+
+// Create global process memory
+manage-memory off
+new-mem mydata size sizeof(my_type)
+manage-memory on
+
+// Set global process memory
+set-app process-data mydata
+
+.EE
+.RE
+
+See \fBglobal_process_data\fP for more details and an example.
+.SH SEE ALSO
+ \fIApplication information\fP ( \fBget-app\fP   \fBset-app\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

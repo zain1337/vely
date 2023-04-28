@@ -27,7 +27,7 @@ Note that hexadecimal characters used in JSON for Unicode (such as \eu21d7) are 
 
 <json> is always allocated in utf8-json with storage sufficient to hold it.
 
-The optional length of <utf8> can be specified with <length> in "length" clause. If <length> is not specified, it is calculated as string length of <utf8>.
+The optional length of <utf8> can be specified with <length> in "length" clause. If <length> is not specified, it is calculated as string length of <utf8>. Note that a single UTF-8 character can be anywhere between 1 to 4 bytes. For example "љ" is 2 bytes in length. 
 
 The status of encoding can be obtained in optional <status> variable (a number), which can be created with optional "define". <status> is the string length of the result in <json> or -1 if error occurred, in which case the error text can be obtained in <error text> in optional "error-text" clause, which can be created with optional "define".
 

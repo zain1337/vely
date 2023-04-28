@@ -21,6 +21,12 @@ Vely uses high-performing \fBFNV1_a\fP hash algorithm. Each element in a bucket 
 
 Note that a hash table is accessible to the current process only. <size> must be at least 10; if less, it will be set to 10.
 
+.LP
+.B ALLOCATED INTERNALS
+.LP
+
+<hash> is \fBallocated memory\fP along with additional internal memory, which can be released if \fBpurge-hash\fP is used with <hash> from a previously executed new-hash.
+
 .SH EXAMPLES
 Create a new hash with 500 buckets:
 

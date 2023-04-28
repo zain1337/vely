@@ -54,9 +54,6 @@
 volatile num vely_end_program=0; // when SIGTERM is received, set this to 1 to exit gracefully
 extern num vely_in_request;
 
-// Set when we want to test for memory violation and not abend
-volatile num vely_test_mem=0; // if 1 we test for memory violation (SEGV or BUS). Set to 0 when done.
-
 // Static variables to be used in the case of a crash
 static void *stack_dump[MAX_STACK_FRAMES]; // stack frame`
 static char timestr[100];
@@ -67,7 +64,7 @@ static vely_so_info so[MAX_SO]; // info on all shared libraries linked with this
 static num total_so = 0; // total number of shared libraries we found on startup
 
 // function prototypes
-num addr2line(void const * const addr, const char *fname);
+num addr2line(void const * const addr, char *fname);
 void posix_print_stack_trace();
 void signal_handler(int sig);
 void set_signal_handler();
@@ -84,7 +81,7 @@ int modinfo(struct dl_phdr_info *info, size_t size, void *data);
 // This function is called multiple times (once for each line
 //      on backtrace), so we use >> to add to output
 //
-num addr2line(void const * const addr, const char *fname)
+num addr2line(void const * const addr, char *fname)
 {
     char addr2line_cmd[512] = {0};
     assert (fname);
@@ -148,7 +145,7 @@ void posix_print_stack_trace()
 // Do not call this more than once, because certain failures may loop back here
 // and go into infinite loop, destroying all useful information.
 //
-void vely_get_stack(const char *fname)
+void vely_get_stack(char *fname)
 {
     //
     // This static variable is okay because if we're here, the program WILL end right here in this module.
@@ -211,21 +208,21 @@ void vely_get_stack(const char *fname)
 // Signal handler for signal sig. sig is signal number
 // This way at run time we know which signal was caught. We also core dump for 
 // more information.
+// NO VELY MEMORY HANDLING HERE
 //
 void signal_handler(int sig)
 {
 
     // this code MUST REMAIN SPARSE and use only basic ops, as it handles jumping 
-    // here, unless this is SIGTERM or memory test (see velymem.c), this is fatal and the process EXITS
+    // here, unless this is SIGTERM, this is fatal and the process EXITS
 
     // make sure no surprises with longjumps, disable them right away. vely_done_err_setjmp is used
     // for report-error to go to the next request, and vely_done_setjmp for exit-request. Neither should
     // potentially do these, because this is fatal and must exit, so we allow no jumps elsewhere that would
     // prevent fatal exit.
-    // Save them first, because if testing for memory error (vely_test_mem == 1), we want them
-    // restored when we return.
     vely_done_err_setjmp = 0;
     vely_done_setjmp = 0;
+
 
     // set to make sure vely_report_error does not exit, but lets this function go through the end to report
     // on what's really happening
@@ -246,9 +243,9 @@ void signal_handler(int sig)
         case SIGABRT:
         case SIGBUS:
         case SIGSEGV:
-            if (vely_test_mem == 0 && sig == SIGABRT) vely_strncpy(expla, "Caught SIGABRT: usually caused by an abort() or assert()\n", MAX_EXPL_LEN - 1);
-            if (vely_test_mem == 0 && sig == SIGBUS) vely_strncpy(expla, "Caught SIGBUS: bus error\n",  MAX_EXPL_LEN - 1);
-            if (vely_test_mem == 0 && sig == SIGSEGV) vely_strncpy(expla, "Caught SIGSEGV: segmentation fault\n",  MAX_EXPL_LEN - 1);
+            if (sig == SIGABRT) vely_strncpy(expla, "Caught SIGABRT: usually caused by an abort() or assert()\n", MAX_EXPL_LEN - 1);
+            if (sig == SIGBUS) vely_strncpy(expla, "Caught SIGBUS: bus error\n",  MAX_EXPL_LEN - 1);
+            if (sig == SIGSEGV) vely_strncpy(expla, "Caught SIGSEGV: segmentation fault\n",  MAX_EXPL_LEN - 1);
             break;
         case SIGHUP:
             vely_strncpy(expla, "Caught SIGHUP: hang up\n",  MAX_EXPL_LEN - 1);
@@ -378,7 +375,7 @@ int modinfo(struct dl_phdr_info *info, size_t size, void *data)
 // to enable catchng signals and dumping human-readable stack in backtrace file
 // 'dir' is the tracing directory where to write trace file
 //
-void vely_set_crash_handler(const char *dir)
+void vely_set_crash_handler(char *dir)
 {
     // build backtrace file name to be used througout here
     snprintf(backtrace_file, sizeof(backtrace_file), "%s/backtrace", dir);

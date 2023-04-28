@@ -9,13 +9,17 @@ Delete FIFO list data.
 .RS 4
 .EX
 
-purge-fifo <list>
+purge-fifo <list> [ delete ]
 
 .EE
 .RE
 
 .SH DESCRIPTION
 purge-fifo will delete all data from the FIFO <list>, created by \fBnew-fifo\fP. The list is then empty and you can still put data into it, and get data from it afterwards, without having to call \fBnew-fifo\fP again.
+
+If you use "delete" clause, then all the internal memory of a <list> is freed, and you must call \fBnew-fifo\fP in order to use it again.
+
+See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 See \fBread-fifo\fP.

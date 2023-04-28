@@ -259,6 +259,12 @@ run-query @ db = "select firstName, lastName from employee where employeeId='%s'
 .RE
 
 
+.LP
+.B ALLOCATED INTERNALS
+.LP
+
+Internal memory used for a query is \fBallocated memory\fP, which can be released with \fBdelete-query\fP.
+
 .SH EXAMPLES
 Select first and last name (output is firstName and lastName) based on employee ID (specified by input parameter empid):
 

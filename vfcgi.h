@@ -16,7 +16,7 @@
 
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.8.0"
+#define VV_VERSION "16.9.0"
 
 // Client error codes
 #define VV_OKAY 0 // success
@@ -43,14 +43,14 @@ typedef void (*vv_fc_err_hook)(char *recv, int recv_len);
 
 // FastCGI request
 typedef struct {
-    const char *fcgi_server; // the IP:port/socket_path to server
-    const char *req_method; // request method
-    const char *app_path; // application path
-    const char *req; // request name
-    const char *url_payload; // URL payload (path+query string)
-    const char *content_type; // content type
+    char *fcgi_server; // the IP:port/socket_path to server
+    char *req_method; // request method
+    char *app_path; // application path
+    char *req; // request name
+    char *url_payload; // URL payload (path+query string)
+    char *content_type; // content type
     int content_len; // content len
-    const char *req_body; // request body (i.e. content)
+    char *req_body; // request body (i.e. content)
     char **env; // environment to pass into request on server side
     int timeout; // timeout for request
     int read_status; // status of reading from server
@@ -61,7 +61,7 @@ typedef struct {
     int error_len; // length of error from server
     char *other; // actual response from server, other kind (not stdout or stderr)
     int other_len; // length of response from server for other kind
-    const char *errm; // error message when vv_fc_request returns other than VV_OKAY
+    char *errm; // error message when vv_fc_request returns other than VV_OKAY
     vv_fc_out_hook out_hook; // get output data as soon as it arrives
     vv_fc_err_hook err_hook; // get error data as soon as it arrives
 } vv_fc;

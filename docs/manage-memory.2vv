@@ -1,0 +1,87 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+manage-memory \-  (memory)
+.SH PURPOSE
+Turn on/off managed memory. 
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+manage-memory [ on | off | <expression> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+By default, Vely memory is managed - this means any outstanding memory used by your request will be freed when the request ends (see \fBmemory_handling\fP). You can change this behavior for a time by using manage-memory.
+
+If "on" clause is used, any memory allocated afterwards by any Vely statement is freed automatically (the default behavior). This is managed memory mode.
+
+If "off" clause is used, any memory allocated afterwards by any Vely statement is not freed automatically; this behavior will be in effect until the end of the request or until manage-memory with "on" clause is called. This is unmanaged memory mode.
+
+If boolean <expression> is given, and if it evaluates to true then it's the same as "on" clause; if it evaluates to false then it's the same as "off" clause. 
+
+
+.B - Freeing, reallocating, using with other C API
+
+If memory is unmanaged, you can use other memory handling statements on such memory (such as \fBdelete-mem\fP or \fBresize-mem\fP) in unmanaged memory mode only - do not directly use C's free(), realloc() and similar. However, unmanaged memory can be used with any other C API (i.e. libraries); this is useful if you receive already allocated memory from such libraries or need to pass malloc-allocated memory to them.
+
+
+.B - Scope
+
+manage-memory has effect in the current request only. Regardless of whether managed or unmanaged memory was used last before the request ended, both the \fBafter_request_handler\fP and the following request will run with the default behavior (i.e. managed). This is true even when your request exits with \fBexit-request\fP or \fBreport-error\fP.
+
+If you have a \fBstartup_handler\fP, you can use unmanaged memory; once the execution returns from the startup handler, all memory requests will be managed again.
+
+If you have a \fBbefore_request_handler\fP or \fBafter_request_handler\fP, you can use unmanaged memory; once the execution returns from either handler, it will be managed again.
+
+
+.B - Request data
+
+Note that request-specific variables provided by Vely are always managed internal memory. As such, if you want to use them as unmanaged memory, you must make a copy first (for instance with \fBcopy-string\fP). This includes \fBinput-param\fP, \fBrequest-body\fP and \fBget-req\fP. See below an example to save a request's input parameter as unmanaged memory available to all future requests.
+
+
+.B - Using
+
+You may want to store managed memory pointers in \fBglobal_process_data\fP in order to be useful across many requests - this is one purpose of unmanaged memory. Another is to use with external C APIs.
+
+\fIImportant\fP: using unmanaged memory carries additional responsibilities for the developer, because any such \fBallocated memory\fP must be explicitly deleted when not needed, or there will be a memory leak. Use it only in special circumstances; its use is generally discouraged otherwise. Such circumstances typically involve data that should survive automatic memory deallocation at the end of the request or with external C API. 
+
+.SH EXAMPLES
+In this example, the input parameter to a very first request issued in a process is copied to variable "var", the value of which then persists for all following requests:
+
+.RS 4
+.EX
+
+input-param ipar
+static char *var = NULL;
+if (var == NULL) {
+    manage-memory off
+    copy-string ipar to var
+    manage-memory on
+}
+// Print out input parameter from the very first request
+p-out var
+
+.EE
+.RE
+
+Create memory and pass it to another API:
+
+.RS 4
+.EX
+
+manage-memory off
+new-mem define var size 1024
+call_some_API(&var);
+\[char46]..
+delete-mem var
+manage-memory on
+
+.EE
+.RE
+
+.SH SEE ALSO
+ \fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

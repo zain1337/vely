@@ -23,11 +23,9 @@ get-req \\
 .SH DESCRIPTION
 Variables related to an input request can be obtained with get-req statement and the result stored into <variable>. The following request variables can be obtained (they are strings except where stated otherwise):
 
-
 .RS 4
 \[bu]    
 "data" obtains the pointer to \fBglobal_request_data\fP.
-
 
 .RE
 
@@ -35,20 +33,17 @@ Variables related to an input request can be obtained with get-req statement and
 \[bu]    
 "errno" obtains the integer value of operating system "errno" tied to a last Vely statement that can return a status code. The "errno" value is saved internally; and restored here. It means that if "errno" changed for whatever reason since such Vely statement, you will still obtain the correct value. See \fBerror_code\fP for an example. Note that errno value is undefined if there is no error, and can be 0 if the error is reported by Vely and not by operating system.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "error" returns the error message (a string) that correlates to "errno" value. The result of "error" clause is \fBallocated memory\fP.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "cookie-count" returns the number of cookies. This means any cookies received from the client plus any cookies added (with \fBset-cookie\fP) in the application minus any cookies deleted (with \fBdelete-cookie\fP).
-
 
 .RE
 
@@ -72,13 +67,11 @@ for (i = 0; i < cookie_c; i++) {
 
 In this example, we get the number of input parameters, and then print out each name/value pair.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "arg-count" is the number of input arguments to your application (passed from a program caller, see \fBvv\fP).
-
 
 .RE
 
@@ -102,20 +95,17 @@ for (i=0; i<ac; i++) {
 
 This code will display the number of input arguments (as passed to main() function of your program, excluding the first argument which is the name of the program), and then all the arguments. If there are no arguments, then variable 'ac' would be 0. See \fBvv\fP on passing arguments to your application.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "input-count" is the number of input parameters (from a \fBrequest\fP). Together with input-name and input-value, this lets you examine all input parameters in a \fBrequest\fP, especially in situations where the parameters are dynamic in nature.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "input-name" is the string value of a single element from the array of input parameter names (from a \fBrequest\fP), specified by <input_index>. This array is indexed from 0 to one less than value obtained by "input-count". See "input-value" for an example.
-
 
 .RE
 
@@ -140,7 +130,6 @@ for (i = 0; i < input_c; i++) {
 
 In this example, we get the number of cookies, and then print out each. The cookie value is the full cookie string, including expiration date, strictness etc.
 
-
 .RE
 
 .RS 4
@@ -156,7 +145,6 @@ get-req header "My-Header" to define hval
 .RE
 
 Note that not all HTTP request headers are set by the caller. For example, SERVER_NAME or QUERY_STRING are set by the web server, and to get such headers, use \fBget-sys\fP.
-
 
 .RE
 
@@ -196,13 +184,11 @@ if (request_method == VV_DELETE) {
 \[bu]    
 "content-type" is the request content type. It is a string and generally denotes the content type of a \fBrequest-body\fP, if included in the request. Common examples are "application/x-www-form-urlencoded", "multipart/form-data" or "application/json".
 
-
 .RE
 
 .RS 4
 \[bu]    
 "referring-url" is the referring URL (i.e. the page from which this request was called, for example by clicking a link). 
-
 
 .RE
 
@@ -210,24 +196,20 @@ if (request_method == VV_DELETE) {
 \[bu]    
 "trace-file" is the full path of the trace file for this request (if enabled, see \fBvv\fP).
 
-
 .RE
 
 .RS 4
 \[bu]    
 "process-id" is the "PID" (process ID) number of the currently executing process, as an integer.
 
-
 .RE
 
 .RS 4
 \[bu]    
 "name" is the request name as specified in the \fBrequest_URL\fP.
-
-
 .RE
 
-Note that all these values are constants.
+Note that all the string values above (except "data") should be treated as constants - do not change them as that may cause program to malfunction. If you want to alter any of these values, make a copy first (see \fBcopy-string\fP).
 
 .SH EXAMPLES
 Get the name of current trace file:

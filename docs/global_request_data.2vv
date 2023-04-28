@@ -2,15 +2,15 @@
 .SH NAME
 global_request_data \- Vely documentation (requests)
 .SH DESCRIPTION
-The purpose of global request data is to facilitate using global variable(s) anywhere in your code. 
+The purpose of global-request data is to facilitate using global variable(s) within a single \fBrequest\fP anywhere in your code. This is different from \fBglobal_process_data\fP which is used across many requests.
 
-You can of course create global variables in C (and use C's "extern" to make them available anywhere). Vely's global request data is an easier and more structured way to share data globally, without having to actually define and maintain global variables. It also makes it more maintainable because the usage of shared global information is well-encapsulated and easy to track (for instance in code reviews).
+You can of course create global variables in C (and use C's "extern" to make them available anywhere). Vely's global-request data is an easier and more structured way to share data globally within a single request, without having to actually define and maintain global variables. It also makes it more maintainable because the usage of shared global information is well-encapsulated and easy to track (for instance in code reviews).
 
 .LP
-.B WHAT IS GLOBAL REQUEST DATA
+.B WHAT IS GLOBAL-REQUEST DATA
 .LP
 
-Global request data is a generic pointer (void*) that points to any memory you wish to be shared among all your code. This memory is usually a structure containing information globally pertinent to your application. The pointer's scope is a single \fBrequest\fP, and it is initialized to NULL before each request. It is stored in Vely's internal request structure so it can be used anywhere.
+Global-request data is a generic pointer (void*) that points to any memory you wish to be shared among all your code within a single request. This memory is usually a structure containing information globally pertinent to your application. The pointer's scope is a single \fBrequest\fP, and it is initialized to NULL before each request. It is stored in Vely's internal request structure so it can be used anywhere.
 
 .LP
 .B SETTING
@@ -31,7 +31,7 @@ where <data> is a pointer to any memory you wish to use anywhere in your code.
 .B GETTING
 .LP
 
-Global request data can be obtained anywhere in your code with:
+Global-request data can be obtained anywhere in your code with:
 
 .RS 4
 .EX
@@ -53,7 +53,7 @@ Then in \fBbefore_request_handler\fP, you would create the variable (or an array
 
 Next, save the pointer to the variable (or an array) you created by using \fBset-req\fP. 
 
-Finally, anywhere you need to set or get any data, use \fBget-req\fP to get the pointer and manipulate or read your global request data.
+Finally, anywhere you need to set or get any data, use \fBget-req\fP to get the pointer and manipulate or read your global-request data.
 
 .SH EXAMPLES
 Suppose your application has an include file my.h in which you define type "reqdata":
@@ -84,9 +84,9 @@ Your \fBbefore_request_handler\fP might look like this - note that my.h is inclu
 \[char35]include "my.h"
 
 void _before () {
-    reqdata *rd; // A pointer to global request data
+    reqdata *rd; // A pointer to global-request data
 
-    // Allocate global request data
+    // Allocate global-request data
     new-mem rd size sizeof(reqdata)
 
     // Initialize values in it
@@ -102,7 +102,7 @@ void _before () {
 
 In the above code, a new pointer "rd" to type "reqdata" is created with \fBnew-mem\fP. Data initialization takes place - anything that needs initialization should be initialized. Finally, pointer "rd" is saved to request's internal structure with \fBset-req\fP, so it can be used anywhere during request processing.
 
-In your code, wherever it's needed, you can obtain this data into a local pointer to the same type "reqdata" (in this case pointer name is "mydata"). You can do that with \fBget-req\fP and then examine or set any global variable you wish:
+In your code, wherever it's needed, you can obtain this data into a local pointer of the same type "reqdata" (in this case pointer name is "mydata"). You can do that with \fBget-req\fP and then examine or set any global variable you wish:
 
 .RS 4
 .EX
@@ -115,7 +115,7 @@ void mycode () {
     ...
     reqdata *mydata; // declare local pointer 
 
-    // get the actual value of a pointer, so now it points to global request data
+    // get the actual value of a pointer, so now it points to global-request data
     get-req data to mydata
     
     // do whatever you want with the data: examine, set etc.

@@ -23,11 +23,17 @@ Output of any Vely code (that normally would go to a client) can be written into
 
 <string> is \fBallocated memory\fP.
 
+.LP
+.B LENGTH OF RESULT
+.LP
+
 To get the length of the string written, use the optional "bytes-written" clause, in which case <bytes written> will have the number of bytes written, minus the trailing zero byte (i.e. it is the length of the string output). If <bytes written> is not defined, you can create it with "define" within the statement.
 
-Note that instead of write-string you can also use a shortcut "(("  (and instead of end-write-string you can use "))"  ), for example here a string "fname" holds a full path of a file named "config-install.vely" under the application home directory (see \fBhow_vely_works\fP), and "bw" holds the number of bytes written:
+.LP
+.B SHORTCUT CODE
+.LP
 
-The value of <string> within write-string is empty - only after end-write-string completes does it take the computed value.
+Note that instead of write-string you can also use a shortcut "(("  (and instead of end-write-string you can use "))"  ), for example here a string "fname" holds a full path of a file named "config-install.vely" under the application home directory (see \fBhow_vely_works\fP), and "bw" holds the number of bytes written:
 
 .RS 4
 .EX
@@ -39,6 +45,11 @@ get-app directory to define home_dir
 
 .EE
 .RE
+
+
+.LP
+.B TRIMMING
+.LP
 
 Just like with all other Vely code, every line is trimmed both on left and write, so this:
 
@@ -82,7 +93,16 @@ All trailing empty lines are removed, for example:
 
 the above string would have two trailing empty lines, however they will be removed. If you want to skip trimming the trailing whitespaces, use "notrim" clause in end-write-string.
 
+.LP
+.B REFERENCING RESULT WITHIN WRITE-STRING
+.LP
+
+The <string> pointer (i.e. the result) is set to an empty string at the beginning of write-string; only after end-write-string completes does it take the computed value. That's because using <string> within write-string is generally inefficient as it's value is copied to the result. If you must use the result recursively (which is not recommended), you can save the pointer to it and use it. 
+
 .SH EXAMPLES
+
+.B - Simple
+
 A simple example:
 
 .RS 4
@@ -109,6 +129,10 @@ Hello world (and have a nice day too!)
 
 .EE
 .RE
+
+
+
+.B - Using code inside
 
 Here is using Vely code inside write-string, including database query and conditional statements to produce different strings at run-time:
 
@@ -202,6 +226,9 @@ No message
 
 In the above example, "result_str" variable is defined on the spot, but it can also be defined elsewhere without using "define".
 
+
+.B - Using function calls inside
+
 The following uses functions inside write-string (note that "<<.func2();>>" is simply calling C code as \fBinline_code\fP):
 
 .RS 4
@@ -235,6 +262,10 @@ Result from func2() is Hello from func2
 .EE
 .RE
 
+
+
+.B - Nesting
+
 An example to nest write-strings:
 
 .RS 4
@@ -262,6 +293,10 @@ Hi Again!
 
 .EE
 .RE
+
+
+
+.B - Returning result from function
 
 The result of write-string can be returned from a function (because it is heap memory), as in this example:
 

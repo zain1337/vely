@@ -9,17 +9,17 @@ Delete memory associated with a query.
 .RS 4
 .EX
 
-delete-query <query name>
+delete-query <query name> [ skip-data ] 
 
 .EE
 .RE
 
 .SH DESCRIPTION
-A named query (see clause "name" in \fBrun-query\fP) can be deleted with delete-query by specifying the <query name>. Deletion means that memory allocated for a query will be freed.
+A named query (see clause "name" in \fBrun-query\fP) can be deleted with delete-query by specifying the <query name>. Deletion means that all memory allocated for a query will be freed. It means query results will be freed as well. Do not delete query if its results are still referenced afterwards. 
 
-Do not use \fBdelete-mem\fP to delete query data (such as error message, column name or data itself, for example) and delete-query at the same time, as that will result in a double freeing of memory. 
+However, if "skip-data" clause is used, then the query results will not be deleted; rather everything else will be. This means the results of \fBquery-result\fP statement or "output define" clause in \fBrun-query\fP statement will not be freed. This is useful if you want to keep the results of a query and otherwise release all of its resources. Note that the results will remain allocated even if you do not obtain them via "query-result" or "output define" clause, for instance.
 
-delete-query will free the query results as well. Do not delete query if its results are still referenced afterwards. 
+Make sure not to delete anything twice. For instance, do not use \fBdelete-mem\fP to delete query data such as error message, column name or results, while using delete-query as well. By the same token, if you use "skip-data", you can use delete-mem to free query results later.
 
 See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 

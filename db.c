@@ -20,10 +20,10 @@
 #define MYS_COL_LIMIT 4096
 
 // function prototypes
-num vely_handle_error (const char *s, const char **er, const char **err_message, num retry, char is_prep, char erract);
+num vely_handle_error (char *s, char **er, char **err_message, num retry, char is_prep, char erract);
 void vely_end_connection(num close_db);
 num vely_retry_db();
-num vely_firstword(const char *w, const char *s);
+num vely_firstword(char *w, char *s);
 void vely_arows(num *arows, char is_prep);
 
 int vely_stmt_cached = 0;
@@ -38,7 +38,7 @@ void vely_end_connection(num close_db) {
     VV_TRACE("");
     if (VV_CURR_DB.dbc != NULL) 
     {
-        if (close_db) 
+        if (close_db == 1) 
         {
             if (VV_CURR_DB.db_type == VV_DB_POSTGRES)
             {
@@ -145,13 +145,13 @@ vely_dbc *vely_get_db_connection (num abort_if_bad)
 // erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
 // err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-num vely_begin_transaction(const char *t, char erract, const char **err, const char **errt)
+num vely_begin_transaction(char *t, char erract, char **err, char **errt)
 {
     VV_TRACE("");
 
-    const char *er;
+    char *er;
     num rows;
-    const char *errm="";
+    char *errm="";
     char start[512];
     if (VV_CURR_DB.db_type == VV_DB_SQLITE)
     {
@@ -171,6 +171,20 @@ num vely_begin_transaction(const char *t, char erract, const char **err, const c
     if (errt != NULL) *errt = errm; else vely_free((void*)errm);
     VV_CURR_DB.is_begin_transaction = 1;
     return 1;
+}
+
+// 
+// Close connection for all dbs and release resources. Done only just before exit.
+//
+void vely_end_all_db()
+{
+    VV_TRACE("");
+    num i;
+    for (i = 0; i < vely_get_config()->ctx.tot_dbs; i++)
+    {
+        vely_get_config()->ctx.db->ind_current_db = i;
+        vely_end_connection (1);
+    }
 }
 
 // 
@@ -210,15 +224,15 @@ void vely_check_transaction(num check_mode)
 // erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
 // err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-num vely_commit(const char *t, char erract, const char **err, const char **errt)
+num vely_commit(char *t, char erract, char **err, char **errt)
 {
     VV_TRACE("");
 
     VV_CURR_DB.is_begin_transaction = 0;
 
-    const char *er;
+    char *er;
     num rows;
-    const char *errm="";
+    char *errm="";
     char comm[512];
     snprintf (comm, sizeof(comm), "commit %s", t);
 // last param is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
@@ -238,15 +252,15 @@ num vely_commit(const char *t, char erract, const char **err, const char **errt)
 // erract is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
 // err is the error code of any error, errt is error text - both are NULL if none requested.
 //
-num vely_rollback(const char *t, char erract, const char **err, const char **errt)
+num vely_rollback(char *t, char erract, char **err, char **errt)
 {
     VV_TRACE("");
 
     VV_CURR_DB.is_begin_transaction = 0;
 
-    const char *er;
+    char *er;
     num rows;
-    const char *errm="";
+    char *errm="";
     char rollb[512];
     snprintf (rollb, sizeof(rollb), "rollback %s", t);
 // last param is VV_ON_ERROR_CONTINUE/EXIT for statement-specific on-error continue/exit or VV_OKAY if db-level on-error is in effect.
@@ -263,11 +277,11 @@ num vely_rollback(const char *t, char erract, const char **err, const char **err
 // Return 1 if the first word of 's' is 'w', otherwise 0. If 's' is quoted, ignore quotes.
 // Also, ignore leading spaces.
 //
-num vely_firstword(const char *w, const char *s)
+num vely_firstword(char *w, char *s)
 {
     VV_TRACE("");
     num l = strlen (w);
-    const char *mbeg = s;
+    char *mbeg = s;
     // avoid spaces and quotes in the beginning (could be spaces, quote, spaces again)
     while (isspace(*mbeg) || *mbeg == '"') mbeg++; // right now, always quoted, get passed the quote
     if (!strncasecmp (mbeg, (w), l) && (mbeg[l] == 0 || mbeg[l] == '"' || isspace(mbeg[l]))) return 1; else return 0;
@@ -311,14 +325,14 @@ void vely_arows(num *arows, char is_prep)
 // returns_tuple is 1 if the SQL returns tuple, such as SELECT. It could be also SQL liks INSERT..RETURNING() so not
 // necessarily DML vs SELECT.
 //
-vely_dbc *vely_execute_SQL (char *s,  num *arows, const char **er, const char **err_message, num returns_tuple, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract)
+vely_dbc *vely_execute_SQL (char *s,  num *arows, char **er, char **err_message, num returns_tuple, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract)
 {
     VV_TRACE("");
     assert (s);
     assert (er);
 
     // get location in source code (if set, VELY automatically does this)
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0; 
     vely_location (&sname, &lnum, 0);
     if (s[0] == 0)
@@ -505,7 +519,7 @@ num vely_retry_db()
 // Returns 1 if reconnect was successful (meaning retry had to be 1 for this to happen), 0 in any other case.
 // If on-error is set to exit, then stop program in any case but successfull reconnection.
 //
-num vely_handle_error (const char *s, const char **er, const char **err_message, num retry, char is_prep, char erract)
+num vely_handle_error (char *s, char **er, char **err_message, num retry, char is_prep, char erract)
 {
     VV_TRACE("");
     // This static is fine - it is used only within a single request, i.e. it doesnt span multiple request.
@@ -555,7 +569,7 @@ num vely_handle_error (const char *s, const char **er, const char **err_message,
     }
 
     // get location in source code (if set, VELY automatically does this)
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     vely_location (&sname, &lnum, 0);
 
@@ -616,13 +630,13 @@ num vely_handle_error (const char *s, const char **er, const char **err_message,
 // line number (lnum) and 'set' is 1. If there was an error, we can use this information
 // to point back to the exact line where problem happened.
 //
-void vely_location (const char **fname, num *lnum, num set)
+void vely_location (char **fname, num *lnum, num set)
 {
     VV_TRACE("");
     // this static variables are fine, they are used only within a single request. 
     // Before SQL is executed, vely_location is called, and if there is an error, we would
     // return that value - meaning these values are ALWAYS set in the process and THEN used
-    static const char *fname_loc = "";
+    static char *fname_loc = "";
     static num lnum_loc = 0;
 
     if (set == 1)
@@ -665,8 +679,8 @@ void vely_select_table (char *s,
                   char ***col_names,
                   char ***data, 
                   num **dlen, 
-                  const char **er,
-                  const char **errm,
+                  char **er,
+                  char **errm,
                   char is_prep,
                   void **prep, 
                   num paramcount, 
@@ -681,7 +695,7 @@ void vely_select_table (char *s,
     assert (er);
     assert (errm);
 
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     // get location in end-user source code where this is called from, for error reporting purposes
     vely_location (&sname, &lnum, 0);
@@ -923,7 +937,7 @@ void vely_db_prep(void **prep)
     static num totpreps = 0; // total number of prep stmts
     static num curpreps = 0; // current prep statement
 #define VV_ADD_PREPS 1 /* advance by 1*/
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     vely_location (&sname, &lnum, 0);
 
@@ -1034,7 +1048,7 @@ char *vely_db_prep_text(char *t)
 // memory for to must be 2*len+1. *len  is the actual encoded length without zero byte counted.
 // Returns 0 for okay, 1 otherwise.
 //
-int vely_db_escape(const char *from, char *to, num *len)
+int vely_db_escape(char *from, char *to, num *len)
 {
     VV_TRACE("");
     // must get connection b/c escaping requires it
@@ -1065,7 +1079,7 @@ int vely_db_escape(const char *from, char *to, num *len)
 // We increase destSize to match what's needed and dest changes too. The caller code will free dest after SQL executes, so if in a loop,
 // it will allocate again and so on.
 //
-void vely_make_SQL (char **dest, num num_of_args, const char *format, ...) 
+void vely_make_SQL (char **dest, num num_of_args, char *format, ...) 
 {
     VV_TRACE("");
     assert (format);

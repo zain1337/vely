@@ -24,7 +24,7 @@ Run a FastCGI application server that is accessible from Apache, Nginx or any ot
 
 Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP). 
 
-.B - Support for everything, do anything
+.B - Support for just about anything
 
 Vely \fBstatements\fP are \fBprecompiled\fP into C code, and cover web, database, strings, files, flow and execution, encoding/encryption, REST, JSON, time, error handling, daemon-izing code and other common tasks (see \fBdocumentation\fP). They are safer than C (no need to allocate memory or free it, avoiding major pitfalls) and very easy - generally one-liners, largely self-explanatory and more powerful than traditional API. Vely code is a breeze to read - it's just as important as the ease of writing it. Same code works for both web applications and \fBcommand_line\fP programs. Easily \fBcontainerize_application\fPs. 
 
@@ -38,7 +38,7 @@ A Vely application works by processing standard HTTP requests, which simplifies 
 
 .B - Quality and continuous testing
 
-Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1433 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1523 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
 
 .B - Report bugs, request features, contact
 
@@ -46,9 +46,20 @@ Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
 \fBhl
 
 .LP
-.B NEWS
+.B RELEASE NOTES
 .LP
 
+
+
+.RS 4
+\[bu]    
+\fI2023-04-14\fP
+Vely release notes for 16.8.0
+- Minor: added 'name' clause to run-query to be used with any statements that operate on a query afterwards.
+- Minor: added delete-query statement to release all memory associated with the query, including the query results.
+- Release: simplified checking for issues in freeing memory, with a significant performance improvement.
+
+.RE
 
 
 .RS 4
@@ -208,17 +219,4 @@ Vely release notes for 14.0.0
 .RE
 
 
-.RS 4
-\[bu]    
-\fI2022-10-10\fP
-Vely release notes for 13.0.10
-- Release: several bugs in examples fixed 
-- Release: documentation update, especially with new example format
-- Release: OpenSUSE support is now for Tumbleweed
-- Release: update package files
-- Release: additional tests for exit-code
-
-.RE
-
-
-For more news, \fBclick here\fP.
+For more release notes, \fBclick here\fP.

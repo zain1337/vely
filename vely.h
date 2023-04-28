@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.8.0"
+#define VV_VERSION "16.9.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -141,7 +141,6 @@ typedef double dbl;
 #define VERR vely_errno=errno // save errno at the point of error for further examination later, if desired
 #define VERR0 vely_errno=0 // no error, we caught it
 #define VV_DEFINE_STRING(x) char *x = VV_EMPTY_STRING // define string as empty for use with vely_malloc etc
-#define VV_DEFINE_CONST_STRING(x) const char *x = VV_EMPTY_STRING // define string as empty for use with vely_malloc etc
 #define VV_INIT_STRING(x) x = VV_EMPTY_STRING // initialize existing string as empty for use with vely_malloc etc
 #define VV_TRACE_DIR "trace" // the name of trace directory is always 'trace'
 // since we're only supporting Centos 7+, this is what comes with it, or if it's not there, user needs to install
@@ -332,7 +331,7 @@ typedef struct s_vely_args
 //
 typedef struct s_vely_input_params
 {
-    const char **names; // URL names for GET/POST request
+    char **names; // URL names for GET/POST request
     char **values; // URL values for GET/POST request
     num num_of_input_params; // # of name/values in GET/POST request
 } vely_input_params;
@@ -340,7 +339,7 @@ typedef struct s_vely_input_params
 // Write string (write-string markup) information
 typedef struct vely_write_string_t
 {
-    char *string; // Actual data. 
+    char *string; // Actual data being built. 
     char **user_string; // user string to be built
     num len; // allocated length
     num buf_pos; // current write position
@@ -359,18 +358,18 @@ typedef struct vely_cookies_s
 // header structure to send back file to a web client
 typedef struct s_vely_header
 {
-    const char *ctype; // content type
-    const char *disp; // header content disposition
-    const char *file_name; // file name being sent
-    const char *cache_control; // cache control http header
+    char *ctype; // content type
+    char *disp; // header content disposition
+    char *file_name; // file name being sent
+    char *cache_control; // cache control http header
     num etag; // if 1,include etag which is the time stamp of last modification date of the file
     // the status_* are for status setting. status_id is the status id (such as 302) and status_text is it's corresponding text (such as '302 Found')
     // The example here is for redirection, but can be anything
     num status_id;
-    const char *status_text;
+    char *status_text;
     // the following are for generic http header of any kind, in fact content type, cache control etc. can all be done here while leaving others empty
-    const char *control[VV_MAX_HTTP_HEADER+1];
-    const char *value[VV_MAX_HTTP_HEADER+1];
+    char *control[VV_MAX_HTTP_HEADER+1];
+    char *value[VV_MAX_HTTP_HEADER+1];
 } vely_header;
 // 
 // Input request. Overarching structure that contains much information not just about
@@ -406,7 +405,7 @@ typedef struct vely_input_req_s
 //
 // We use oops/file_too_large (and maybe others in the future) as set at runtime (see below).
 //
-typedef void (*oops_ptr)(vely_input_req *,const char *);
+typedef void (*oops_ptr)(vely_input_req *,char *);
 typedef void (*file_too_large_ptr)(vely_input_req *, int);
 
 typedef union s_vely_dbc
@@ -486,6 +485,7 @@ typedef struct s_vely_db_connections
 
 typedef struct s_vely_context
 {
+    void *data; // process-specific data, available across requests
     vely_input_req *req; // input request (see definition)
     num vely_report_error_is_in_report; // 1 if in progress of reporting an error 
 
@@ -590,8 +590,8 @@ typedef struct vely_json_s
 #define  VV_TRACE(...) true
 #endif
 #define  vely_report_error(...) {_vely_report_error(__VA_ARGS__);exit(0);}
-#define VV_STRDUP(x, y) {const char *_vv_temp = (y); (x) = vely_strdup (_vv_temp == NULL ? "" : _vv_temp); }
-#define VV_STRLDUP(x, y, r) {const char *_vv_temp = (y); num _vv_ltemp = strlen(_vv_temp); ((x)=memcpy (vely_malloc (_vv_ltemp+1), _vv_temp, _vv_ltemp))[_vv_ltemp] = 0; if ((r)!=NULL) *(r) = _vv_ltemp; }
+#define VV_STRDUP(x, y) {char *_vv_temp = (y); (x) = vely_strdup (_vv_temp == NULL ? "" : _vv_temp); }
+#define VV_STRLDUP(x, y, r) {char *_vv_temp = (y); num _vv_ltemp = strlen(_vv_temp); ((x)=memcpy (vely_malloc (_vv_ltemp+1), _vv_temp, _vv_ltemp))[_vv_ltemp] = 0; if ((r)!=NULL) *(r) = _vv_ltemp; }
 /*hexadecimal conversions*/
 #define VV_CHAR_FROM_HEX(x) (((x)>'9') ? (((x)>='a') ? ((x)-'a'+10) : ((x)-'A'+10)) : ((x)-'0')) /* for conversion in URL - ASCII ONLY!
                         numbers are lower than capital letter are lower than lower case letters!! */
@@ -616,131 +616,131 @@ typedef struct vely_json_s
 //
 void vely_init_input_req (vely_input_req *iu);
 num vely_open_trace ();
-void vely_close_trace();
-void vely_make_SQL (char **dest, num num_of_args, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
+num vely_close_trace();
+void vely_make_SQL (char **dest, num num_of_args, char *format, ...) __attribute__ ((format (printf, 3, 4)));
 void vely_output_http_header(vely_input_req *iu);
-void _vely_report_error (const char *format, ...) __attribute__ ((format (printf, 1, 2)));
-num vely_encode (num enc_type, const char *v, num vlen, char **res);
-num vely_get_input(vely_input_req *req, const char *method, const char *input);
-char *vely_get_input_param (const vely_input_req *iu, const char *name);
-num vely_is_positive_num (const char *s);
-num vely_exec_program (const char *prg, const char *argv[], num num_args, FILE *fin, FILE **fout, FILE **ferr, const char *inp, num inp_len, char **out_buf, num *out_len, char **err_buf);
+void _vely_report_error (char *format, ...) __attribute__ ((format (printf, 1, 2)));
+num vely_encode (num enc_type, char *v, num vlen, char **res);
+num vely_get_input(vely_input_req *req, char *method, char *input);
+char *vely_get_input_param (const vely_input_req *iu, char *name);
+num vely_is_positive_num (char *s);
+num vely_exec_program (char *prg, char *argv[], num num_args, FILE *fin, FILE **fout, FILE **ferr, char *inp, num inp_len, char **out_buf, num *out_len, char **err_buf);
 void vely_get_debug_options();
 num vely_flush_printf(num fin);
 void vely_printf_close();
-num vely_printf (bool iserr, num enc_type, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
+num vely_printf (bool iserr, num enc_type, char *format, ...) __attribute__ ((format (printf, 3, 4)));
 void vely_shut(vely_input_req *giu);
 FILE * vely_make_document (char **write_dir, num is_temp);
-char *vely_getenv (const char *var);
-char *vely_getenv_os (const char *var);
+char *vely_getenv (char *var);
+char *vely_getenv_os (char *var);
 void vely_putenv (char *env);
-void vely_replace_all (num v, const char *look, const char *subst);
+void vely_replace_all (num v, char *look, char *subst);
 void vely_current_time (char *outstr, num out_str_len);
 vely_config *vely_alloc_config();
 void vely_init_config(vely_config *pc);
 void vely_reset_config(vely_config *pc);
-num vely_count_substring (const char *str, const char *find, num case_sensitive);
-num vely_replace_string (char *str, num strsize, const char *find, const char *subst, num all, char **last, num case_sensitive);
+num vely_count_substring (char *str, char *find, num case_sensitive);
+num vely_replace_string (char *str, num strsize, char *find, char *subst, num all, char **last, num case_sensitive);
 void vely_trim (char *str, num *len);
 char *vely_trim_ptr (char *str, num *len);
-num vely_file_type (const char *dir);
+num vely_file_type (char *dir);
 num vely_get_open_file_size(FILE *f);
-num vely_get_file_size(const char *fn);
+num vely_get_file_size(char *fn);
 void vely_memory_init ();
 VV_MEMINLINE void *_vely_malloc(size_t size);
 VV_MEMINLINE void *_vely_calloc(size_t nmemb, size_t size);
 VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe);
 VV_MEMINLINE bool _vely_free (void *ptr, char check);
 VV_MEMINLINE num vely_safe_free (void *ptr);
-VV_MEMINLINE char *_vely_strdup (const char *s);
+VV_MEMINLINE char *_vely_strdup (char *s);
 VV_MEMINLINE void vely_set_mem_status (unsigned char s, num ind);
 VV_MEMINLINE num vely_add_mem (void *p);
 void vely_done ();
-void vely_get_stack(const char *fname);
+void vely_get_stack(char *fname);
 #if defined(VV_INC_MARIADB) || defined(VV_INC_POSTGRES)
 vely_dbc *vely_get_db_connection (num abort_if_bad);
 #endif
 void vely_close_db_conn ();
-num vely_begin_transaction(const char *t, char erract, const char **err, const char **errt);
-num vely_commit(const char *t, char erract, const char **err, const char **errt);
-num vely_rollback(const char *t, char erract, const char **err, const char **errt);
+num vely_begin_transaction(char *t, char erract, char **err, char **errt);
+num vely_commit(char *t, char erract, char **err, char **errt);
+num vely_rollback(char *t, char erract, char **err, char **errt);
 void vely_get_insert_id(char *val, num sizeVal);
-void vely_select_table (char *s, num *arow, num *nrow, num *ncol, char ***col_names, char ***data, num **dlen, const char **er, const char **errm, char is_prep, void **prep, num paramcount, char **params, char erract);
-void _vely_trace(num trace_level, const char *fromFile, num fromLine, const char *fromFun, const char *format, ...) __attribute__((format(printf, 5, 6)));
-char *vely_hash_data( const char *val, const char *digest_name, bool binary, num *outlen );
-char *vely_derive_key( const char *val, num val_len, const char *digest_name, num iter_count, const char *salt, num salt_len, num key_len, bool binary );
+void vely_select_table (char *s, num *arow, num *nrow, num *ncol, char ***col_names, char ***data, num **dlen, char **er, char **errm, char is_prep, void **prep, num paramcount, char **params, char erract);
+void _vely_trace(num trace_level, const char *fromFile, num fromLine, const char *fromFun, char *format, ...) __attribute__((format(printf, 5, 6)));
+char *vely_hash_data( char *val, char *digest_name, bool binary, num *outlen );
+char *vely_derive_key( char *val, num val_len, char *digest_name, num iter_count, char *salt, num salt_len, num key_len, bool binary );
 num vely_ws_util_read (void * rp, char *content, num len);
 num vely_main (void *r);
-num vely_ws_printf (void *r, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+num vely_ws_printf (void *r, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 void posix_print_stack_trace();
 void vely_disable_output();
 void vely_file_being_output();
-void vely_set_crash_handler(const char *dir);
+void vely_set_crash_handler(char *dir);
 void vely_dispatch_request();
-num vely_copy_data (char **data, const char *value);
-num vely_puts_to_string (const char *final_out, num final_len);
-char *vely_init_string(const char *s);
-num vely_puts (num enc_type, const char *s);
-num vely_copy_data_at_offset (char **data, num off, const char *value);
-num vely_is_valid_param_name (const char *name);
+num vely_copy_data (char **data, char *value);
+num vely_puts_to_string (char *final_out, num final_len);
+char *vely_init_string(char *s);
+num vely_puts (num enc_type, char *s);
+num vely_copy_data_at_offset (char **data, num off, char *value);
+num vely_is_valid_param_name (char *name);
 void vely_write_to_string (char **str);
 num vely_write_to_string_length ();
 void vely_write_to_string_notrim ();
 num _vely_check_memory(void *ptr);
-void vely_set_cookie (vely_input_req *req, const char *cookie_name, const char *cookie_value, const char *ypath, const char *expires, const char *samesite, const char *httponly, const char *secure);
-char *vely_find_cookie (vely_input_req *req, const char *cookie_name, num *ind, const char **path, char **exp);
-num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path, const char *secure);
+void vely_set_cookie (vely_input_req *req, char *cookie_name, char *cookie_value, char *ypath, char *expires, char *samesite, char *httponly, char *secure);
+char *vely_find_cookie (vely_input_req *req, char *cookie_name, num *ind, char **path, char **exp);
+num vely_delete_cookie (vely_input_req *req, char *cookie_name, char *path, char *secure);
 num vely_decode (num enc_type, char *v, num inlen);
 char *vely_lower(char *s);
 char *vely_upper(char *s);
-void vely_location (const char **fname, num *lnum, num set);
+void vely_location (char **fname, num *lnum, num set);
 void vely_store_init (vely_fifo **fdata);
 void vely_store (vely_fifo *fdata, char *name, char *data);
 void vely_retrieve (vely_fifo *fdata, char **name, char **data);
 void vely_rewind (vely_fifo *fdata);
-void vely_purge (vely_fifo *fdata);
-num vely_lockfile(const char *filepath, num *lock_fd);
-void vely_append_string (const char *from, char **to);
+void vely_purge (vely_fifo **fdata, char recreate);
+num vely_lockfile(char *filepath, num *lock_fd);
+void vely_append_string (char *from, char **to);
 void vely_get_runtime_options();
-void vely_out_file (const char *fname, vely_header *header);
-num vely_strncpy(char *dest, const char *src, num max_len);
+void vely_out_file (char *fname, vely_header *header);
+num vely_strncpy(char *dest, char *src, num max_len);
 num vely_getpid ();
-num vely_post_url_with_response(const char *url, char **result, char **head, char **error, const char *cert, const char *cookiejar, num *resp_code, long timeout, char post, const char *fields[], const char *files[], vely_header *vh, const char *method, const char *payload, num payload_len);
-num vely_copy_file (const char *src, const char *dst);
-void vely_b64_decode (const char* in, num ilen, char** out, num* olen);
-void vely_b64_encode(const char* in, num in_len, char** out, num* olen);
-num vely_read_file (const char *name, char **data, num pos, num len);
+num vely_post_url_with_response(char *url, char **result, char **head, char **error, char *cert, char *cookiejar, num *resp_code, long timeout, char post, char *fields[], char *files[], vely_header *vh, char *method, char *payload, num payload_len);
+num vely_copy_file (char *src, char *dst);
+void vely_b64_decode (char* in, num ilen, char** out, num* olen);
+void vely_b64_encode(char* in, num in_len, char** out, num* olen);
+num vely_read_file (char *name, char **data, num pos, num len);
 num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos);
-num vely_is_number (const char *s, num *prec, num *scale, num *positive);
+num vely_is_number (char *s, num *prec, num *scale, num *positive);
 void vely_clear_config();
 void vely_init_header (vely_header *header, num init_type, char is_request);
-num vely_write_file (const char *file_name, const char *content, num content_len, char append, num pos, char ispos);
-num vely_write_file_id (FILE *f, const char *content, num content_len, char append, num pos, char ispos);
+num vely_write_file (char *file_name, char *content, num content_len, char append, num pos, char ispos);
+num vely_write_file_id (FILE *f, char *content, num content_len, char append, num pos, char ispos);
 num vely_get_file_pos(FILE *f, num *pos);
 num vely_set_file_pos(FILE *f, num pos);
 num vely_reg_file(FILE **f);
 VV_MEMINLINE void vely_clear_mem (num ind);
-char *vely_web_name(const char *url);
+char *vely_web_name(char *url);
 void vely_check_transaction(num check_mode);
-void vely_break_down (char *value, const char *delim, vely_split_str **broken);
+void vely_break_down (char *value, char *delim, vely_split_str **broken);
 void vely_delete_break_down (vely_split_str **broken_ptr);
-const char * vely_get_tz ();
-vely_dbc *vely_execute_SQL (char *s,  num *rows, const char **er, const char **err_message, num returns_tuples, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract);
-char *vely_time (const char *timezone, const char *format, num year, num month, num day, num hour, num min, num sec);
-num vely_encode_base (num enc_type, const char *v, num vLen, char **res, num allocate_new);
+char * vely_get_tz ();
+vely_dbc *vely_execute_SQL (char *s,  num *rows, char **er, char **err_message, num returns_tuples, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract);
+char *vely_time (char *timezone, char *format, num year, num month, num day, num hour, num min, num sec);
+num vely_encode_base (num enc_type, char *v, num vLen, char **res, num allocate_new);
 void vely_make_random (char **rnd, num rnd_len, char type, bool crypto);
 void vely_checkmem ();
 num vely_copy_data_from_num (char **data, num val);
 void file_too_large(vely_input_req *iu, num max_size);
-void oops(vely_input_req *iu, const char *err);
+void oops(vely_input_req *iu, char *err);
 num vely_total_so(vely_so_info **sos);
-FILE *vely_fopen (const char *file_name, const char *mode);
+FILE *vely_fopen (char *file_name, char *mode);
 int vely_fclose (FILE *f);
-num vely_regex(const char *look_here, const char *find_this, const char *replace, char **res, num case_insensitive, num single_match, regex_t **cached);
-void vely_set_env(const char *arg);
-const char * vely_os_name();
-const char * vely_os_version();
-const char *vely_home_dir();
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num case_insensitive, num single_match, regex_t **cached);
+void vely_set_env(char *arg);
+char * vely_os_name();
+char * vely_os_version();
+char *vely_home_dir();
 void vely_FCGI_Finish (void);
 num vely_FCGI_Accept (void);
 void vely_exit_request(num retval);
@@ -748,15 +748,15 @@ void vely_error_request(num retval);
 void _startup ();
 void _after();
 void _before ();
-char *vely_basename (const char *path);
-char *vely_realpath (const char *path);
+char *vely_basename (char *path);
+char *vely_realpath (char *path);
 void vely_end_connection(num close_db);
-char *vely_find_keyword0(const char *str, const char *find, num has_spaces, num paren);
+char *vely_find_keyword0(char *str, char *find, num has_spaces, num paren);
 void vely_db_prep(void **prep);
 char *vely_db_prep_text(char *t);
-int vely_db_escape(const char *from, char *to, num *len);
-void vely_hex2bin(const char *src, char **dst, num ilen, num *olen);
-void vely_bin2hex(const char *src, char **dst, num ilen, num *olen, char *pref);
+int vely_db_escape(char *from, char *to, num *len);
+void vely_hex2bin(char *src, char **dst, num ilen, num *olen);
+void vely_bin2hex(char *src, char **dst, num ilen, num *olen, char *pref);
 void vely_db_free_result ();
 num vely_json_new (char *val, num *curr, num len, char dec);
 void vely_set_json (vely_json **j, num maxhash);
@@ -770,7 +770,7 @@ num32 vely_make_from_utf8_surrogate (num32 u0, num32 u1);
 void vely_get_utf8_surrogate (num32 u, num32 *u0, num32 *u1);
 void vely_create_hash (vely_hash **hres_ptr, num size);
 void vely_delete_hash (vely_hash **h, char recreate);
-void *vely_find_hash (vely_hash *h, const char *key, char del, num *found);
+void *vely_find_hash (vely_hash *h, char *key, char del, num *found);
 char *vely_add_hash (vely_hash *h, char *key, void *data, num *st);
 char *vely_next_hash(vely_hash *h, void **data);
 void vely_rewind_hash(vely_hash *h);
@@ -782,17 +782,19 @@ void vely_begin_json (vely_json *j);
 num vely_next_json (vely_json *j, char **key, char **to, num *type);
 char *vely_json_to_utf8 (char *val, char quoted, char **o_errm, char dec);
 num vely_utf8_to_json (char *val, num len, char **res, char **err);
-char *vely_getheader(const char *h);
+char *vely_getheader(char *h);
 void vely_bad_request ();
-bool vely_set_input (vely_input_req *req, const char *name, char *val);
+bool vely_set_input (vely_input_req *req, char *name, char *val);
 char *vely_getpath ();
-int vely_fcgi_client_request (char *fcgi_server, const char *req_method, const char *path_info, const char *script_name, const char *content_type, int content_len, char *payload);
+int vely_fcgi_client_request (char *fcgi_server, char *req_method, char *path_info, char *script_name, char *content_type, int content_len, char *payload);
 void vely_flush_out(void);
+void vely_end_all_db();
+void vely_exit (void);
 
 
 #ifdef VV_INC_CRYPTO
 void vely_sec_load_algos(void);
-num vely_get_enc_key(const char *password, const char *salt, num salt_len, num iter_count, EVP_CIPHER_CTX *e_ctx, EVP_CIPHER_CTX *d_ctx,  const char *cipher_name, const char *digest_name);
+num vely_get_enc_key(char *password, char *salt, num salt_len, num iter_count, EVP_CIPHER_CTX *e_ctx, EVP_CIPHER_CTX *d_ctx,  char *cipher_name, char *digest_name);
 char *vely_encrypt(EVP_CIPHER_CTX *e, const unsigned char *plaintext, num *len, num is_binary, unsigned char *iv);
 char *vely_decrypt(EVP_CIPHER_CTX *e, unsigned char *ciphertext, num *len, num is_binary, unsigned char *iv);
 int vely_RAND_bytes(unsigned char *buf, int num);
@@ -804,18 +806,18 @@ num vely_pg_nfield();
 vely_dbc *vely_pg_connect (num abort_if_bad);
 num vely_pg_exec(char *s, num returns_tuple, char is_prep, void **prep, num paramcount, char **params);
 num vely_pg_affected();
-const char *vely_pg_fieldname(num fnum);
+char *vely_pg_fieldname(num fnum);
 void vely_pg_free();
 num vely_pg_nrows();
 void vely_pg_rows(char ***row, num num_fields, num nrow, unsigned long **lens);
-char *vely_pg_error(const char *s);
-char *vely_pg_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er);
+char *vely_pg_error(char *s);
+char *vely_pg_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er);
 num vely_pg_checkc();
 void vely_pg_close_stmt (void *st);
-int vely_pg_escape(const char *from, char *to, num *len);
+int vely_pg_escape(char *from, char *to, num *len);
 #endif
 #ifdef VV_INC_SQLITE
-char *vely_lite_error(const char *s, char is_prep);
+char *vely_lite_error(char *s, char is_prep);
 void vely_lite_close ();
 vely_dbc *vely_lite_connect (num abort_if_bad);
 void vely_lite_insert_id(char *val, num sizeVal);
@@ -824,18 +826,18 @@ num vely_lite_exec(char *s, char is_prep, void **prep, num paramcount, char **pa
 int vely_lite_store(char is_prep);
 int vely_lite_use(char is_prep);
 num vely_lite_nfield();
-const char *vely_lite_fieldname();
+char *vely_lite_fieldname();
 void vely_lite_free();
 num vely_lite_nrows();
 int vely_lite_rows (char ***row, unsigned long **lens);
-char *vely_lite_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er, char is_prep);
+char *vely_lite_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er, char is_prep);
 num vely_lite_checkc();
 void vely_lite_close_stmt (void *st);
-int vely_lite_escape(const char *from, char *to, num *len);
+int vely_lite_escape(char *from, char *to, num *len);
 #endif
 
 #ifdef VV_INC_MARIADB
-char *vely_maria_error(const char *s, char is_prep);
+char *vely_maria_error(char *s, char is_prep);
 void vely_maria_close ();
 vely_dbc *vely_maria_connect (num abort_if_bad);
 void vely_maria_insert_id(char *val, num sizeVal);
@@ -844,14 +846,14 @@ num vely_maria_exec(char *s, char is_prep, void **prep, num paramcount, char **p
 int vely_maria_store(char is_prep);
 int vely_maria_use(char is_prep);
 num vely_maria_nfield();
-const char *vely_maria_fieldname();
+char *vely_maria_fieldname();
 void vely_maria_free();
 num vely_maria_nrows(char is_prep);
 int vely_maria_rows (char ***row, unsigned long **lens, char is_prep);
-char *vely_maria_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er, char is_prep);
+char *vely_maria_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er, char is_prep);
 num vely_maria_checkc();
 void vely_maria_close_stmt (void *st);
-int vely_maria_escape(const char *from, char *to, num *len);
+int vely_maria_escape(char *from, char *to, num *len);
 #endif
 
 // 
@@ -869,13 +871,14 @@ extern volatile num vely_done_setjmp;
 extern jmp_buf vely_err_jmp_buffer;
 extern volatile num vely_done_err_setjmp;
 extern volatile num vely_in_fatal_exit;
-extern const char * vely_app_name;
-extern const char * vely_url_path;
-extern const char * vely_app_path;
+extern char * vely_app_name;
+extern char * vely_url_path;
+extern char * vely_app_path;
 extern num vely_max_upload;
 extern num vely_is_trace;
 extern int vely_errno;
 extern int vely_stmt_cached;
+extern bool vely_mem_os;
 
 
 // DO not include velyapp.h for Vely itself, only for applications at source build time

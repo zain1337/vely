@@ -49,6 +49,9 @@ export VV_C_MAXUPLOAD="25000000"
 _PROXYPORT="80"
 
 #display Vely usage
+#Internal: 
+#--asan build with ASAN
+#--asan-opt print out ASAN option to prefix the execution with, also works with prefix vf for better coverage of FCGI program
 function use_message() {
     echo "Usage: $0  OPTIONS 
 OPTIONS:
@@ -92,7 +95,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o e:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$? 
+_opts=$(getopt -a -n $0 -o e:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -118,6 +121,15 @@ _DO_QUICK=0
             ;;
         --debug  )
             export VV_C_DEBUG="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        --asan-opt  )
+            echo "ASAN_OPTIONS=log_path=asan:halt_on_error=0"
+            exit 0
+            ;;
+        --asan  )
+            export VV_C_ASAN="1"
             _DEVOPT=1
             shift 
             ;;
@@ -265,6 +277,10 @@ _DO_QUICK=0
 #ask --debug to be used for tracing
     if [[ "$VV_C_TRACE" == "1" && "$VV_C_DEBUG" != "1" ]]; then
         error "In order to use tracing, you must use --debug option"
+    fi
+#internal: Address Sanitizer only with debug
+    if [[ "$VV_C_ASAN" == "1" && "$VV_C_DEBUG" != "1" ]]; then
+        error "In order to use ASAN, you must use --debug option"
     fi
 
 #something extra and unexpected, complain about it, probably an error
@@ -504,6 +520,7 @@ function getdbs() {
 function mkset() {
     echo "VV_C_TRACE='$VV_C_TRACE'
 VV_C_SKIPLINES='$VV_C_SKIPLINES'
+VV_C_ASAN='$VV_C_ASAN'
 VV_C_DEBUG='$VV_C_DEBUG'
 VV_C_MAXUPLOAD='$VV_C_MAXUPLOAD'
 VV_C_RESTPATH='$VV_C_RESTPATH'
@@ -807,7 +824,7 @@ function gen_src() {
 #Cannot place setjmp within if, may not process correctly when jump happens.
 #We use vely_done_setjmp to prohibit exit-request from executing the jump unless sigsetjmp was done first at runtime.
     echo "    int ret_val = sigsetjmp(vely_jmp_buffer, 1);" >>$VV_BLD/$_T.new
-    echo "    if (ret_val != 0) goto end_point;" >>$VV_BLD/$_T.new
+    echo "    if (ret_val != 0) goto end_point_exit;" >>$VV_BLD/$_T.new
     echo "    vely_done_setjmp = 1;" >>$VV_BLD/$_T.new
 #right now the return value is always 0 (directly or called from longjmp)
 #the jump will work because all we do is go to _after() function, which doesn't depend on any
@@ -835,6 +852,7 @@ function gen_src() {
         fi
 #before handler executes only IF req found a handler, that's why it's not in front of if()
         echo "        ._before();" >>$VV_BLD/$_T.new
+        echo "        .vely_mem_os = false;" >>$VV_BLD/$_T.new
         echo "        .req_done = 1;" >>$VV_BLD/$_T.new
         echo "        .$_FN();" >>$VV_BLD/$_T.new
     done
@@ -845,14 +863,17 @@ function gen_src() {
 
 #when exit-request is done, this is where we must end up. Since this code is executed after
 #vely_dispatch_request, we can't longjump here. We long jump to a prior point and then go to here.
-    echo ".end_point:" >>$VV_BLD/$_T.new
+    echo ".end_point_exit:" >>$VV_BLD/$_T.new
 #set vely_done_setjmp to 0, because if we do exit-request in _after(), it would go into infinite loop, coming back to after.
 #this way, exit-request in _after, or anywhere afterwards, will do nothing. Only when the next request comes along, and vely_done_setjmp is set to 1
-#in the beginning of this function, we will actually jump to end_point:
+#in the beginning of this function, we will actually jump to end_point_exit:
     echo "    .vely_done_setjmp = 0;" >>$VV_BLD/$_T.new
+#regardless of whether a request normally ended, or had exit-request, it would come here, and before anything else, memory handling must be set back
+#to Vely, or otherwise, and vely_* memory function will fail if set to true. _after() should not be affected by type of memory used.
+    echo "    .vely_mem_os = false;" >>$VV_BLD/$_T.new
 
 #cannot do exit-request in _after - must simply do return(s)
-    echo "    .if (req_done == 1) _after();" >>$VV_BLD/$_T.new
+    echo "    .if (req_done == 1) { _after(); vely_mem_os = false; }" >>$VV_BLD/$_T.new
 #
 #There can be NOTHING after .after() that uses any automatic variables from vely_dispatch_request() or
 #exit-request (and longjmp) will not work

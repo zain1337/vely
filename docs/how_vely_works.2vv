@@ -22,7 +22,7 @@ This will create directory structure described here. Vely application can be use
 If you will build an application from source code, the above vf command must run in the directory that contains the application source code. Each application must be in its own separate directory which contains all of its source code.
 
 .LP
-.B HOW VELY WORKS
+.B HOW VELY WORKS: CODE, REQUESTS AND PROCESSES
 .LP
 
 In a single step, Vely code (.vely files) is precompiled entirely into C, linked, and ready to run as a command-line program or as an application server, or both. Error reporting is based on Vely source code (.vely files), though you can specify generated code lines to be used. 
@@ -37,9 +37,9 @@ In a single step, Vely code (.vely files) is precompiled entirely into C, linked
 .EE
 .RE
 
-A FastCGI application runs as a daemon, i.e. it runs in the background and does not exit, serving incoming requests. Typically, a number of FastCGI processes are started to serve incoming processes in parallel; in adaptive mode, the number of processes running may vary according to the load - including zero running processes for near-zero memory usage.
+A FastCGI application runs as a daemon, i.e. it runs in the background and does not exit, serving incoming requests. Typically, a number of FastCGI processes are started to serve incoming processes in parallel; each process serves a single request at a time and thus can serve great many requests during its lifetime; in adaptive mode, the number of processes running may vary according to the load - including zero running processes for near-zero memory usage.
 
-A command-line program works exactly the same way as a FastCGI application; it takes the same input and produces the same output.
+A command-line program works exactly the same way as a FastCGI application; it takes the same input and produces the same output. A command-line program runs as a single process and processes a single request.
 
 .LP
 .B .VELY FILES AND REQUESTS
@@ -200,7 +200,7 @@ Vely uses its own memory allocator based on standard Linux malloc family of func
 .B DATA TYPES
 .LP
 
-Vely \fBstatement_APIs\fP use mostly strings (char* type) and numbers ("num" type, which is "long long" for maximum range of uses, "num32" for a 32-bit integer, "dbl" for a double precision number), "bool" (with true and false value as provided by stdbool.h) and other data types as specified. When a "number" is specified anywhere without an additional qualification, it is assumed to be of "num" type. If a type is not specified, it is either a string or a number, depending on the context in which it is used - in those cases the type is not specified for simplicity. 
+Vely \fBstatement_APIs\fP use mostly strings (char* type only, i.e. no "const char*") and numbers ("num" type, which is "long long" for maximum range of uses, "num32" for a 32-bit integer, "dbl" for a double precision number), "bool" (with true and false value as provided by stdbool.h) and other data types as specified. When a "number" is specified anywhere without an additional qualification, it is assumed to be of "num" type. If a type is not specified, it is either a string or a number, depending on the context in which it is used - in those cases the type is not specified for simplicity. 
 
 .LP
 .B NAMES OF OBJECTS

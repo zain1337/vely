@@ -61,6 +61,12 @@ Duplicate normalized names are valid, however, only one of them is reported, and
 
 To create a JSON document, you can use \fBwrite-string\fP to programmatically construct one - use \fButf8-json\fP to create JSON-compatible Unicode string values. 
 
+.LP
+.B ALLOCATED INTERNALS
+.LP
+
+<json> is \fBallocated memory\fP along with additional internal memory, which can be released if \fBdelete-json\fP is used with <json> from a previously executed new-json.
+
 .SH EXAMPLES
 Parse text "json_text1" and store the result in "json_var" variable, get status, error text and the location of error:
 

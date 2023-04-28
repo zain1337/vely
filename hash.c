@@ -9,7 +9,7 @@
 
 
 // prototypes
-static num vely_compute_hash (const char* d, num size);
+static num vely_compute_hash (char* d, num size);
 static vely_hash_table *vely_new_hash_item (char *key, void *data);
 
 //
@@ -39,6 +39,7 @@ void vely_create_hash (vely_hash **hres_ptr, num size)
 //
 // Purges memory structure for hash h. Deletes the entire hash table. The actual object remains,
 // so hash itself can be used again. If recreate is 1, then create new hash in its place, if not, do not (totally deleted).
+// Total deletion (recreate is 0) happens with "delete" option of purge-hash
 //
 void vely_delete_hash (vely_hash **h, char recreate) 
 {
@@ -61,10 +62,11 @@ void vely_delete_hash (vely_hash **h, char recreate)
     // save stats
     num hits = (*h)->hits;
     num reads = (*h)->reads;
+    num size = (*h)->size;
     vely_free (*h); // delete old hash structure
     if (recreate == 1)
     {
-        vely_create_hash (h, (*h)->size); // create new hash
+        vely_create_hash (h, size); // create new hash
         // restore stats
         (*h)->hits = hits;
         (*h)->reads = reads;
@@ -76,7 +78,7 @@ void vely_delete_hash (vely_hash **h, char recreate)
 // If 'del' is 1, delete this element and return data (data is only linked). 'found' is 1
 // if something was found (say if delete was done) (found can be NULL).
 //
-void *vely_find_hash (vely_hash *h, const char *key, char del, num *found)
+void *vely_find_hash (vely_hash *h, char *key, char del, num *found)
 {
     VV_TRACE("");
 
@@ -291,7 +293,7 @@ char *vely_add_hash (vely_hash *h, char *key, void *data, num *st)
 // Based on http://www.isthe.com/chongo/tech/comp/fnv/index.html, this algorithm is not patented
 // authors: fnvhash-mail@asthe.com
 //
-num vely_compute_hash (const char* d, num size)
+num vely_compute_hash (char* d, num size)
 {
     VV_TRACE("");
     uint32_t h = VV_FNVOFFSETBASIS;

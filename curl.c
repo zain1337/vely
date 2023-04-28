@@ -18,7 +18,7 @@ typedef struct s_curlcall
 } curlcall;
 
 static void vely_end_web(char **error, num res, num *tries, curlcall *cc);
-static CURLcode vely_process_post (curlcall *cc, const char *fields[], const char *files[], num *tries);
+static CURLcode vely_process_post (curlcall *cc, char *fields[], char *files[], num *tries);
 
 // Response for web call. Chunked responses are added to the string ptr determined by total dynamic length of len.
 //
@@ -31,7 +31,7 @@ void vely_init_url_callback(vely_url_data *s);
 void vely_cleanup_curlcall (curlcall *cc);
 void vely_init_curlcall (curlcall *cc, char **error);
 size_t vely_write_url_callback(void *ptr, size_t size, size_t nmemb, void *s);
-num vely_web_set_header (curlcall *cc, num *tries, const char *name, const char *val);
+num vely_web_set_header (curlcall *cc, num *tries, char *name, char *val);
 
 
 // Initialize URL response (response received in vely_post_url_with_response(), i.e. when
@@ -83,7 +83,7 @@ size_t vely_write_url_callback(void *ptr, size_t size, size_t nmemb, void *s)
 //
 void vely_end_web(char **error, num res, num *tries, curlcall *cc)
 {
-     if (error != NULL) *error = vely_strdup (curl_easy_strerror(res));
+     if (error != NULL) *error = vely_strdup ((char*)curl_easy_strerror(res));
      *tries = 0;
      vely_cleanup_curlcall(cc);
 }
@@ -114,7 +114,7 @@ void vely_init_curlcall (curlcall *cc, char **error)
 // is the header
 // returns VV_OKAY or VV_ERR_FAILED.
 //
-num vely_web_set_header (curlcall *cc, num *tries, const char *name, const char *val)
+num vely_web_set_header (curlcall *cc, num *tries, char *name, char *val)
 {
     VV_TRACE("");
     CURLcode res = CURLE_OK;
@@ -157,7 +157,7 @@ num vely_web_set_header (curlcall *cc, num *tries, const char *name, const char 
 // Returns number of bytes received if okay, or negative (above) if curl error
 // Redirections in response are handled with up to 5 at a time.
 //
-num vely_post_url_with_response(const char *url, char **result, char **head, char **error, const char *cert, const char *cookiejar, num *resp_code, long timeout, char bodyreq, const char *fields[], const char *files[], vely_header *vh, const char *method, const char *payload, num payload_len)
+num vely_post_url_with_response(char *url, char **result, char **head, char **error, char *cert, char *cookiejar, num *resp_code, long timeout, char bodyreq, char *fields[], char *files[], vely_header *vh, char *method, char *payload, num payload_len)
 {
     VV_TRACE("URL posted [%s]", url);
 
@@ -396,7 +396,7 @@ num vely_post_url_with_response(const char *url, char **result, char **head, cha
     return len;
 }
 
-static CURLcode vely_process_post (curlcall *cc, const char *fields[], const char *files[], num *tries)
+static CURLcode vely_process_post (curlcall *cc, char *fields[], char *files[], num *tries)
 {
     CURLcode res = CURLE_OK;
 
@@ -463,7 +463,7 @@ static CURLcode vely_process_post (curlcall *cc, const char *fields[], const cha
     }
 
     // headers, say Expect: 100-continue is not wanted 
-    static const char buf[] = "Expect:";
+    static char buf[] = "Expect:";
     struct curl_slist *tmp;
     if ((tmp = curl_slist_append(cc->hlist, buf)) == NULL)
     {

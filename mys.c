@@ -25,7 +25,7 @@ num vely_maria_checkc()
     return (mysql_ping (VV_CURR_DB.dbc->maria.con) == 0 ? 1 : 0);
 }
 
-char *vely_maria_errm(char *errm, num errmsize, const char *s, const char *sname, num lnum, const char *er, char is_prep)
+char *vely_maria_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er, char is_prep)
 {
     VV_TRACE("");
     if (is_prep == 0)
@@ -41,7 +41,7 @@ char *vely_maria_errm(char *errm, num errmsize, const char *s, const char *sname
 }
 
 
-char *vely_maria_error(const char *s, char is_prep)
+char *vely_maria_error(char *s, char is_prep)
 {
     VV_TRACE("");
     VV_UNUSED(s); // used in tracing only
@@ -92,7 +92,7 @@ int vely_maria_rows (char ***row, unsigned long **lens, char is_prep)
 int vely_maria_stmt_rows (char ***row, unsigned long **lens)
 {
     VV_TRACE("");
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     // get which file and line number is this going on at
     vely_location (&sname, &lnum, 0);
@@ -207,7 +207,7 @@ void vely_maria_free()
     VV_CURR_DB.dbc->maria.res = NULL;
 }
 
-const char *vely_maria_fieldname()
+char *vely_maria_fieldname()
 {
     VV_TRACE("");
     return mysql_fetch_field(VV_CURR_DB.dbc->maria.res)->name;
@@ -299,7 +299,7 @@ vely_dbc *vely_maria_connect (num abort_if_bad)
    
     if (VV_CURR_DB.dbc->maria.con == NULL) 
     {
-        const char *em = "Cannot initialize database connection";
+        char *em = "Cannot initialize database connection";
         VV_TRACE ("%s", em);
         if (abort_if_bad == 1) vely_report_error ("%s", em);
         vely_end_connection (0);
@@ -331,7 +331,7 @@ vely_dbc *vely_maria_connect (num abort_if_bad)
     //
     if (mysql_set_character_set(VV_CURR_DB.dbc->maria.con, "utf8"))
     {
-        const char *em = "Cannot set character set to utf8";
+        char *em = "Cannot set character set to utf8";
         VV_TRACE ("%s", em);
         vely_end_connection (1);
         if (abort_if_bad == 1) vely_report_error ("%s", em);
@@ -340,7 +340,7 @@ vely_dbc *vely_maria_connect (num abort_if_bad)
 
     if (mysql_query(VV_CURR_DB.dbc->maria.con, "set session sql_mode=ansi_quotes")) 
     {
-        const char *em = "Cannot set sql_mode to ansi_quotes";
+        char *em = "Cannot set sql_mode to ansi_quotes";
         VV_TRACE ("%s", em);
         vely_end_connection (1);
         if (abort_if_bad == 1) vely_report_error ("%s", em);
@@ -396,7 +396,7 @@ void vely_maria_close_stmt (void *st)
 int vely_maria_prep_stmt(void **prep, char *stmt, num num_of_args)
 {
     VV_TRACE("");
-    const char *sname = "";
+    char *sname = "";
     num lnum = 0;
     vely_location (&sname, &lnum, 0);
 
@@ -518,7 +518,7 @@ num vely_maria_stmt_exec()
 // memory for to must be 2*len+1. *len  is the actual encoded length without zero byte counted.
 // Returns 0 for okay, 1 otherwise.
 //
-int vely_maria_escape(const char *from, char *to, num *len)
+int vely_maria_escape(char *from, char *to, num *len)
 {
     VV_TRACE("");
     *len = (num)mysql_real_escape_string(VV_CURR_DB.dbc->maria.con, to, from, (unsigned long) *len);

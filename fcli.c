@@ -111,7 +111,7 @@ typedef struct {
     int padding_len;     // padding length (see fastcgi spec), we don't use it
     int req_id;  // req id of a request, we set to 1 always
     int read_done; // true when reading is done, i.e. the number of bytes sent from server is received
-    const char *errm[-VV_FC_ERR_TOTAL + 1]; // an array of error messages
+    char *errm[-VV_FC_ERR_TOTAL + 1]; // an array of error messages
     struct timeval tout; // timeout seconds, microseconds
     struct timeval remaining; // time remaining processing request
     struct timeval begin; // time when request began
@@ -123,14 +123,14 @@ typedef struct {
 
 
 // Local Function prototypes
-static int vv_write_socket(fc_local *fc_l, const char *buf, int len);
+static int vv_write_socket(fc_local *fc_l, char *buf, int len);
 static int vv_read_socket(fc_local *fc_l, char *buf, int len);
 static void shut_sock(fc_local *fc_l);
 static void vv_size_env(fc_local *fc_l, int name_len, int val_len);
-static int vv_send_env(fc_local *fc_l, const char *name, int name_len, const char *val, int val_len);
+static int vv_send_env(fc_local *fc_l, char *name, int name_len, char *val, int val_len);
 static void fc_server_read(fc_local *fc_l);
 static void check_read(fc_local *fc_l, int read_len);
-static int vv_connect_socket(fc_local *fc_l, const char *conn_string);
+static int vv_connect_socket(fc_local *fc_l, char *conn_string);
 static int fc_edge(fc_local *fc_l, int timeout, bool start);
 static fc_header build_hdr(fc_local *fc_l, int content_len, int type);
 static bool vv_check_timeout(fc_local *fc_l, bool startup);
@@ -180,7 +180,7 @@ int vv_read_socket(fc_local *fc_l, char *buf, int len)
 // buf is data, len is length to send.
 // Returns len if sent okay or -1 if could not write. 
 //
-int vv_write_socket(fc_local *fc_l, const char *buf, int len)
+int vv_write_socket(fc_local *fc_l, char *buf, int len)
 {
     int res;
     int written = 0;
@@ -450,7 +450,7 @@ void vv_size_env(fc_local *fc_l, int name_len, int val_len)
 // length, val/val_len are its value and length. fcgi_inp_param is the stream that is open to the server.
 // Returns number of bytes written or -1 if failed;
 //
-int vv_send_env(fc_local *fc_l, const char *name, int name_len, const char *val, int val_len)
+int vv_send_env(fc_local *fc_l, char *name, int name_len, char *val, int val_len)
 {
     // First, setup a header, name, then value lengths
     unsigned char hdr[8+1]; // max possible length of header, plus 1
@@ -549,7 +549,7 @@ bool vv_check_timeout(fc_local *fc_l, bool startup)
 // Return VV_FC_ERR_RESOLVE_ADDR if IP cannot be resolved, VV_FC_ERR_PATH_TOO_LONG if sock path too long, VV_FC_ERR_CONNECT if cannot
 // connect or VV_OKAY if okay. Global fc_l->sock is set if socket created; but connect may have failed.
 //
-int vv_connect_socket(fc_local *fc_l, const char *conn_string)
+int vv_connect_socket(fc_local *fc_l, char *conn_string)
 {
     // we support both IP4 and IP6 addresses
     struct sockaddr_in tcp_sock;
@@ -768,12 +768,12 @@ int vv_fc_request (vv_fc *fc_in)
     srec.start_rec_header = build_hdr(fc_l, sizeof(srec.start_rec_body), VV_FC_BEG_REQ);
     begin_request(&(srec.start_rec_body));
     // Send beginning of request to server
-    if (vv_write_socket(fc_l, (const char *)&srec, sizeof(srec)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
+    if (vv_write_socket(fc_l, (char *)&srec, sizeof(srec)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
 
     // sanity check for content
     // must have all of these to have content
     bool body = true;
-    const char *ibody = fc_l->fc->req_body; // use local pointer to avoid changing input data
+    char *ibody = fc_l->fc->req_body; // use local pointer to avoid changing input data
     if (ibody == NULL || fc_l->fc->content_len == 0 || fc_l->fc->content_type == NULL || fc_l->fc->content_type[0] == 0)
     {
         ibody = NULL;
@@ -822,7 +822,7 @@ int vv_fc_request (vv_fc *fc_in)
     if (fc_l->param_len >= (int)(VV_FC_MAX_LEN - sizeof(fc_header))) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_ENV_TOO_LONG);}
     // Parameters for the request
     fc_header header = build_hdr(fc_l, fc_l->param_len, VV_FC_PARAM);
-    if (vv_write_socket(fc_l, (const char *)&header, sizeof(header)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
+    if (vv_write_socket(fc_l, (char *)&header, sizeof(header)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
     // send environment, total limit just under 64K (query string limited to 32K in Vely)
     // Build environment string to send
     fc_l->env = vv_malloc (fc_l->param_len);
@@ -842,10 +842,10 @@ int vv_fc_request (vv_fc *fc_in)
         int i;
         for (i = 0; i < envn; i+=2) vv_send_env(fc_l, fc_l->fc->env[i], fc_l->env_nlen[i/2], fc_l->fc->env[i+1], fc_l->env_vlen[i/2]);
     }
-    if (vv_write_socket(fc_l, (const char*)(fc_l->env), fc_l->env_p) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
+    if (vv_write_socket(fc_l, (char*)(fc_l->env), fc_l->env_p) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
     // End param stream
     header = build_hdr(fc_l, 0, VV_FC_PARAM);
-    if (vv_write_socket(fc_l, (const char *)&header, sizeof(header)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
+    if (vv_write_socket(fc_l, (char *)&header, sizeof(header)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
 
 
     if (body)
@@ -861,7 +861,7 @@ int vv_fc_request (vv_fc *fc_in)
             // make header for the packet
             header = build_hdr(fc_l, curr_packet_len, VV_FC_STDIN);
             int res;
-            res = vv_write_socket(fc_l, (const char*)&header, sizeof(header));
+            res = vv_write_socket(fc_l, (char*)&header, sizeof(header));
             if (res < 0) VV_FC_RET(VV_FC_ERR_SOCK_WRITE);
             res = vv_write_socket(fc_l, ibody, curr_packet_len);
             if (res < 0) VV_FC_RET(VV_FC_ERR_SOCK_WRITE);
@@ -871,7 +871,7 @@ int vv_fc_request (vv_fc *fc_in)
         // Send an empty record
         header = build_hdr(fc_l, 0, VV_FC_STDIN);
         int res;
-        res = vv_write_socket(fc_l, (const char*)&header, sizeof(header));
+        res = vv_write_socket(fc_l, (char*)&header, sizeof(header));
         if (res < 0) VV_FC_RET(VV_FC_ERR_SOCK_WRITE);
     }
 

@@ -7,6 +7,8 @@
 SHELL:=/bin/bash
 #shortcut for DEBUGINFO
 DEBUGINFO=$(DI)
+#short cut for Address Sanitizer, internal only
+ASAN=$(A)
 
 #these must be the same (VV_PLATFORM_ID,VV_PLATFORM_VERSION) used in sys
 OSNAME=$(shell . ./sys; echo -n $${VV_PLATFORM_ID})
@@ -102,13 +104,18 @@ else
 OPTIM_COMP=$(OPTIM_COMP_PROD)
 OPTIM_LINK=$(OPTIM_LINK_PROD)
 endif
+ifeq ($(ASAN),1)
+ASAN=-fsanitize=address -fsanitize-recover=address
+else
+ASAN=
+endif
 
 #C flags are as strict as we can do, in order to discover as many bugs as early on
-CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE)  -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP)
+CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE)  -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP) $(ASAN)
 
 #linker flags include mariadb (LGPL), crypto (OpenSSL, permissive license). This is for building object code that's part 
 #this is for installation at customer's site where we link VELY with mariadb (LGPL), crypto (OpenSSL)
-LDFLAGS=-Wl,-rpath=$(DESTDIR)$(V_LIB) -L$(DESTDIR)$(V_LIB) $(OPTIM_LINK)
+LDFLAGS=-Wl,-rpath=$(DESTDIR)$(V_LIB) -L$(DESTDIR)$(V_LIB) $(OPTIM_LINK) $(ASAN)
 
 #Libraries and executables must be 0755 or the packager (RPM) will say they are not satisfied
 install:

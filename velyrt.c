@@ -14,24 +14,24 @@
 size_t vely_write_url_response(void *ptr, size_t size, size_t nmemb, void *s);
 void vely_init_output_buffer ();
 num vely_validate_output ();
-void vely_set_arg0 (const char *program, const char **arg0);
-num vely_write_web (bool iserr, vely_config *pc, const char *s, num nbyte);
-void vely_gen_set_content_type(const char *v);
-void vely_gen_add_header (const char *n, const char *v);
-void vely_gen_set_status (num st, const char *line);
+void vely_set_arg0 (char *program, char **arg0);
+num vely_write_web (bool iserr, vely_config *pc, char *s, num nbyte);
+void vely_gen_set_content_type(char *v);
+void vely_gen_add_header (char *n, char *v);
+void vely_gen_set_status (num st, char *line);
 void vely_send_header(vely_input_req *iu);
 num vely_gen_util_read (char *content, num len);
-void vely_gen_set_content_length(const char *v);
+void vely_gen_set_content_length(char *v);
 void vely_server_error ();
 num vely_header_err(vely_config *pc);
 void vely_cant_find_file ();
-char *vely_gen_get_env(const char *n);
-num vely_gen_write (bool is_error, const char *s, num nbyte);
+char *vely_gen_get_env(char *n);
+num vely_gen_write (bool is_error, char *s, num nbyte);
 void vely_flush_trace();
-void vely_write_ereport(const char *errtext, vely_config *pc);
+void vely_write_ereport(char *errtext, vely_config *pc);
 void vely_read_child (int ofd, char **out_buf, num *out_len);
 void vely_gen_header_end ();
-void vely_check_set_cookie (const char *name, const char *val, const char *secure, const char *samesite, const char *httponly, char *safety_clause, size_t safety_clause_len);
+void vely_check_set_cookie (char *name, char *val, char *secure, char *samesite, char *httponly, char *safety_clause, size_t safety_clause_len);
 // write-string macros
 #define VV_WRSTR_CUR (vely_get_config()->ctx.req->curr_write_to_string)
 #define VV_WRSTR (vely_get_config()->ctx.req->write_string_arr[VV_WRSTR_CUR])
@@ -91,6 +91,8 @@ void vely_init_input_req (vely_input_req *req)
     req->body_len = 0;
     req->method = VV_OKAY;
     finished_output = 0; // reset finish-output indicator
+    vely_mem_os = false; // new request means memory garbage collector is on again, regardless
+                         // of what it was at the end of the previous one
 }
 
 //
@@ -180,27 +182,6 @@ void vely_write_to_string (char **str)
 }
 
 
-
-
-// 
-// Close trace file
-//
-void vely_close_trace()
-{
-    vely_config *pc = vely_get_config();
-
-    // close trace file
-    if (pc->trace.f != NULL)
-    {
-        fclose (pc->trace.f);
-    }
-    pc->trace.f = NULL;
-    return;
-}    
-
-
-
-
 // 
 // Send html header out for a dynamically generated page. It is always no-caching.
 // req is input request.
@@ -221,10 +202,10 @@ void vely_output_http_header(vely_input_req *req)
     vely_send_header(req);
 }
 
-void vely_check_set_cookie (const char *name, const char *val, const char *secure, const char *samesite, const char *httponly, char *safety_clause, size_t safety_clause_len)
+void vely_check_set_cookie (char *name, char *val, char *secure, char *samesite, char *httponly, char *safety_clause, size_t safety_clause_len)
 {
-    VV_TRACE("");	
-    const char *chk = name;
+    VV_TRACE("");
+    char *chk = name;
     // Per rfc6265, cookie name must adhere to this and be present
     while (*chk != 0)
     {
@@ -276,7 +257,7 @@ void vely_check_set_cookie (const char *name, const char *val, const char *secur
 // httponly can be either "HttpOnly; " or empty string
 // cookies[].is_set_by_program is set to  1 if this is the cookie we changed (i.e. not original in the web input).
 //
-void vely_set_cookie (vely_input_req *req, const char *cookie_name, const char *cookie_value, const char *path, const char *expires, const char *samesite, const char *httponly, const char *secure)
+void vely_set_cookie (vely_input_req *req, char *cookie_name, char *cookie_value, char *path, char *expires, char *samesite, char *httponly, char *secure)
 {
     VV_TRACE ("cookie path [%s] expires [%s]", path==NULL ? "NULL":path, expires==NULL ? "NULL":expires);
 
@@ -343,7 +324,7 @@ void vely_set_cookie (vely_input_req *req, const char *cookie_name, const char *
 // may not be the exact set of cookies from the web input.
 // Returns cookie's value.
 //
-char *vely_find_cookie (vely_input_req *req, const char *cookie_name, num *ind, const char **path, char **exp)
+char *vely_find_cookie (vely_input_req *req, char *cookie_name, num *ind, char **path, char **exp)
 {
     VV_TRACE ("");
 
@@ -416,20 +397,20 @@ char *vely_find_cookie (vely_input_req *req, const char *cookie_name, num *ind, 
 // cookies[].is_set_by_program is set to  1 if this is the cookie we deleted (i.e. not original in the web input).
 // If path is specified, we use it; if not, we assume it was the same default one (which generally works unless
 // you mix different paths, such as via different reverse proxies
-num vely_delete_cookie (vely_input_req *req, const char *cookie_name, const char *path, const char *secure)
+num vely_delete_cookie (vely_input_req *req, char *cookie_name, char *path, char *secure)
 {
     VV_TRACE ("");
 
     num ci;
-    const char *rpath = NULL;
+    char *rpath = NULL;
     char *exp = NULL;
     vely_find_cookie (req, cookie_name, &ci, &rpath, &exp);
     if (ci != -1)
     {
         vely_free (req->cookies[ci].data);
         char del_cookie[300];
-    	char safety_clause[200];
-    	vely_check_set_cookie (cookie_name, "deleted", secure, "", "", safety_clause, sizeof(safety_clause));
+        char safety_clause[200];
+        vely_check_set_cookie (cookie_name, "deleted", secure, "", "", safety_clause, sizeof(safety_clause));
         if (path != NULL)  rpath=path;
         if (rpath != NULL)
         {
@@ -553,7 +534,7 @@ void vely_flush_trace()
 // Write error report when fatal error happens. errtext is the error text.
 // Guard agains request being NULL. pc must NOT be NULL (the exec context)
 //
-void vely_write_ereport(const char *errtext, vely_config *pc)
+void vely_write_ereport(char *errtext, vely_config *pc)
 {
     //
     //
@@ -631,9 +612,10 @@ void vely_write_ereport(const char *errtext, vely_config *pc)
 // (if enabled). Backtrace files is also written. Exit code (for command line) is set to 99.
 // After this, we don't exit, we jump to the end of request, so it will process the next request for FCGI
 //
-void _vely_report_error (const char *format, ...) 
+void _vely_report_error (char *format, ...) 
 {
     VV_TRACE("");
+    vely_mem_os = false; // switch to managed memory though no new heap should be alloc'd
 
     // THIS FUNCTION MUST NOT USE VV_MALLOC NOR MALLOC
     // as it can be used to report out of memory errors
@@ -803,7 +785,7 @@ num vely_decode (num enc_type, char *v, num inlen)
 // the lock is released - meaning if you fork() a process and then exit, the forked process
 // will NOT have the lock.
 //
-num vely_lockfile(const char *filepath, num *lock_fd)
+num vely_lockfile(char *filepath, num *lock_fd)
 {
     VV_TRACE ("");
     struct flock lock;
@@ -872,7 +854,7 @@ num vely_lockfile(const char *filepath, num *lock_fd)
 // all params but _filename are empty.
 // If 'input' is specified, it overrides what's from QUERY_STRING. This is only if 'method' present.
 //
-num vely_get_input(vely_input_req *req, const char *method, const char *input)
+num vely_get_input(vely_input_req *req, char *method, char *input)
 {
     VV_TRACE("");
     req->ip.num_of_input_params = 0;
@@ -880,13 +862,13 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
     req->ip.values = NULL;
 
     vely_config *pc = vely_get_config();
-    const char *req_method = NULL;
-    const char *qry = NULL;
-    const char *cont_type = NULL;
-    const char *cont_len = NULL;
+    char *req_method = NULL;
+    char *qry = NULL;
+    char *cont_type = NULL;
+    char *cont_len = NULL;
     num cont_len_byte = 0; // default zero if content-length not specified
     char *content = NULL;
-    const char *cookie = NULL;
+    char *cookie = NULL;
     req->ip.num_of_input_params = 0;
 
     // some env vars are obtained right away, other are rarely used
@@ -895,13 +877,13 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
     VV_TRACE ("Referer is [%s]", req->referring_url);
     // when there is a redirection to home page, referring url is empty
 
-    const char *sil = vely_getenv ("VV_SILENT_HEADER");
+    char *sil = vely_getenv ("VV_SILENT_HEADER");
     if (!strcmp (sil, "yes")) 
     {
         req->silent = 1;
     }
 
-    const char *nm = vely_getenv ("HTTP_IF_NONE_MATCH");
+    char *nm = vely_getenv ("HTTP_IF_NONE_MATCH");
     if (nm[0] != 0)
     {
         VV_STRDUP (req->if_none_match, nm);
@@ -1002,7 +984,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
         // must support. urlencode is for non-binary and multipart is when files are involved. It is
         // one or the other. Per https://datatracker.ietf.org/doc/html/rfc7578, multipart/mixed is 
         // deprecated and is not implemented here.
-        const char *mult = "multipart/form-data;";
+        char *mult = "multipart/form-data;";
         char *mform = NULL;
         if ((mform = strcasestr (cont_type, mult)) != NULL)
         {
@@ -1118,13 +1100,13 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
             if (is_multipart == 1)
             {
                 // for multipart, we get structured delivery, no body as it will be parsed and cut
-                req->body = "";
+                req->body = VV_EMPTY_STRING;
                 req->body_len = 0;
 
                 // Based on RVM2045 (MIME types) and RVM1867 (file upload in html form)
                 // Boundary is always CRLF (\r\n) and for 'multipart' type, the content-transfer-encoding must
                 // always be 7bit/8bit/binary, i.e. no base64
-                const char *boundary_start = "boundary=";
+                char *boundary_start = "boundary=";
                 char *bnd = strcasestr (cont_type, boundary_start);
                 if (bnd == NULL)
                 {
@@ -1163,7 +1145,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
                     if (el == NULL)  break;
                     el += boundary_len;
                     if (*(el + 1) == '-' && *(el + 2) == '-') break;
-                    const char *c1 = "Content-Disposition:";
+                    char *c1 = "Content-Disposition:";
                     char *prev = el;
                     el = strcasestr (el, c1); // pos of 'content-disposition'
                     if (el == NULL) break;
@@ -1175,7 +1157,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
 
                     char *beg_of_line = el; // now we're past content-disposition
                     // Find name
-                    const char *c2 = "name=";
+                    char *c2 = "name=";
                     prev = el;
                     el = strcasestr (el, c2); // pos of name=
                     if (el == NULL) break;
@@ -1196,7 +1178,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
                     *element_end = char_end; // restore char
 
                     // find file name, this one is optional
-                    const char *c3 = "filename=";
+                    char *c3 = "filename=";
                     el = beg_of_line; // look for file name in the line again
                     prev = el;
                     el = strcasestr (el, c3); // pos of filename=
@@ -1500,7 +1482,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
     content[j] = 0;
 
 
-    req->ip.names = (const char**)vely_calloc (req->ip.num_of_input_params, sizeof (char*));
+    req->ip.names = (char**)vely_calloc (req->ip.num_of_input_params, sizeof (char*));
     req->ip.values = (char**)vely_calloc (req->ip.num_of_input_params, sizeof (char*));
 
     j = 0;
@@ -1545,8 +1527,8 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
     // Per rfc3875, PATH_INFO values MUST be URL-decoded by the caller, thus nothing there to be decoded.
     // Also per same, PATH_INFO canNOT have "/" in it. SCRIPT_NAME must be a valid path, not URL-encoded, so nothing
     // to decode either, per rfc3875.
-    const char *script_name = vely_getenv ("SCRIPT_NAME");
-    const char *path_info = vely_getenv ("PATH_INFO");
+    char *script_name = vely_getenv ("SCRIPT_NAME");
+    char *path_info = vely_getenv ("PATH_INFO");
     static char full_path[VV_MAX_PATH]; // this static is fine, it's filled every time, and its purpose is to keep the 
                                            // memory for path_req so it will be valid throughout request.
     // haven't seen this but just in case
@@ -1645,7 +1627,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
             {
                 iplen += block_ip;
                 block_ip += 4; // increase each new block by a fixed amount to avoid runaway realloc
-                req->ip.names = (const char**)vely_realloc (req->ip.names, iplen*sizeof (char*));
+                req->ip.names = (char**)vely_realloc (req->ip.names, iplen*sizeof (char*));
                 req->ip.values = (char**)vely_realloc (req->ip.values, iplen*sizeof (char*));
             }
             // this name/value must be added
@@ -1669,7 +1651,7 @@ num vely_get_input(vely_input_req *req, const char *method, const char *input)
 // Returns true if set, false if not found in which case a new input parameter with this value is created.
 // Value is set, and no copy of it is made. Use copy-string to make a copy if needed.
 //
-bool vely_set_input (vely_input_req *req, const char *name, char *val)
+bool vely_set_input (vely_input_req *req, char *name, char *val)
 {
     VV_TRACE("");
 
@@ -1687,7 +1669,7 @@ bool vely_set_input (vely_input_req *req, const char *name, char *val)
     VV_TRACE ("Did not find input, create new one");
     // increase storage for input-params
     req->ip.num_of_input_params++;
-    req->ip.names = (const char**)vely_realloc (req->ip.names, req->ip.num_of_input_params*sizeof (char*));
+    req->ip.names = (char**)vely_realloc (req->ip.names, req->ip.num_of_input_params*sizeof (char*));
     req->ip.values = (char**)vely_realloc (req->ip.values, req->ip.num_of_input_params*sizeof (char*));
     // add new input param
     req->ip.names[req->ip.num_of_input_params-1] = name;
@@ -1702,7 +1684,7 @@ bool vely_set_input (vely_input_req *req, const char *name, char *val)
 // case sensitive.
 // Returns value of parameters, or "" if not found.
 //
-char *vely_get_input_param (const vely_input_req *req, const char *name)
+char *vely_get_input_param (const vely_input_req *req, char *name)
 {
     VV_TRACE("");
 
@@ -1727,7 +1709,7 @@ char *vely_get_input_param (const vely_input_req *req, const char *name)
 // 'data' will be a pointer to allocated data that has *data+(value at offset off of data)
 // This is a base function used in other string manipulation routines.
 //
-num vely_copy_data_at_offset (char **data, num off, const char *value)
+num vely_copy_data_at_offset (char **data, num off, char *value)
 {
     VV_TRACE ("");
 
@@ -1760,7 +1742,7 @@ num vely_copy_data_at_offset (char **data, num off, const char *value)
 // Copy string from 'value' to 'data', with 'data' being the output pointer.
 // Returns the number of bytes written excluding zero at the end.
 //
-num vely_copy_data (char **data, const char *value)
+num vely_copy_data (char **data, char *value)
 {
     VV_TRACE ("");
     return vely_copy_data_at_offset(data, 0, value);
@@ -1774,7 +1756,7 @@ num vely_copy_data (char **data, const char *value)
 // digits after the decimal point. If prec and scale aren't NULL, they are filled.
 // Same for 'positive', if number is positive it is 1, otherwise 0.
 //
-num vely_is_number (const char *s, num *prec, num *scale, num *positive)
+num vely_is_number (char *s, num *prec, num *scale, num *positive)
 {
     VV_TRACE("");
     num i = 0;
@@ -1849,7 +1831,7 @@ num vely_is_number (const char *s, num *prec, num *scale, num *positive)
 // 
 // Returns 1 if string 's' is a positive unsigned integer.
 //
-num vely_is_positive_num (const char *s)
+num vely_is_positive_num (char *s)
 {
     VV_TRACE("");
     num i = 0;
@@ -1869,7 +1851,7 @@ num vely_is_positive_num (const char *s)
 // but sometimes it is necessary for the executing program not to crash. 'program' is the full
 // path of the executable. So if 'program' is '/a/b/c/d', then arg0 is 'd'
 //
-void vely_set_arg0 (const char *program, const char **arg0)
+void vely_set_arg0 (char *program, char **arg0)
 {
     VV_TRACE("");
     num i =strlen(program) - 1;
@@ -1942,7 +1924,7 @@ void vely_read_child (int ofd, char **out_buf, num *out_len)
 //      then both stdout/stderr go to fout/out_buf.
 // Return value is the exit status.
 //
-num vely_exec_program (const char *prg, const char *argv[], num num_args, FILE *fin, FILE **fout, FILE **ferr, const char *inp, num inp_len, char **out_buf, num *out_len, char **err_buf)
+num vely_exec_program (char *prg, char *argv[], num num_args, FILE *fin, FILE **fout, FILE **ferr, char *inp, num inp_len, char **out_buf, num *out_len, char **err_buf)
 {
     VV_TRACE("");
     assert (argv);
@@ -2124,7 +2106,7 @@ void vely_disable_output()
 // else should call vely_puts_to_string.
 //
 //
-num vely_puts (num enc_type, const char *s)
+num vely_puts (num enc_type, char *s)
 {
     VV_TRACE ("");
 
@@ -2217,7 +2199,7 @@ num vely_validate_output ()
 //
 // Outputs to web or to strings. enc_type is VV_NOENC, VV_WEB, VV_URL. 
 //
-num vely_printf (bool iserr, num enc_type, const char *format, ...)
+num vely_printf (bool iserr, num enc_type, char *format, ...)
 {
     VV_TRACE ("");
     
@@ -2328,7 +2310,7 @@ num vely_printf (bool iserr, num enc_type, const char *format, ...)
 // an array of where in the final buffer those go to, data can be sent without copying (this
 // wouldn't work for string construction).
 //
-num vely_puts_to_string (const char *final_out, num final_len)
+num vely_puts_to_string (char *final_out, num final_len)
 {
     VV_TRACE("");
 
@@ -2546,7 +2528,7 @@ char *vely_lower(char *s)
 // VV_ERR_WRITE if cannot write destination, number of bytes copied if okay.
 // Uses 8K buffer to copy file. 
 //
-num vely_copy_file (const char *src, const char *dst)
+num vely_copy_file (char *src, char *dst)
 {
     VV_TRACE("");
 
@@ -2611,7 +2593,7 @@ num vely_copy_file (const char *src, const char *dst)
 // For example, for http://myserver.com/go.service?..., the base name is myserver.com
 // Returns base name of 'url'.
 //
-char *vely_web_name(const char *url)
+char *vely_web_name(char *url)
 {
     VV_TRACE("");
     char *prot = strstr(url,"://");
@@ -2648,7 +2630,7 @@ void vely_delete_break_down (vely_split_str **broken_ptr)
 // allocated if currently NULL.
 // This variable has 'num_pieces' as a number of values broken into, and 
 // 'pieces[]' array that holds this number of pieces.
-void vely_break_down (char *value, const char *delim, vely_split_str **broken_ptr)
+void vely_break_down (char *value, char *delim, vely_split_str **broken_ptr)
 {
     VV_TRACE("");
 
@@ -2740,7 +2722,7 @@ void vely_break_down (char *value, const char *delim, vely_split_str **broken_pt
 // This function will RESTORE the timezone back to what it was when the program first started. So it
 // will temporarily set TZ to timezone variable, but before it exits, it will restore TZ to what it was.
 //
-char *vely_time (const char *timezone, const char *format, num year, num month, num day, num hour, num min, num sec)
+char *vely_time (char *timezone, char *format, num year, num month, num day, num hour, num min, num sec)
 {
     VV_TRACE ("");
 
@@ -2824,7 +2806,7 @@ num vely_copy_data_from_num (char **data, num val)
 // If single_match is 1, then only a single match/replacement is done.
 // cached is a compiled regex_t. If NULL, it's not used. If *cached is NULL, it's assigned. If *cached is not-NULL, it's used.
 //
-num vely_regex(const char *look_here, const char *find_this, const char *replace, char **res, num case_insensitive, num single_match, regex_t **cached)
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num case_insensitive, num single_match, regex_t **cached)
 {
     VV_TRACE("");
     num reg_ret=0;
@@ -2869,7 +2851,7 @@ num vely_regex(const char *look_here, const char *find_this, const char *replace
         // regmatch_t is used for subexpressions, i.e. () expressions
         regmatch_t subexp[sub_num + 1];
 
-        const char *current_replace, *head_replace;
+        char *current_replace, *head_replace;
 
         // this is used to build current replacement
         char *replace_res;
@@ -3078,7 +3060,7 @@ num vely_regex(const char *look_here, const char *find_this, const char *replace
 // Does the same as GET request from command line
 // arg is the query string (i.e. 'req=request&par1=...')
 //
-void vely_set_env(const char *arg)
+void vely_set_env(char *arg)
 {
     VV_TRACE("");
     putenv ("REQUEST_METHOD=GET");
@@ -3091,20 +3073,20 @@ void vely_set_env(const char *arg)
 
 //
 // Return value of env variable var from OS only
+// Return "" if not found.
 //
-char *vely_getenv_os (const char *var)
+char *vely_getenv_os (char *var)
 {
     VV_TRACE("");
-    const char *v = secure_getenv (var);
-    if (v == NULL) return vely_strdup ("");
-    else return vely_strdup (v);
+    char *v = secure_getenv (var);
+    if (v == NULL) return ""; else return v;
 }
 
 
 //
 // Return value of env variable var from web server only
 //
-char *vely_getenv (const char *var)
+char *vely_getenv (char *var)
 {
     VV_TRACE("");
     return vely_gen_get_env(var);
@@ -3119,7 +3101,7 @@ char *vely_getenv (const char *var)
 // iserr is true if output goes to stderr, otherwise stdout - this is for web output only.
 // Returns the same as vely_gen_write()
 //
-num vely_write_web (bool iserr, vely_config *pc, const char *s, num nbyte)
+num vely_write_web (bool iserr, vely_config *pc, char *s, num nbyte)
 {
     VV_TRACE("");
     if (pc->ctx.req->sent_header == 1) 
@@ -3163,7 +3145,7 @@ num vely_write_web (bool iserr, vely_config *pc, const char *s, num nbyte)
 // returns number of bytes written or -1 if error
 // returns nbyte if output is disallowed or if fcgi request not initialized
 //
-num vely_gen_write (bool is_error, const char *s, num nbyte)
+num vely_gen_write (bool is_error, char *s, num nbyte)
 {
     VV_TRACE("");
     if (finished_output == 0) 
@@ -3183,9 +3165,9 @@ num vely_gen_write (bool is_error, const char *s, num nbyte)
 
 //
 // Get environment variable 
-// n is the name of environment variable. Returns the value of it, or "" if not found.
+// n is the name of environment variable. Returns "" if not found.
 //
-char *vely_gen_get_env (const char *n)
+char *vely_gen_get_env (char *n)
 {
     VV_TRACE("");
     char *v;
@@ -3205,7 +3187,7 @@ char *vely_gen_get_env (const char *n)
 //
 // Set content length for web output
 //
-void vely_gen_set_content_length(const char *v)
+void vely_gen_set_content_length(char *v)
 {
     VV_TRACE("");
     if (finished_output == 0 && vely_get_config()->ctx.req != NULL && vely_get_config()->ctx.req->silent == 0) 
@@ -3259,7 +3241,7 @@ num vely_gen_util_read (char *content, num len)
 // (adding always adds, setting replaces or adds if doesn't exist)
 // n is the header name, v is value.
 //
-void vely_gen_add_header (const char *n, const char *v)
+void vely_gen_add_header (char *n, char *v)
 {
     VV_TRACE("");
     if (finished_output == 0 && vely_get_config()->ctx.req != NULL && vely_get_config()->ctx.req->silent == 0) 
@@ -3309,7 +3291,7 @@ void vely_gen_header_end ()
 // Set content type for web output
 // v is content type (text/html for instance)
 //
-void vely_gen_set_content_type(const char *v)
+void vely_gen_set_content_type(char *v)
 {
     VV_TRACE("");
     if (finished_output == 0 && vely_get_config()->ctx.req != NULL && vely_get_config()->ctx.req->silent == 0) 
@@ -3363,26 +3345,68 @@ void vely_FCGI_Finish (void)
         vely_fcgi_err = NULL;
 #else
         fflush (stdout);
-        exit (vely_get_config()->ctx.req->ec); 
 #endif
     }
-    finished_output = 1;
+    finished_output = 1; // this says that output is finished and this flag will guard against any
+                         // output that follows (i.e. any output will not output anything)
 }
 
+//
+//Exit, release resources. This is done in debug mode for testing only. The reason is if something fails,
+//it doesn't really matter as it would be released anyway, and we'd miss the chance to properly return exit code, which
+//is the only code currently that isn't DEBUG-shielded.
+//
+void vely_exit (void)
+{
+    vely_config *pc = vely_get_config();
+    VV_UNUSED(pc); // for web server non-debug, not used
+
+#ifdef VV_COMMAND
+    // This must be *before* the cleaning down here, because ..req-> anything is managed
+    // memory and will be destroyed in vely_done()!!!
+    int retcode = (pc != NULL ? pc->ctx.req->ec : -1); // return code for command line program
+#endif
+
+#ifdef DEBUG
+    vely_close_trace(); // shut off tracing if it was enabled
+
+    if (pc != NULL && pc->ctx.db->conn != NULL) free (pc->ctx.db->conn); // free database list of descriptors
+
+    // Vely memory shutdown and deallocation
+    vely_done(); // clean up all the vely memory
+    if (VV_EMPTY_STRING != NULL) {free (VV_EMPTY_STRING); VV_EMPTY_STRING=NULL;} // remove one byte of empty string used by velymem
+#endif
+
+
+
+#ifdef DEBUG
+    // Free program context, the VERY LAST thing before exit
+    free (pc->app.dbconf_dir);
+    free (pc->app.home_dir);
+    free (pc->app.file_dir);
+    free (pc->app.trace_dir);
+    if (pc != NULL) free(pc); 
+#endif
+
+    //
+    // Final exit, nothing else must be here or after!!!
+    //
+#ifndef VV_COMMAND
+    exit(0);
+#else
+    exit (retcode);
+#endif
+}
+
+//
+// Called at the top of the loop for FCGI. For command line, just return 1 and continue.
+// Vely (managed) memory doesn't exist at this point, and pc->ctx.req is not allocated yet.
+// So this must not do anything that may use such memory.
+//
 num vely_FCGI_Accept (void)
 {
     VV_TRACE("");
 #ifndef VV_COMMAND
-    if (finished_output == 0) 
-    {
-        // set status both stdout and err. FCGI says the code will go with the last
-        // closed/flushed stream. Given they can be intermixed, it's not clear which one that is.
-        // Looking at FCGI source code, seems stdout is where it should be but not sure.
-        // So set both
-        if (vely_fcgi_err != NULL) FCGX_SetExitStatus(vely_get_config()->ctx.req->ec, vely_fcgi_err);
-        if (vely_fcgi_out != NULL) FCGX_SetExitStatus(vely_get_config()->ctx.req->ec, vely_fcgi_out);
-        if (vely_fcgi_out != NULL) FCGX_FFlush (vely_fcgi_out); // flush anything that went out
-    }
     // 
     // By default, if server accepts client connection, but no data is to be read within 2 seconds,
     // it will close connection. This may cause unexpected failures. This was added to fcgi
@@ -3399,7 +3423,10 @@ num vely_FCGI_Accept (void)
         char *already_set = vely_getenv_os ("LIBFCGI_IS_AF_UNIX_KEEPER_POLL_TIMEOUT");
         if (already_set[0] == 0) setenv ("LIBFCGI_IS_AF_UNIX_KEEPER_POLL_TIMEOUT","5000",1);
     }
-    finished_output = 1; // if not, first time accept may try to write to FCGI
+    finished_output = 1; // if not, first time accept may try to write to FCGI; this is not clear why it would
+                         // but regardless, this will prevent any output until the next request starts
+                         // It may have been because vely_FCGI_Finish wasn't called properly until 16.9
+                         // in the main loop at the end of each request (but rather it was called only for exiting)
     // FCGX_Accept calls FCGX_Finish first thing, so no need to call prior
     return FCGX_Accept(&vely_fcgi_in, &vely_fcgi_out, &vely_fcgi_err, &vely_fcgi_envp);
 #else
@@ -3411,7 +3438,7 @@ num vely_FCGI_Accept (void)
 // Set page status for web output
 // st is the status number, line is the text (200, "OK" for example)
 //
-void vely_gen_set_status (num st, const char *line)
+void vely_gen_set_status (num st, char *line)
 {
     VV_TRACE("");
     if (finished_output == 0 && vely_get_config()->ctx.req != NULL && vely_get_config()->ctx.req->silent == 0) 
@@ -3502,7 +3529,7 @@ void vely_cant_find_file ()
 // only the cache confirmation is sent back thus improving performance ('not modified' response).
 // File must exist or it will return 'document requested not found' to the client.
 //
-void vely_out_file (const char *fname, vely_header *header)
+void vely_out_file (char *fname, vely_header *header)
 {
     VV_TRACE("");
     vely_config *pc = vely_get_config();
@@ -3926,7 +3953,7 @@ void vely_make_random (char **rnd, num rnd_len, char type, bool crypto)
 // get basename of file 'path' as vely_string. Path can be of a file or directory.
 // returns basename
 //
-char *vely_basename (const char *path)
+char *vely_basename (char *path)
 {
     VV_TRACE("");
     char *pcopy = vely_strdup(path);
@@ -3940,7 +3967,7 @@ char *vely_basename (const char *path)
 // get realpath of file 'path' as vely_string. Path can be of a file or directory.
 // returns realpath.
 //
-char *vely_realpath (const char *path)
+char *vely_realpath (char *path)
 {
     VV_TRACE("");
     char *res;
@@ -3965,7 +3992,7 @@ char *vely_realpath (const char *path)
 // and 'olen' has dst length, excluding null byte. olen can be NULL. ilen can be -1
 // in which case length of src is computed via strlen.
 //
-void vely_hex2bin(const char *src, char **dst, num ilen, num *olen)
+void vely_hex2bin(char *src, char **dst, num ilen, num *olen)
 {
     VV_TRACE("");
     if (ilen == -1) ilen = strlen (src);
@@ -3991,7 +4018,7 @@ void vely_hex2bin(const char *src, char **dst, num ilen, num *olen)
 // ilen can be -1, in which case it is the string length of src.
 // olen is the string length of dst, not counting zero-char at the end.
 //
-void vely_bin2hex(const char *src, char **dst, num ilen, num *olen, char *pref)
+void vely_bin2hex(char *src, char **dst, num ilen, num *olen, char *pref)
 {
     VV_TRACE("");
     if (ilen == -1) ilen = strlen (src);
@@ -4028,7 +4055,7 @@ num vely_topower(num b,num p)
 // Return web environment variable from header h.
 // HTTP_ is prefixed, and all - are replaced with _
 //
-char *vely_getheader(const char *h)
+char *vely_getheader(char *h)
 {
     VV_TRACE("");
     num hlen = strlen (h);
@@ -4042,4 +4069,6 @@ char *vely_getheader(const char *h)
     vely_free (hd);
     return res;
 }
+
+
 

@@ -23,6 +23,12 @@ Generally pairs of key/value are stored in a FIFO list, and retrieved (possibly 
 
 The internal positions for \fBwrite-fifo\fP and \fBread-fifo\fP actions are separate so you can keep adding data to the list, and obtain it in any number of retrieval passes by using \fBrewind-fifo\fP.
 
+.LP
+.B ALLOCATED INTERNALS
+.LP
+
+<list> is \fBallocated memory\fP along with additional internal memory, which can be released if \fBpurge-fifo\fP is used with <list> from a previously executed new-fifo.
+
 .SH EXAMPLES
 
 .RS 4

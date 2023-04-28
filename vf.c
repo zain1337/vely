@@ -91,7 +91,7 @@ typedef struct s_shbuf {
 } shbuf;
 
 // Help for -h
-static const char *usage_message =
+static char *usage_message =
     "Usage:\n\
     \n\
     vf <options> <app_name>\n\
@@ -130,15 +130,15 @@ static num sockfd; // socket passed down to forked child
 static num num_process; // abs max # of processes, plist is sized on it
 static FILE *logfile = NULL; // this is vf.log
 static pid_t sid = 0; // session id of the child group
-static const char *velyapp = ""; // app name
+static char *velyapp = ""; // app name
 static num num_to_start_min = 0; // min-worker
 static num adapt = 0; // adaptive mode
 static num tspike = 30; // num of secs to die down for client fcgi process if no demand 
 static num port = 0; // port (tcp)
 static char *command = ""; // command (fcgi) to execute as child proces
 static struct timespec *commtime = NULL;  // timestamp of command executable
-static const char *run_user = "";  // user running server
-static const char *proxy_grp = ""; // group of reverse proxy
+static char *run_user = "";  // user running server
+static char *proxy_grp = ""; // group of reverse proxy
 static uid_t run_user_id = -1; // running user id
 static gid_t proxy_grp_id = -1; // reverse proxy group id
 static gid_t run_user_grp_id = -1; // running user group id
@@ -161,24 +161,24 @@ static num fg = 0; // if 1, run in foreground
 
 // functions prototypes
 static pid_t whatisprocess(pid_t p);
-static void log_msg0(num dest, const char *format, ...);
-static void exit_error(const char *format, ...);
+static void log_msg0(num dest, char *format, ...);
+static void exit_error(char *format, ...);
 static void getshm();
 static void checkshm();
-static void cli_getshm(const char *comm, num byserver);
+static void cli_getshm(char *comm, num byserver);
 static void usage(int ec);
-static void start_child (const char *command, num pcount);
+static void start_child (char *command, num pcount);
 static void processup(char addone);
 static void tokarg();
 static void handlestop(num sig);
 static void sleepabit(num milli);
-static num lockfile (const char *fname, num *lf);
+static num lockfile (char *fname, num *lf);
 static num srvhere(num op);
 static void runasuser();
-static void owned (const char *ipath, uid_t uid);
-static void initdir (const char *ipath, num mode, uid_t uid, gid_t guid);
+static void owned (char *ipath, uid_t uid);
+static void initdir (char *ipath, num mode, uid_t uid, gid_t guid);
 static num checkmod();
-static void msg_notfound(const char *err);
+static void msg_notfound(char *err);
 static num timeq(struct timespec *a, struct timespec *b);
 static num connwait();
 static num totprocess();
@@ -231,7 +231,7 @@ static num checkmod() {
 // Set file with mode 'mode', and to be owned by user group uid/guid, if it exists
 // If it doesn't don't do anything
 //
-static void initfile (const char *ipath, num mode, uid_t uid, gid_t guid) {
+static void initfile (char *ipath, num mode, uid_t uid, gid_t guid) {
     log_msg ("Setting privileges on file [%s]", ipath);
     struct stat sbuff;
     if (stat(ipath, &sbuff) != 0) return;
@@ -243,7 +243,7 @@ static void initfile (const char *ipath, num mode, uid_t uid, gid_t guid) {
 //
 // Initialize directory ipath, with mode 'mode', to be owned by user group uid/guid
 //
-static void initdir (const char *ipath, num mode, uid_t uid, gid_t guid) {
+static void initdir (char *ipath, num mode, uid_t uid, gid_t guid) {
     log_msg ("Creating directory [%s]", ipath);
     if (mkdir (ipath, mode) != 0) if (errno != EEXIST) exit_error ("Cannot create directory [%s], [%s]", ipath, VV_FERR); 
     if (chown (ipath, uid, guid)!= 0) exit_error ("Cannot change the ownership of directory [%s], [%s]", ipath, VV_FERR);
@@ -253,7 +253,7 @@ static void initdir (const char *ipath, num mode, uid_t uid, gid_t guid) {
 //
 // Make sure file/dir ipath is owned by uid, if not exit
 //
-static void owned (const char *ipath, uid_t uid) {
+static void owned (char *ipath, uid_t uid) {
     struct passwd* pwd;
     struct passwd* pwd1;
     struct stat sbuff;
@@ -318,7 +318,7 @@ static void sleepabit(num milli) {
 // returns 0 if lock failed, meaning another process is locking
 // and 1 if okay, meaning this is the server process
 //
-static num lockfile (const char *fname, num *lf) {
+static num lockfile (char *fname, num *lf) {
     struct flock lock;
     *lf = open(fname, O_RDWR | O_CREAT, 0600);
     if (*lf  == -1) return 0;
@@ -377,7 +377,7 @@ static void tokarg() {
 // Log message in printf-style to stdout, which can be redirected by caller. 
 // If dest is VV_MLOG, then if showinfo is 1, messages still go through even if logging is off.
 //
-static void log_msg0(num dest, const char *format, ...) {
+static void log_msg0(num dest, char *format, ...) {
     time_t t;
     time(&t);
     if (islogging) printf("%lld: %s: ", (num)getpid(), strtok (ctime(&t), "\n"));
@@ -393,7 +393,7 @@ static void log_msg0(num dest, const char *format, ...) {
 //
 // Display error message to stderr, which may be redirected in printf-style
 //
-static void exit_error(const char *format, ...) {
+static void exit_error(char *format, ...) {
     time_t t;
     time(&t);
     fprintf(stderr, "%lld: %s: Error: ", (num)getpid(), strtok (ctime(&t), "\n"));
@@ -537,7 +537,7 @@ static void checkshm() {
 // Also called by server to let the client know it has started (okay_started as comm) or running (okay_running).
 // If called by server, then byserver is 1, otherwise 0
 //
-static void cli_getshm(const char *comm, num byserver) {
+static void cli_getshm(char *comm, num byserver) {
     char kname[VV_MAX_FILELEN];
     key_t shmkey;
     int shmid;
@@ -566,7 +566,7 @@ static void cli_getshm(const char *comm, num byserver) {
         else exit(0); // quit achieved without error message
     }
 
-    const char *servererr = "Server either too busy, experiencing problems, or down";
+    char *servererr = "Server either too busy, experiencing problems, or down";
     num tries = VV_TRIES;
     // no need to check if server is processing something else if this is server
     if (byserver == 0) {
@@ -624,7 +624,7 @@ static void usage(int ec)
 //
 // Error out as 'not found', show err. Used if command (fcgi) not found
 //
-static void msg_notfound(const char *err) {
+static void msg_notfound(char *err) {
     if (exenotfound == 0) {
         exenotfound = 1;
         log_msg ("Cannot find command [%s], [%s]", command, err);
@@ -636,7 +636,7 @@ static void msg_notfound(const char *err) {
 // command is the executable, pcount is the index in plist[] list of processes where
 // the newly created process will be registered at.
 //
-static void start_child (const char *command, num pcount) {
+static void start_child (char *command, num pcount) {
     num fres;
     struct stat sbuff;
     // check if command exists and save its modification time - used to restart if changed
@@ -932,7 +932,6 @@ int main(int argc, char **argv)
     if (run_user[0] == 0) {
         if (initit == 1) exit_error ("You must specify the user who owns the application, in order to initialize it");
         if ((pwd = getpwuid (geteuid())) == NULL) exit_error ("Cannot find current user [%s]", VV_FERR);
-        VV_ANN (run_user = strdup (pwd->pw_name));
     } else {
         if (initit == 0) exit_error ("User (-u) can be specified only when initializing (-i)");
         if ((pwd = getpwnam(run_user)) == NULL) exit_error ("Cannot find user [%s], [%s]", run_user, VV_FERR);

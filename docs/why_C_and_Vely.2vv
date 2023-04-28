@@ -10,7 +10,7 @@ Why C and why Vely?
 
 Writing programs in C generally results in fastests and smallest programs, which is the reason why it's widely used in system programming and infrastructure software. C is also the \fBgreenest programming language\fP, which means if all programs were written in C, there would be considerably less emissions, water use and pollution, not to mention we would all enjoy faster software that requires less hardware and consequently less use of resources. 
 
-On the other hand, C can be tricky because of memory management and low-level constructs. That's the reason why you might not have picked up C for your next project. That may change with Vely.
+On the other hand, the reason why you wouldn't have picked up C in the past may be memory management and low-level constructs. That changes with Vely.
 
 .LP
 .B VELY
