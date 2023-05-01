@@ -118,6 +118,10 @@ typedef struct {
     volatile bool interrupted; // true when interrupted
     vv_fc *fc; // input/output data
     bool initerrm; // if error messages initialized (true), otherwise false
+    char *just_query_path; // NULL if there's no query path (i.e. /param/val/param/val...) in fc_l->fc->url_payload, or not-NULL if there is
+                      // If there is, then query_string and path_info are malloced, otherwise they are just references of url_payload and req
+    char *query_string; // either url_payload as user supplied (if not query path), or malloced (see just_query_path above), this is query string
+    char *path_info; // request name , either the same as user supplied, or malloced (see just_query_path above) together with just_query_path
 } fc_local;
 
 
@@ -136,6 +140,7 @@ static fc_header build_hdr(fc_local *fc_l, int content_len, int type);
 static bool vv_check_timeout(fc_local *fc_l, bool startup);
 static bool vv_set_timeout(fc_local *fc_l);
 static void begin_request(fc_begin_req_body *beg_req);
+static int parse_payload (fc_local *fc_l, int *query_string_l, int *path_info_l);
 
 
 //
@@ -707,6 +712,90 @@ int fc_edge(fc_local *fc_l, int timeout, bool start)
         if (fc_l->env_nlen != NULL) vv_free(fc_l->env_nlen);
         if (fc_l->env_vlen != NULL) vv_free(fc_l->env_vlen);
         if (fc_l->fc->other != NULL) vv_free (fc_l->fc->other);
+        if (fc_l->just_query_path != NULL) { vv_free (fc_l->query_string); vv_free (fc_l->path_info); };
+    }
+    return VV_OKAY;
+}
+
+
+//
+// The purpose of this function is to split the URL payload (url_payload) into path segment
+// and query string. While the two are combined in Vely's url payload, in http they are split
+// with path segment being part of PATH_INFO (with request name prepended), and query string being just QUERY_STRING
+// On input, *query_string_l is 0 and *path_info_l is the length of ->path_info as input (i.e. ->req). This way
+// if query_string is empty, those values are ready to send to the server.
+// On input also, ->query_string is referencing ->url_payload from the end_user and ->path_info referencing 
+// end-user's ->req at input; 
+// On output, ->query_string is QUERY_STRING ->path_info is PATH_INFO, ready for the server
+// On output also, query_string_l is length of QUERY_STRING and path_info_l is length of PATH_INFO.
+// This will search input query string for / backwards from the end, and then for ? forwards. If no /
+// is found, then nothing is done and query string remains what it is and so does path info (which is just /req).
+// If / is found, but no ?, then the whole of query string is appened to path info. If / is found, and then ? is
+// found, then all up to ? is copied to path info, and after ? to query string. 
+// This way, both path info and query string are always up to http standard.
+// Returns VV_OKAY if okay, otherwise error
+//
+int parse_payload (fc_local *fc_l, int *query_string_l, int *path_info_l)
+{
+    // if url_payload is empty, do nothing, in which case ->query_string remains pointing to
+    // ->url_payload from end-user, and ->path_info remains pointing to ->req from end-user
+    //
+    if (fc_l->query_string != NULL && fc_l->query_string[0] !=0) 
+    {
+        // ->query_string is referencing end-user's ->url_payload which we cannot change
+        *query_string_l = strlen(fc_l->query_string);
+        // Search from the end backwards until / found
+        int l_payload = *query_string_l;
+        while (l_payload > 0) 
+        {
+            // it's either x=y&z=w ....
+            // or /x/y/z/w
+            // or /x/y?z=w ...
+            if (fc_l->query_string[l_payload-1] == '/') 
+            {
+                // Now search for ? after last / forward, that is the start of query string
+                // or until end of string
+                int p_question = l_payload;
+                while (fc_l->query_string[p_question] && fc_l->query_string[p_question] != '?') p_question++;
+                // if reached the end, then the whole string is path
+                // otherwise it is where & is
+                l_payload = p_question;
+                break;
+            }
+            l_payload--; // go backwards until / found or beginning of string
+        }
+        if (l_payload > 0)  // means / found, if not, leave path_info as it is (i.e. req) and query_string as it is (i.e. query string)
+        {
+            // in this case there is a / and l_payload is either ? after that or null-char if none found
+            // use old payload to set query path
+            fc_l->just_query_path = fc_l->fc->url_payload; // now it's non-NULL, meaning query_string and path_info allocated
+            // create new payload which is pure query string, if no ?query_string, then just empty
+            if (fc_l->query_string[l_payload])
+            {
+                fc_l->query_string = vv_strdup (fc_l->query_string + l_payload + 1);
+                *query_string_l -= l_payload + 1;
+            }
+            else 
+            {
+                fc_l->query_string = vv_strdup("");
+                *query_string_l = 0;
+            }
+            if (fc_l->query_string == NULL) { shut_sock(fc_l); return VV_FC_ERR_OUT_MEM; }
+            // since query_string starts at l_payload+1 (see above) in old query_string (after path segments), deduct that from its length
+            // since l_payload is where ? is or end of string, so l_payload is the length of path segments either way
+            // thus the end of fc_l->just_query_path is in l_payload, this is the length of path segments, since ->just_query_path is 
+            // original end-user's url_payload, so we will use that to copy the path segments to new path_name.
+            // At this point we have pointers and lengths of query path and query string
+            // Query path needs to be appended to request name to become path info
+            int old_path_info_l = *path_info_l;
+            *path_info_l += l_payload; // add path segments length to request name (which is current *path_info_l)
+            char *preq = vv_malloc(*path_info_l + 1); // allocate for new path_name
+            if (preq == NULL) { shut_sock(fc_l); return VV_FC_ERR_OUT_MEM; }
+            memcpy (preq, fc_l->path_info , old_path_info_l); // copy /req_name first
+            memcpy (preq + old_path_info_l, fc_l->just_query_path, l_payload); // then append path segments
+            preq[*path_info_l] = 0; // finish with null char
+            fc_l->path_info = preq; // now this is request name / query path, i.e. full query path with *path_info_l its length
+        }
     }
     return VV_OKAY;
 }
@@ -714,13 +803,15 @@ int fc_edge(fc_local *fc_l, int timeout, bool start)
 // Returning from fc_request must annul the alarm, close socket, and account for any timeout.
 // This will cancel the alarm and restore original (if any) alarm handler, close socket, and return either the exit code or
 // the value for being interrupted. Also set error message;
+// fc_l is fcgi thread context
 #define VV_FC_RET(rc) {fc_edge (fc_l, fc_l->fc->timeout, false); int _rc = (fc_l->interrupted?VV_FC_ERR_TIMEOUT:(rc)); if (_rc != VV_OKAY) fc_l->fc->errm = fc_l->errm[-_rc]; else fc_l->fc->errm = ""; return _rc;}
+
 //
 // Make a request to FCGI server from a client. 
 // fc_l->fc->fcgi_server is 1. the file path to local server or 2. IP:port of the FCGI server
 // fc_l->fc->req_method is request method (GET, POST..), fc_l->fc->app_path is PATH_INFO (application path),
 // fc_l->fc->req is SCRIPT_NAME (/request_name), fc_l->fc->content_len is the length of request body,
-// fc_l->fc->url_payload is the query string or rest params and it can be NULL or empty,
+// fc_l->fc->url_payload is the query path+query string or just query path, and it can be NULL or empty,
 // fc_l->fc->content_type is CONTENT_TYPE (application/json...), fc_l->fc->req_body is the request body,
 // fc_l->fc->env is the environment to pass (name,value,name,value..) that ends with NULL, 
 // fc_l->fc->timeout is timeout in seconds (1..86400)
@@ -793,16 +884,25 @@ int vv_fc_request (vv_fc *fc_in)
         cont_type_l = strlen(fc_l->fc->content_type);
     }
     int req_method_l = strlen(fc_l->fc->req_method);
-    int req_l = strlen(fc_l->fc->req);
-    int url_payload_l = 0;
-    if (fc_l->fc->url_payload != NULL && fc_l->fc->url_payload[0] !=0) url_payload_l = strlen(fc_l->fc->url_payload);
+    int query_string_l = 0;
+    fc_l->just_query_path = NULL; // this is query path part of url_payload
+    fc_l->query_string = fc_l->fc->url_payload; // copy, maybe it will stay the same (if no path in it)
+                                               // otherwise will be just query string
+    fc_l->path_info = fc_l->fc->req; // copy, maybe it will stay the same (if no path in url_payload from user)
+                               // otherwise will be req/path/string
+    int path_info_l = strlen(fc_l->path_info);
+    int rp = parse_payload (fc_l, &query_string_l, &path_info_l);
+    if (rp != VV_OKAY) VV_FC_RET(rp); // return error from parsing if any found (such as out of memory)
+    //
+    // End of splitting url_payload into PATH_INFO and QUERY_STRING
+    //
     int app_path_l = strlen(fc_l->fc->app_path);
     // calculate length of environment
     fc_l->param_len = 0; // init size before calling vv_size_env's
     vv_size_env(fc_l, strlen("REQUEST_METHOD"), req_method_l);
     vv_size_env(fc_l, strlen("SCRIPT_NAME"), app_path_l);
-    vv_size_env(fc_l, strlen("PATH_INFO"), req_l);
-    if (fc_l->fc->url_payload != NULL && fc_l->fc->url_payload[0] !=0) vv_size_env(fc_l, strlen("QUERY_STRING"), url_payload_l);
+    vv_size_env(fc_l, strlen("PATH_INFO"), path_info_l);
+    if (fc_l->query_string != NULL && fc_l->query_string[0] !=0) vv_size_env(fc_l, strlen("QUERY_STRING"), query_string_l);
     if (body)
     {
         vv_size_env(fc_l, strlen("CONTENT_LENGTH"), clen_len);
@@ -830,8 +930,8 @@ int vv_fc_request (vv_fc *fc_in)
     fc_l->env_p = 0;
     vv_send_env(fc_l, "REQUEST_METHOD", strlen("REQUEST_METHOD"), fc_l->fc->req_method, req_method_l);
     vv_send_env(fc_l, "SCRIPT_NAME", strlen("SCRIPT_NAME"), fc_l->fc->app_path, app_path_l);
-    vv_send_env(fc_l, "PATH_INFO", strlen("PATH_INFO"), fc_l->fc->req, req_l);
-    if (fc_l->fc->url_payload != NULL && fc_l->fc->url_payload[0] !=0) vv_send_env(fc_l, "QUERY_STRING", strlen("QUERY_STRING"), fc_l->fc->url_payload, url_payload_l);
+    vv_send_env(fc_l, "PATH_INFO", strlen("PATH_INFO"), fc_l->path_info, path_info_l);
+    if (fc_l->query_string != NULL && fc_l->query_string[0] !=0) vv_send_env(fc_l, "QUERY_STRING", strlen("QUERY_STRING"), fc_l->query_string, query_string_l);
     if (body)
     {
         vv_send_env(fc_l, "CONTENT_LENGTH", strlen("CONTENT_LENGTH"), clen, clen_len);

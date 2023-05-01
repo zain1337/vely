@@ -1,0 +1,11 @@
+#include "vely.h"
+
+void _startup() {
+
+    manage-memory off
+    new-hash define h size 1024
+    manage-memory on
+
+    set-app process-data h   
+    
+}

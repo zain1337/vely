@@ -1,24 +1,5 @@
-Vely release notes for 16.9.0
+Vely release notes for 16.9.4
 
-- Minor: added unmanaged memory, i.e. memory that can be used for the life of the process across many requests, and also with any external C API libraries.
-- Release: fixed duplicate memory leak in vf process manager.
-- Release: improved performance of Vely preprocessing by 15%.
-- Release: fixed bug with command-line program exit code.
-- Release: fixed bug where FCGI attempts to access bad memory in request on accept.
-- Minor: added delete clause to purge-hash.
-- Release: fixed memory leak with new-json.
-- Minor: added delete clause to purge-fifo.
-- Release: fixed memory violation bug with purge-fifo.
-- Release: fixed memory violation bug with purge-hash.
-- Release: fixed memory leak with purge-fifo. 
-- Release: fixed memory leak with delete-json.
-- Minor: added process-data clause to get-app.
-- Minor: added set-app statement with process-data clause. Added support for global process memory.
-- Minor: added manage-memory statement to switch between managed and unmanaged memory.
-- Release: added cleanup of db connections at the end.
-- Release: properly close trace when program done; delete all memory when done in command line and fcgi.
-- Release: fixed bug with finished-output where command line program would exit.
-- Release: fixed memory leak with derive-key and encrypt/decrypt.
-- Release: improved memory management performance: removed low-performance memory check.
-- Minor: added skip-data clause to delete-query statement.
+- Release: fixed bug: path info would not work with query string in FastCGI Client C API; updated tests and added example to documentation.
+- Release: vim highlighting update for Vely syntax.
 

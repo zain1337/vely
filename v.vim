@@ -515,7 +515,6 @@ syn region vv_r_construct_set_app start="^[[:space:]]*set-app" skip="\\[[:space:
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_set_app,vv_r_inline_set_app,vv_r_at
     syn match vv_h_construct_set_app "^[[:space:]]*set-app" contained containedin=vv_r_construct_set_app
     syn match vv_h_clause_set_app " process-data \@=" contained containedin=vv_r_construct_set_app
-    syn match vv_h_clause_set_app " process-data$" contained containedin=vv_r_construct_set_app
     syn match vv_h_clause_set_app "[=]\@<=define \@=" contained containedin=vv_r_construct_set_app
     syn match vv_h_clause_set_app " define \@=" contained containedin=vv_r_construct_set_app
     hi def link vv_h_clause_set_app    velyClause
@@ -575,7 +574,6 @@ syn region vv_r_construct_get_app start="^[[:space:]]*get-app" skip="\\[[:space:
     syn match vv_h_clause_get_app " name$" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " path \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " process-data \@=" contained containedin=vv_r_construct_get_app
-    syn match vv_h_clause_get_app " process-data$" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " to \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " trace-directory \@=" contained containedin=vv_r_construct_get_app
     syn match vv_h_clause_get_app " trace-directory$" contained containedin=vv_r_construct_get_app

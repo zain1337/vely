@@ -38,7 +38,7 @@ A Vely application works by processing standard HTTP requests, which simplifies 
 
 .B - Quality and continuous testing
 
-Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1523 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1525 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
 
 .B - Report bugs, request features, contact
 
@@ -49,6 +49,35 @@ Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
 .B RELEASE NOTES
 .LP
 
+
+
+.RS 4
+\[bu]    
+\fI2023-04-27\fP
+Vely release notes for 16.9.0
+- Minor: added unmanaged memory, i.e. memory that can be used for the life of the process across many requests, and also with any external C API libraries.
+- Release: fixed duplicate memory leak in vf process manager.
+- Release: improved performance of Vely preprocessing by 15%.
+- Release: fixed bug with command-line program exit code.
+- Release: fixed bug where FCGI attempts to access bad memory in request on accept.
+- Minor: added delete clause to purge-hash.
+- Release: fixed memory leak with new-json.
+- Minor: added delete clause to purge-fifo.
+- Release: fixed memory violation bug with purge-fifo.
+- Release: fixed memory violation bug with purge-hash.
+- Release: fixed memory leak with purge-fifo. 
+- Release: fixed memory leak with delete-json.
+- Minor: added process-data clause to get-app.
+- Minor: added set-app statement with process-data clause. Added support for global process memory.
+- Minor: added manage-memory statement to switch between managed and unmanaged memory.
+- Release: added cleanup of db connections at the end.
+- Release: properly close trace when program done; delete all memory when done in command line and fcgi.
+- Release: fixed bug with finished-output where command line program would exit.
+- Release: fixed memory leak with derive-key and encrypt/decrypt.
+- Release: improved memory management performance: removed low-performance memory check.
+- Minor: added skip-data clause to delete-query statement.
+
+.RE
 
 
 .RS 4
@@ -189,32 +218,6 @@ Vely release notes for 14.1.0
 - Release: changed environment variable substitution from gnu envsubst to Vely's own, equally fast but much smaller
 - Release: added more tests; now over 1050 Vely functional tests
 - Minor: added -u option to vv to perform environment substitutin at will
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-11-17\fP
-Vely release notes for 14.0.0
-- Minor: Added REST API URL capability with application path and request expressions
-- Minor: Added --path option in vv to specify application path for REST requests
-- Minor: Added PUT, PATCH, DELETE, OPTIONS and any arbitrary request methods support 
-- Minor: Added REST to multitenant SaaS example
-- Minor: Added request-body and payload/payload-length to support any content type in call-web statement
-- Minor: Added content-type to call-web statement
-- Minor: Added request method to call-web statement
-- Minor: Added content-type to get-req statement
-- Minor: Added request method to get-req statement
-- Minor: Added header clause to get-req statement
-- Minor: Added p-path statement for building links and forms for REST and normalized URLs
-- Minor: Added path clause to get-app statement
-- Minor: Added environment variables to database configuration files for easier and safer deployment
-- Minor: Added support for SCRIPT_NAME and PATH_INFO environment variables for web and command-line programs
-- Major: Renamed post clause to request-body in call-web, and headers to response-headers 
-- Release: Added a number of documentation articles for new features in this release
-- Release: Refactor variable space in generated code and vv to avoid conflicts with environment
-- Release: Added JSON example
 
 .RE
 

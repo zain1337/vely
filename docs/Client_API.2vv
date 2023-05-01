@@ -167,6 +167,8 @@ The server replies with data that is split in two. One part is the actual result
 
 All Vely output goes to "stdout", except from \fBreport-error\fP and \fBpf-out\fP/\fBpf-url\fP/\fBpf-web\fP (with "to-error" clause) which goes to "stderr". The two outputs can be comingled in any way; the client will properly separate the two and present them as two messages in reply.
 
+You can obtain server reply when it's ready in its entirety (likely most often used), or as it comes alone bit by bit (see more about asynchronous hooks futher here).
+
 .LP
 .B REQUEST TYPE (VV_FC)
 .LP
@@ -368,9 +370,7 @@ The FastCGI client is MT-safe, meaning you can use it both in single-threaded an
 
 .SH EXAMPLES
 
-.LP
-.B SIMPLE EXAMPLE
-.LP
+.B - Simple example
 
 The following example is a simple demonstration, with minimum of options used. Copy the C code to file "cli.c":
 
@@ -466,9 +466,7 @@ Hi there!
 .RE
 
 
-.LP
-.B EXAMPLE WITH MORE OPTIONS
-.LP
+.B - Example with more options
 
 This example demonstrate using multiple options, including using TCP sockets connecting to a host and port number, environment variables, query string, request body and request execution timeout. It will also show the separation of "data" and "error" (i.e. stdout and stderr) streams from the server.
 
@@ -499,7 +497,7 @@ void main ()
    // Request
    req.req = "/hello";
    // URL payload (path and query string)
-   req.url_payload = ""par1=val1&par2=91"";
+   req.url_payload = "par1=val1&par2=91";
    // Content type
    req.content_type = "application/json";
    // Content (i.e. request body)
@@ -533,6 +531,26 @@ void main ()
   free (req.data);
   free (req.error);
 }
+
+.EE
+.RE
+
+Note that the URL payload (i.e. "req.url_payload") could have been written as a combination of a path segment and query string (see \fBrequest_URL\fP):
+
+.RS 4
+.EX
+
+req.url_payload = "/par1/val1?par2=91";
+
+.EE
+.RE
+
+or just as a path segment:
+
+.RS 4
+.EX
+
+req.url_payload = "/par1/val1/par2/91";
 
 .EE
 .RE

@@ -1,0 +1,41 @@
+#include "vely.h"
+
+void server() {
+    out-header default
+
+    manage-memory off
+
+    vely_hash *h;
+    get-app process-data to h
+
+    input-param op
+    input-param key
+    input-param data
+
+    if (!strcmp (op, "add")) {
+        copy-string key to define c_key
+        copy-string data to define c_data
+        write-hash h key c_key value c_data
+        @Added
+    }
+    else if (!strcmp (op, "delete")) {
+        read-hash h key (key) value define val delete status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found [<<p-out key>>]
+        } else {
+            @Deleted [<<p-out val>>]
+        }
+    }
+    else if (!strcmp (op, "query")) {
+        read-hash h key (key) value define val status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found, queried [<<p-out key>>]
+        } else {
+            @Value [<<p-out val>>]
+        }
+    }
+    else if (!strcmp (op, "purge")) {
+        purge-hash h
+        @Purged
+    }
+}

@@ -935,6 +935,7 @@ int main(int argc, char **argv)
     } else {
         if (initit == 0) exit_error ("User (-u) can be specified only when initializing (-i)");
         if ((pwd = getpwnam(run_user)) == NULL) exit_error ("Cannot find user [%s], [%s]", run_user, VV_FERR);
+        free (run_user); // it was allocated by strdup in options processing, will be allocated again, just below
     }
     VV_ANN (run_user = strdup (pwd->pw_name));
     run_user_id = pwd->pw_uid;

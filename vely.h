@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.9.0"
+#define VV_VERSION "16.9.4"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
