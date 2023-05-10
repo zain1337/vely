@@ -14,14 +14,21 @@ write-hash <hash> \\
     value <value> \\
     [ status [ define ] <status> ] \\
     [ old-value [ define ] <old value> ] 
+    [ old-key [ define ] <old key> ] 
 
 .EE
 .RE
 
 .SH DESCRIPTION
-write-hash will store <key> (in "key" clause) with <value> (specified in "value" clause) into hash table <hash>, which must be created with \fBnew-hash\fP. <key> is a string and <value> can be a pointer of any type, allowing storage of any kind of data. <key> and <value> must not go out of scope or be freed while the hash is used - if necessary, store a copy (see \fBcopy-string\fP for strings).
+write-hash will store pointers <key> (in "key" clause) and <value> (specified in "value" clause) into hash table <hash>, which must be created with \fBnew-hash\fP. 
 
-If <key> already exists in the hash table, then the pointer to old value associated with it is returned in the optional <old value> (in "old-value" clause) - in this case the optional number <status> (in "status" clause) has a value of VV_ERR_EXIST. If <key> did not exist, <status> will be VV_OKAY and <old value> is NULL. Both <status> and <old value> can be created with "define" clause.
+<key> is a string and <value> can be a pointer of any type, allowing storage of any kind of data; collectively they are called an "element". Memory pointed by <key> and <value> must not go out of scope or be freed while the hash is used - if necessary, store a copy (see \fBcopy-string\fP for strings); this is because write-hash does not make copies of <key> and <value>, rather only the pointers to those are stored in the hash.
+
+If <key> already exists in the hash table, then the pointer to old value associated with it is returned in the optional <old value> (in "old-value" clause) and the pointer to old key is returned in the optional <old key> (in "old-key" clause) - in this case the optional number <status> (in "status" clause) has a value of VV_ERR_EXIST. 
+
+If <key> did not exist, <status> will be VV_OKAY and <old value>/<old key> are NULL. Both <status> and <old value>/<old key> can be created with "define" clause.
+
+Note that while <key> and <old key> will contain matching strings when <status> is VV_ERR_EXIST, the <old key> will contain a pointer to a key used in the previous write-string statement.
 
 .SH EXAMPLES
 Writing data to hash:

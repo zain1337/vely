@@ -520,9 +520,9 @@ void vely_store_init (vely_fifo **fdata_ptr)
 
 // 
 // Store name/value pair, with 'name' being the name and 'data' being the value
-// in storage data 'fdata'. Both strings are duplicated and stored in the list.
+// in storage data 'fdata'. Both strings are stored in the list as pointers.
 //
-void vely_store (vely_fifo *fdata, char *name, char *data)
+void vely_store (vely_fifo *fdata, char *name, void *data)
 {
     VV_TRACE ("");
     assert (fdata != NULL);
@@ -540,7 +540,7 @@ void vely_store (vely_fifo *fdata, char *name, char *data)
 // name and 'data' being the value. The name/data are simply assigned pointer
 // values. Initially, this starts with fist name/value pair put in.
 //
-void vely_retrieve (vely_fifo *fdata, char **name, char **data)
+void vely_retrieve (vely_fifo *fdata, char **name, void **data)
 {
     VV_TRACE ("");
     assert (fdata != NULL);

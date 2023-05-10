@@ -17,9 +17,9 @@ read-fifo <list> \\
 .RE
 
 .SH DESCRIPTION
-read-fifo retrieves a key/value pair from the FIFO <list>, storing them into <key> (in "key" clause) and <value> (in "value" clause), both of which can be created as strings with optional "define".
+read-fifo retrieves an element from the FIFO <list>, storing it into <key> pointer (in "key" clause) and <value> pointer (in "value" clause), both of which can be created as strings with optional "define".
 
-Once a key/value pair has been retrieved, the next use of \fBread-fifo\fP will obtain the following pair, in the same order they were put in. If the obtained <key> is NULL, the end of the list was reached. \fBread-fifo\fP starts with the first key/value pair put in, and moves forward from there, unless \fBrewind-fifo\fP is called, which positions back to the first pair.
+Once an element has been retrieved, the next use of \fBread-fifo\fP will obtain the following one, in the same order they were put in. If the obtained <key> is NULL, the end of the list was reached. \fBread-fifo\fP starts with the first element put in, and moves forward from there, unless \fBrewind-fifo\fP is called, which positions back to the first one.
 
 .SH EXAMPLES
 In this example, a FIFO list is created, and two key/value pairs added. They are then retrieved in a loop and printed out (twice with rewind), and then the list is purged:

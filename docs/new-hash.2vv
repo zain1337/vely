@@ -15,7 +15,7 @@ new-hash [ define ] <hash> size <size>
 .RE
 
 .SH DESCRIPTION
-new-hash initializes hash table named <hash>, which is a pointer to type "vely_hash" and can be created with optional "define".  <size> is the number of "buckets" in the hash table. All items with the same hash code are stored in a linked list within the same bucket. Greater table size usually means less items per bucket and better performance. However, memory usage grows with a bigger hash table, so its size should be balanced based on the program needs.
+new-hash initializes hash table named <hash>, which is a pointer to type "vely_hash" and can be created with optional "define".  <size> is the number of "buckets" in the hash table. All elements with the same hash code are stored in a linked list within the same bucket. Greater table size usually means less elements per bucket and better performance. However, memory usage grows with a bigger hash table, so its size should be balanced based on the program needs.
 
 Vely uses high-performing \fBFNV1_a\fP hash algorithm. Each element in a bucket list is lightweight, containing pointers to a key, value and next element in the linked list.
 

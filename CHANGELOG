@@ -1,5 +1,9 @@
-Vely release notes for 16.9.4
+Vely release notes for 16.10.0
 
-- Release: fixed bug: path info would not work with query string in FastCGI Client C API; updated tests and added example to documentation.
-- Release: vim highlighting update for Vely syntax.
+- Release: Vely available on Fedora 38.    
+- Release: added -a option to vv for viewing changelog for the current release.
+- Release: fixed bug in deleting key in hash list due to memory leak.
+- Minor: added old-key clause in read-hash statement.
+- Release: added hash server example.
+- Release: added 11 new tests.
 

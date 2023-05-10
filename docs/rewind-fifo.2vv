@@ -15,7 +15,7 @@ rewind-fifo <list>
 .RE
 
 .SH DESCRIPTION
-rewind-fifo will position at the very first key/value pair put into <list> which was created with \fBnew-fifo\fP. Each time \fBread-fifo\fP is used, the internal position moves to the next pair in the order they were put in. rewind-fifo rewinds back to the very first one.
+rewind-fifo will position at the very first data element put into <list> which was created with \fBnew-fifo\fP. Each time \fBread-fifo\fP is used, the internal position moves to the next element in the order they were put in. rewind-fifo rewinds back to the very first one.
 
 .SH EXAMPLES
 See \fBread-fifo\fP.

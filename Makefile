@@ -144,6 +144,7 @@ install:
 	install -D -m 0644 stub_startup.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 v.vim -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 vmakefile -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0644 CHANGELOG -t $(DESTDIR)$(V_LIB)/
 	install -m 0755 -d $(DESTDIR)$(V_BIN)
 	install -D -m 0755 v1 -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 vv  -t $(DESTDIR)$(V_BIN)/
@@ -161,6 +162,7 @@ install:
 	install -m 0755 -d $(DESTDIR)$(V_VV_DOCS)
 	install -m 0755 -d $(DESTDIR)$(V_VV_EXAMPLES)
 	install -D -m 0644 docs/velydocker.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/hash.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/cookies.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/create_table.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/form.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/

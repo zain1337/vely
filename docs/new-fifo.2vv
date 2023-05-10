@@ -17,9 +17,9 @@ new-fifo [ define ] <list>
 .SH DESCRIPTION
 new-fifo initializes new FIFO <list> (First In First Out). <list> is a pointer to type "vely_fifo", and can be created with optional "define". 
 
-FIFO <list> contains key/value pairs on a first-in, first out basis. It is useful for storing temporary information in memory which can be quickly retrieved. Note that a list is accessible to the current process only.
+FIFO <list> contains data stored on a first-in, first out basis. It is useful for storing temporary information in memory which can be quickly retrieved. Note that a list is accessible to the current process only.
 
-Generally pairs of key/value are stored in a FIFO list, and retrieved (possibly many times) in the same order in which they were stored.
+Generally information is stored in a FIFO list, and retrieved (possibly many times) in the same order in which it was stored.
 
 The internal positions for \fBwrite-fifo\fP and \fBread-fifo\fP actions are separate so you can keep adding data to the list, and obtain it in any number of retrieval passes by using \fBrewind-fifo\fP.
 

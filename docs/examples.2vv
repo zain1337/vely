@@ -7,7 +7,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_hello_world\fP
-    2 source files, 7 lines of code; no database; command line; web browser; Nginx; Unix sockets;
+     command line; web browser; Nginx; Unix sockets; 2 source files, 7 lines of code.
 .RE
 
 
@@ -15,7 +15,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_cookies\fP
-    1 source files, 49 lines of code; no database; web browser; Apache; Unix sockets;
+     web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
 .RE
 
 
@@ -23,7 +23,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_create_table\fP
-    2 source files, 44 lines of code; PostgreSQL; command line; web browser; Nginx; Unix sockets;
+    PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 source files, 44 lines of code.
 .RE
 
 
@@ -31,7 +31,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_file_manager\fP
-    6 source files, 169 lines of code; PostgreSQL; web browser; Apache; TCP sockets;
+    PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
 .RE
 
 
@@ -39,7 +39,15 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_form\fP
-    4 source files, 86 lines of code; PostgreSQL; web browser; Apache; Unix sockets;
+    PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
+.RE
+
+
+
+.RS 4
+\[bu]    
+\fBexample_hash\fP
+     web browser; Apache; REST API; Unix sockets; 3 source files, 59 lines of code.
 .RE
 
 
@@ -47,7 +55,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_json\fP
-    5 source files, 160 lines of code; no database; web browser; Nginx; Unix sockets;
+     web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
 .RE
 
 
@@ -55,7 +63,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_multitenant_SaaS\fP
-    7 source files, 312 lines of code; MariaDB; web browser; Apache; Application path; Unix sockets;
+    MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 312 lines of code.
 .RE
 
 
@@ -63,7 +71,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_sendmail\fP
-    1 source files, 79 lines of code; no database; web browser; Apache; Unix sockets;
+     web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
 .RE
 
 
@@ -71,7 +79,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_shopping\fP
-    11 source files, 212 lines of code; PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets;
+    PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 11 source files, 212 lines of code.
 .RE
 
 
@@ -79,7 +87,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_stock\fP
-    3 source files, 55 lines of code; MariaDB; command line; web browser; Nginx; Unix sockets;
+    MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
 .RE
 
 
@@ -87,7 +95,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_utility\fP
-    2 source files, 26 lines of code; SQLite; command line; Unix sockets;
+    SQLite; command line; Unix sockets; 2 source files, 26 lines of code.
 .RE
 
 
@@ -95,7 +103,7 @@ Click on each example for instructions. For a condensed Hello World that you can
 .RS 4
 \[bu]    
 \fBexample_write_report\fP
-    2 source files, 69 lines of code; MariaDB; command line; web browser; Nginx; Unix sockets;
+    MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
 .RE
 
 
@@ -107,4 +115,4 @@ Click on each example for instructions. For a condensed Hello World that you can
 
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

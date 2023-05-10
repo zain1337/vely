@@ -64,7 +64,6 @@
 #define VV_KEYSET "set "
 #define VV_KEYKEY "key "
 #define VV_KEYVALUE "value "
-#define VV_KEYPURGE "purge "
 #define VV_KEYREWIND "rewind "
 #define VV_KEYPASSWORD "password "
 #define VV_KEYINPUTLENGTH "input-length "
@@ -83,6 +82,7 @@
 #define VV_KEYDELETE "delete "
 #define VV_KEYNOLOOP "no-loop"
 #define VV_KEYOLDVALUE "old-value "
+#define VV_KEYOLDKEY "old-key "
 #define VV_KEYMAXHASHSIZE "max-hash-size "
 #define VV_KEYCIPHER "cipher "
 #define VV_KEYDIGEST "digest "
@@ -754,7 +754,7 @@ num outargs(char *args, char *outname, num outtot, num startwith, char pair)
         char *value;
         while (1)
         {
-            vely_retrieve (params, NULL, &value);
+            vely_retrieve (params, NULL, (void*)&value);
             if (value==NULL) break;
 
             if (pair == 1) 
@@ -916,13 +916,13 @@ void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
         while (1)
         { // get query names one by one and check if duplicate
             char *one_name;
-            vely_retrieve (qnames, NULL, &one_name);
+            vely_retrieve (qnames, NULL, (void**)&one_name);
             if (one_name==NULL) break;
             if (!strcmp (one_name, vp->name)) {
                 _vely_report_error( "Query with the name [%s] already exists", vp->name);
             }
         } 
-        vely_store(qnames, NULL, vely_strdup(vp->name)); // store name for future lookup
+        vely_store(qnames, NULL, (void*)vely_strdup(vp->name)); // store name for future lookup
     }
     else snprintf (gen_ctx->qry[query_id].name, sizeof (gen_ctx->qry[query_id].name), "_vv_qryname_%lld", gen_ctx->total_queries);
 }
@@ -1612,7 +1612,7 @@ void carve_statement (char **statement, char *statement_name, char *keyword, num
 // 'statement' could point to 'define res' and define it as a string
 // 'type is VV_DEFSTRING('char *') or VV_DEFNUM or VV_DEFVOIDPTRPTR or VV_DEFCHARPTRPTR
 // or VV_DEFCHAR or VV_BROKEN or VV_DEFDBL or VV_DEFHASH or VV_DEFJSON or VV_DEFFIFO or VV_DEFVOID, or VV_DEFENCRYPT
-// or VV_DEFFILE.
+// or VV_DEFFILE 
 // Returns 1 if there is a "define", 0 otherwise.
 //
 // if the '*statement' has () around it, those are removed (see comments below)
@@ -1790,7 +1790,7 @@ void parse_param_list (char *parse_list, vely_fifo **params)
         inp_par[par_len] = 0;
 
         vely_trim(inp_par, &par_len);
-        vely_store(*params, NULL, vely_strdup(inp_par));
+        vely_store(*params, NULL, (void*)vely_strdup(inp_par));
 
         parse_list = end_of_parse_list; // positioned to next parameter
                                          // this needs to be before break below
@@ -1823,7 +1823,7 @@ void get_all_input_param (vely_gen_ctx *gen_ctx, char *iparams)
     char *value;
     while (1)
     {
-        vely_retrieve (params, NULL, &value);
+        vely_retrieve (params, NULL, (void**)&value);
         if (value==NULL) break;
 
         add_input_param (gen_ctx, value);
@@ -3561,7 +3561,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             {
                                 oprintf ("vely_begin_json (%s);\n", mtext);
                             }
-                            if ((key == NULL && val != NULL) || (key != NULL && val == NULL)) _vely_report_error( "'key' and 'value' must both be in read-hash statement");
+                            if ((key == NULL && val != NULL) || (key != NULL && val == NULL)) _vely_report_error( "'key' and 'value' must both be in read-json statement");
                             if (key != NULL) oprintf ("%s%svely_next_json (%s, &(%s), &(%s), %s%s%s);\n", status == NULL ? "":status, status == NULL ? "":"=", mtext, key, val, type==NULL?"":"&(", type==NULL?"NULL":type, type==NULL?"":")");
                         }
 
@@ -4551,7 +4551,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&value, "fifo-list", VV_KEYVALUE, 1, 1);
 
 
-                        oprintf ("vely_store (%s, %s, %s);\n", mtext, key, value);
+                        oprintf ("vely_store (%s, %s, (void*)%s);\n", mtext, key, value);
 
                         continue;
 
@@ -4592,7 +4592,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         define_statement (&key, VV_DEFSTRING);
                         define_statement (&value, VV_DEFSTRING);
 
-                        oprintf ("vely_retrieve (%s, &(%s), &(%s));\n", mtext, key, value);
+                        oprintf ("vely_retrieve (%s, &(%s), (void**)&(%s));\n", mtext, key, value);
 
                         continue;
 
@@ -4719,16 +4719,19 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *key = find_keyword (mtext, VV_KEYKEY, 1);
                         char *val = find_keyword (mtext, VV_KEYVALUE, 1);
                         char *oldd = find_keyword (mtext, VV_KEYOLDVALUE, 1);
+                        char *oldk = find_keyword (mtext, VV_KEYOLDKEY, 1);
                         char *st = find_keyword (mtext, VV_KEYSTATUS, 1);
 
                         carve_statement (&key, "write-hash", VV_KEYKEY, 1, 1);
                         carve_statement (&val, "write-hash", VV_KEYVALUE, 1, 1);
                         carve_statement (&oldd, "write-hash", VV_KEYOLDVALUE, 0, 1);
+                        carve_statement (&oldk, "write-hash", VV_KEYOLDKEY, 0, 1);
                         carve_statement (&st, "write-hash", VV_KEYSTATUS, 0, 1);
                         define_statement (&oldd, VV_DEFSTRING);
+                        define_statement (&oldk, VV_DEFSTRING);
                         define_statement (&st, VV_DEFNUM);
 
-                        oprintf("%s%svely_add_hash (%s, %s, %s, %s%s%s);\n", oldd==NULL?"":oldd, oldd==NULL?"":"=",mtext, key, val, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")");
+                        oprintf("%s%svely_add_hash (%s, %s, %s, %s%s%s, %s%s%s);\n", oldd==NULL?"":oldd, oldd==NULL?"":"=",mtext, key, val, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "read-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -4736,6 +4739,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         VV_GUARD
                         i = newI;
                         char *key = find_keyword (mtext, VV_KEYKEY, 1);
+                        char *oldk = find_keyword (mtext, VV_KEYOLDKEY, 1);
                         char *val = find_keyword (mtext, VV_KEYVALUE, 1);
                         char *del = NULL;
                         char *st = NULL;
@@ -4766,6 +4770,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         else
                         {
                             carve_statement (&key, "read-hash", VV_KEYKEY, 1, 1);
+                            carve_statement (&oldk, "read-hash", VV_KEYOLDKEY, 0, 1);
                             carve_statement (&del, "read-hash", VV_KEYDELETE0, 0, 2);
                             carve_statement (&st, "read-hash", VV_KEYSTATUS, 0, 1);
                             carve_statement (&val, "read-hash", VV_KEYVALUE, 1, 1);
@@ -4781,12 +4786,13 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         else
                         {
                             define_statement (&st, VV_DEFNUM);
+                            define_statement (&oldk, VV_DEFSTRING);
                         }
 
 
                         if (trav == NULL)
                         {
-                            oprintf("%s=vely_find_hash (%s, %s, %s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")");
+                            oprintf("%s=vely_find_hash (%s, %s, %s, %s%s%s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
                         }
                         else
                         {

@@ -2,7 +2,7 @@
 .SH NAME
 manage-memory \-  (memory)
 .SH PURPOSE
-Turn on/off managed memory. 
+Turn on/off managed memory.
 
 .SH SYNTAX
 

@@ -15,7 +15,11 @@ write-fifo <list> key <key> value <value>
 .RE
 
 .SH DESCRIPTION
-write-fifo adds a key/value pair to the FIFO <list>, specified with string <key> and <value> (in "key" and "value" clauses). It always adds data to the end of the list. <value> is a pointer to any type, allowing storage of any kind of data. <key> and <value> must not go out of scope or be freed while FIFO is used - if necessary, store a copy (see \fBcopy-string\fP for strings).
+write-fifo adds a pair of key/value pointers to the FIFO <list>, specified with string <key> and <value> (in "key" and "value" clauses, collectively called an "element"). 
+
+It always adds elements to the end of the list. <value> is a pointer to any type, allowing storage of any kind of data. 
+
+Memory pointed by <key> and <value> must not go out of scope or be freed while FIFO is used - if necessary, store a copy (see \fBcopy-string\fP for strings). This is because write-fifo does not make copies of <key> and <value>, rather only the pointers to those are stored.
 
 .SH EXAMPLES
 

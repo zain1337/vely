@@ -17,7 +17,7 @@ resize-hash <hash> size <new size>
 .SH DESCRIPTION
 resize-hash will resize hash table <hash> (created by \fBnew-hash\fP) to size <newsize>, which refers to the number of "buckets", or possible hash codes derived from keys stored.
 
-When a number of keys stored grows, the search performance may decline if hash table size remains the same. Consequently, if the number of keys shrinks, the memory allocated by the hash table may be wasted. Use \fBget-hash\fP to obtain its current size, its length (the number of elements currently stored in it) and the statistics (such as average reads) to determine if you need to resize it.
+When a number of elements stored grows, the search performance may decline if hash table size remains the same. Consequently, if the number of elements shrinks, the memory allocated by the hash table may be wasted. Use \fBget-hash\fP to obtain its current size, its length (the number of elements currently stored in it) and the statistics (such as average reads) to determine if you need to resize it.
 
 Resizing is generally expensive, so it should not be done too often. The goal is to amortize this expense through future gain of lookup performance. For that reason it may be better to resize proportionally (i.e. by a percentage), unless you have a specific application reason to do otherwise, or to avoid exponential growth.
 

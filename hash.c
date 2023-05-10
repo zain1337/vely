@@ -11,6 +11,7 @@
 // prototypes
 static num vely_compute_hash (char* d, num size);
 static vely_hash_table *vely_new_hash_item (char *key, void *data);
+void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table *prev, num hashind);
 
 //
 // Create new hash hres_ptr. size is the size of hash table. The actual object is created here, the caller handlers pointer only.
@@ -73,12 +74,46 @@ void vely_delete_hash (vely_hash **h, char recreate)
     }
 }
 
+
+//
+// Delete hash entry. todel is the entry to delete, prev is the pointer to previous entry,
+// which can be NULL. The actual key/data must be freed (if needed) separately.
+// hashind is the bucket index; if -1 we will calculate it; this avoids double calculation.
+// h is the hash itself.
+// hashind is the bucket index, or -1 if we need to compute it.
+//
+void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table *prev, num hashind)
+{
+    vely_hash_table *next = todel->next;
+    if (prev == NULL) {
+        // if bucket index is unknown, calculate it since we need it when deleting the first in the bucket
+        // in order to set 'prev' which is the bucket itself (i.e. denoted as NULL)
+        if (hashind == -1) hashind = vely_compute_hash (todel->key, h->size);
+        h->table[hashind] = next; // if first in bucket list deleted
+                                                // the next one is now the first
+    }
+    else // if there is a one before the one to delete
+    {
+        prev->next = next; // update previous to point to the one after the deleted entry
+                           // which can be NULL
+    }
+    vely_free (todel);
+    // account for rewinding, if we just deleted the current element
+    if (h->dcurr == todel)
+    {
+        h->dcurr = next; // set current to next, which can be NULL
+    }
+
+    h->tot--; // one element less
+}
+
 //
 // Search / delete. Search hash 'h' for key 'key' and return data (or NULL if not found).
 // If 'del' is 1, delete this element and return data (data is only linked). 'found' is 1
 // if something was found (say if delete was done) (found can be NULL).
+// oldkey is the same as with vely_add_hash, see comments there.
 //
-void *vely_find_hash (vely_hash *h, char *key, char del, num *found)
+void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldkey)
 {
     VV_TRACE("");
 
@@ -86,7 +121,7 @@ void *vely_find_hash (vely_hash *h, char *key, char del, num *found)
 
     char *ret = NULL;
     // get hash id of a key
-    unsigned int hashind = vely_compute_hash (key, h->size);
+    num hashind = vely_compute_hash (key, h->size);
 
     vely_hash_table *hresult = NULL;
     vely_hash_table *prev = NULL;
@@ -104,28 +139,24 @@ void *vely_find_hash (vely_hash *h, char *key, char del, num *found)
         
     }
     // if nothing here, not found, return NULL
-    if (hresult == NULL) { if (found != NULL) {VERR0; *found = VV_ERR_EXIST;} return NULL;}
+    if (hresult == NULL) 
+    { 
+        if (found != NULL) {VERR0; *found = VV_ERR_EXIST;}
+        if (oldkey != NULL) *oldkey = NULL; // no old key
+        return NULL; // no old data
+    }
 
+    // save key,data before deleting, to be returned if asked for
     ret = hresult->data;
+    char *okey = hresult->key;
 
     if (found != NULL) *found = VV_OKAY;
     if (del == 1) 
     {
-        vely_hash_table *next = hresult->next;
-        if (prev == NULL) h->table[hashind] = next;
-        else
-        {
-            prev->next = next;
-        }
-        vely_free (hresult);
-        // account for rewinding, if we just deleted the current element
-        if (h->dcurr == hresult)
-        {
-            h->dcurr = next; // set current to next, which can be NULL
-        }
-        h->tot--; // one element less
+        vely_del_hash_entry (h, hresult, prev, hashind);
     }
-    return ret;
+    if (oldkey != NULL) *oldkey = okey; // old key
+    return ret; // old data
 }
 
 //
@@ -146,7 +177,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
         void *data;
         char *key = vely_next_hash (*h, &data);
         if (key == NULL) break;
-        vely_add_hash (nh, key, data, NULL);
+        vely_add_hash (nh, key, data, NULL, NULL);
     }
     vely_delete_hash (h, 1); // remove old hash, it also creates new one with old size, but empty
     vely_free ((*h)->table); // remove table created by default in vely_delete_hash()
@@ -167,7 +198,7 @@ void vely_rewind_hash(vely_hash *h)
 {
     VV_TRACE("");
     h->dnext = 0;
-    h->dcurr = h->table[h->dnext];
+    h->dcurr = h->table[h->dnext]; // can be NULL
 }
 
 //
@@ -198,27 +229,31 @@ num vely_total_hash (vely_hash *h)
     return h->tot;
 }
 
+
 //
 // Get next hash item from hash 'h'. 'data' is the value, and returns key.
-// Returns NULL if no more (end of table). 
+// Returns NULL if no more (end of table).
 // This goes from ->dnext and to the next element, traversing all lists.
 //
-char *vely_next_hash(vely_hash *h, void **data) 
+char *vely_next_hash(vely_hash *h, void **data)
 {
     VV_TRACE("");
-    if (h->dnext == h->size) return NULL;
-    while (h->dcurr == NULL) 
+    if (h->dnext == h->size) { return NULL; }
+    while (h->dcurr == NULL)
     {
         h->dnext++;
-        if (h->dnext == h->size) return NULL;
+        if (h->dnext == h->size) { return NULL; }
         h->dcurr = h->table[h->dnext];
-    } 
+    }
 
+    // get key and data
     *data = h->dcurr->data;
     char *key = h->dcurr->key;
-    h->dcurr = h->dcurr->next;
+
+    h->dcurr = h->dcurr->next; // current now
     return key;
 }
+
 
 
 //
@@ -239,8 +274,12 @@ vely_hash_table *vely_new_hash_item (char *key, void *data)
 // Add new string 'data' to hash 'h' with key 'key'
 // If this key existed, returns a pointer to old data, otherwise returns "" and st is VV_ERR_EXIST otherwise VV_OKAY
 // (st can be NULL)
+// oldkey returns the memory where the key actually stored in the hash is. While the value pointed to by this old key
+// is the same as value pointed to by key are the same, the pointers may be different. This is useful in deleting old
+// data and old key when replacing or deleting, because deleting hash entry means deleting hash constructs, not the actual data,
+// after all the data may or may not be allocated. oldkey can be NULL, it's to be filled only if not NULL.
 //
-char *vely_add_hash (vely_hash *h, char *key, void *data, num *st)
+char *vely_add_hash (vely_hash *h, char *key, void *data, num *st, char **oldkey)
 {
     VV_TRACE("");
 
@@ -252,7 +291,8 @@ char *vely_add_hash (vely_hash *h, char *key, void *data, num *st)
         h->table[hashind]->next = NULL; // no one following yet
         if (st != NULL) *st = VV_OKAY;
         h->tot ++; // one more element
-        return NULL; 
+        if (oldkey != NULL) *oldkey = NULL; // no old key
+        return NULL;  // no old data
     } 
     else 
     {
@@ -267,6 +307,11 @@ char *vely_add_hash (vely_hash *h, char *key, void *data, num *st)
                 bucket->data = data;
                 if (st != NULL) {VERR0; *st = VV_ERR_EXIST;}
                 // no increase of h->tot because this is replacement
+                if (oldkey != NULL) *oldkey = bucket->key;
+                bucket->key = key; // setup new key, and old key is retrieved, if asked
+                                   // key (new key) and bucket->key (old key) point to the same value
+                                   // but are two different pointers. We must replace old with new
+                                   // or otherwise there would be leaks with unmanaged memory.
                 return old;
             } else bucket = bucket->next;
         }
@@ -279,6 +324,7 @@ char *vely_add_hash (vely_hash *h, char *key, void *data, num *st)
         h->table[hashind] = new;
         if (st != NULL) *st = VV_OKAY;
         h->tot ++; // one more element
+        if (oldkey != NULL) *oldkey = NULL; // no old key
         return NULL;
     }
 }

@@ -22,7 +22,7 @@ displays the report to a web page.
 .RE
 
 
-In a nutshell: 2 source files, 69 lines of code; MariaDB; command line; web browser; Nginx; Unix sockets;
+In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -169,7 +169,7 @@ vf write_report
 
 See \fBvf\fP for more options to help you achieve best performance.
 
-To stop your application server:
+If you want to stop your application server:
 
 .RS 4
 .EX
@@ -419,4 +419,4 @@ void write_report()
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

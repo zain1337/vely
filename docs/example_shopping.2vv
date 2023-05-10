@@ -49,7 +49,7 @@ The APIs return a valid JSON reply, even if it's just a single string (such as c
 
 The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 
-In a nutshell: 11 source files, 212 lines of code; PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets;
+In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 11 source files, 212 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -217,7 +217,7 @@ vf shopping
 
 See \fBvf\fP for more options to help you achieve best performance.
 
-To stop your application server:
+If you want to stop your application server:
 
 .RS 4
 .EX
@@ -928,4 +928,4 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

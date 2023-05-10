@@ -82,6 +82,7 @@ OPTIONS:
                 displays C compile flags
             --link
                 displays C linking flags
+-a      show release notes for this release
 -h      this help
 Type 'man vv' for more information.
 "
@@ -95,7 +96,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o e:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$?
+_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -156,6 +157,12 @@ _DO_QUICK=0
         -u )
 #subst env vars from stdin to stdout
             "$VV_LIBRARY_PATH"/v1 -envsub 
+            exit 0
+            ;;
+        -a )
+#display release notes
+            cat "$VV_LIBRARY_PATH/CHANGELOG"
+            shift 1
             exit 0
             ;;
         -e )

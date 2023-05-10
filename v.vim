@@ -190,6 +190,7 @@ syn region vv_r_construct_read_hash start="^[[:space:]]*read-hash" skip="\\[[:sp
     syn match vv_h_clause_read_hash " delete \@=" contained containedin=vv_r_construct_read_hash
     syn match vv_h_clause_read_hash " delete$" contained containedin=vv_r_construct_read_hash
     syn match vv_h_clause_read_hash " key \@=" contained containedin=vv_r_construct_read_hash
+    syn match vv_h_clause_read_hash " old-key \@=" contained containedin=vv_r_construct_read_hash
     syn match vv_h_clause_read_hash " status \@=" contained containedin=vv_r_construct_read_hash
     syn match vv_h_clause_read_hash " traverse \@=" contained containedin=vv_r_construct_read_hash
     syn match vv_h_clause_read_hash " traverse$" contained containedin=vv_r_construct_read_hash
@@ -203,6 +204,7 @@ syn region vv_r_construct_write_hash start="^[[:space:]]*write-hash" skip="\\[[:
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_write_hash,vv_r_inline_write_hash,vv_r_at
     syn match vv_h_construct_write_hash "^[[:space:]]*write-hash" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " key \@=" contained containedin=vv_r_construct_write_hash
+    syn match vv_h_clause_write_hash " old-key \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " old-value \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " status \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " value \@=" contained containedin=vv_r_construct_write_hash

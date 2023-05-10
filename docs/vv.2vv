@@ -148,6 +148,13 @@ Show library directory - Vely's libraries and v1 code processor are located ther
 
 .RS 4
 \[bu]    
+-a
+Display CHANGELOG (i.e. release notes) for the current release.
+
+.RE
+
+.RS 4
+\[bu]    
 -r [ --req="/<request name><url payload>" ] [ --method="<request method>" ]
 Display bash code to run a command-line program. You must be in the source code directory. You can use "--req" option to specify the request name and URL payload (see \fBrequest_URL\fP), for example it may be:
 

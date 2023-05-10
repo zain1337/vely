@@ -15,7 +15,8 @@ read-hash <hash> \\
     key <key> \\
     value [ define ] <value> \\
     [ delete [ <delete> ] ] \\
-    [ status [ define ] <status> ]
+    [ status [ define ] <status> ] \\
+    [ old-key [ define ] <old key> ]
 
 // Sequential access to hash data:
 
@@ -34,17 +35,19 @@ read-hash <hash> traverse \\
 .B WITHOUT "TRAVERSE" CLAUSE
 .LP
 
-read-hash will obtain <value> (in "value" clause) based on a <key> (in "key" clause) from <hash> created by \fBnew-hash\fP. <value> can be created as a string with optional "define", but in general can be a pointer of any type.
+read-hash will obtain an element from <hash>, which is a <value> pointer (in "value" clause) based on a <key> (in "key" clause). <hash> was created by \fBnew-hash\fP. <value> can be created as a string with optional "define", but in general can be a pointer of any type. An optional "old-key" clause will obtain the pointer to a key used in a previous \fBwrite-hash\fP statement; it can be created with an optional "define".
 
-You can also delete the key/value pair from the hash by using optional "delete" clause - the <value> is still obtained though it is no longer in the hash table. The key/value pair is deleted if "delete" clause is used without optional boolean expression <delete>, or if <delete> evaluates to true.
+You can also delete an element from the hash by using optional "delete" clause - the <value> is still obtained though it is no longer in the hash table. The hash element is deleted if "delete" clause is used without optional boolean expression <delete>, or if <delete> evaluates to true. Note that "delete" clause will not free any possibly \fBallocated memory\fP for either key or value stored in the element (see \fBwrite-hash\fP).
 
 If no <key> was found in the hash table, optional <status> (in "status" clause) is VV_ERR_EXIST and <value> is NULL, otherwise it is VV_OKAY. A number <status> can be created with optional "define".
+
+Note that while <key> and <old key> will contain matching strings, the <old key> will contain a pointer to a key used in a prior \fBwrite-string\fP statement, which may be different than <key>.
 
 .LP
 .B WITH "TRAVERSE" CLAUSE
 .LP
 
-read-hash with "traverse" clause obtains <key> and <value> of the current element, and then positions to the next one. Use "begin" clause to position at the very first element. This is useful if you wish to get all the key/value pairs from a hash table - note they are not extracted in any particular order.
+read-hash with "traverse" clause obtains <key> and <value> of the current element, and then positions to the next one. Use "begin" clause to position at the very first element. This is useful if you wish to get all the key/value pairs from a hash table - note they are not extracted in any particular order. When there are no more elements, <key> is NULL.
 
 You may search, add or delete elements while traversing a hash table, and this will be reflected in all elements not yet traversed.
 

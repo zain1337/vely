@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.9.4"
+#define VV_VERSION "16.10.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -695,8 +695,8 @@ char *vely_lower(char *s);
 char *vely_upper(char *s);
 void vely_location (char **fname, num *lnum, num set);
 void vely_store_init (vely_fifo **fdata);
-void vely_store (vely_fifo *fdata, char *name, char *data);
-void vely_retrieve (vely_fifo *fdata, char **name, char **data);
+void vely_store (vely_fifo *fdata, char *name, void *data);
+void vely_retrieve (vely_fifo *fdata, char **name, void **data);
 void vely_rewind (vely_fifo *fdata);
 void vely_purge (vely_fifo **fdata, char recreate);
 num vely_lockfile(char *filepath, num *lock_fd);
@@ -770,9 +770,11 @@ num32 vely_make_from_utf8_surrogate (num32 u0, num32 u1);
 void vely_get_utf8_surrogate (num32 u, num32 *u0, num32 *u1);
 void vely_create_hash (vely_hash **hres_ptr, num size);
 void vely_delete_hash (vely_hash **h, char recreate);
-void *vely_find_hash (vely_hash *h, char *key, char del, num *found);
-char *vely_add_hash (vely_hash *h, char *key, void *data, num *st);
+void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldkey);
+char *vely_add_hash (vely_hash *h, char *key, void *data, num *st, char **oldkey);
 char *vely_next_hash(vely_hash *h, void **data);
+void vely_del_hash_traverse (vely_hash *h);
+void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table *prev, num hashind);
 void vely_rewind_hash(vely_hash *h);
 num vely_total_hash (vely_hash *h);
 num vely_hash_size (vely_hash *h);

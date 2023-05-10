@@ -15,7 +15,7 @@ purge-hash <hash> [ delete ]
 .RE
 
 .SH DESCRIPTION
-purge-hash deletes all key/value pairs from <hash> table that was created with \fBnew-hash\fP. 
+purge-hash deletes all elements from <hash> table that was created with \fBnew-hash\fP. Note that it does not free any possibly \fBallocated memory\fP for keys or values (see \fBwrite-hash\fP).
 
 After purge-hash, the hash is empty and you can use it without calling \fBnew-hash\fP again. Note however, that "average-reads" statistics (see \fBget-hash\fP) is not reset - it keeps being computed and remains for the life of the hash.
 
@@ -24,7 +24,7 @@ If you use "delete" clause, then all the internal memory of a <hash> is freed, a
 See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
-Create hash, put some data in it and then purge the data:
+Create hash, put some data in it and then delete the data:
 
 .RS 4
 .EX

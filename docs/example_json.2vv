@@ -24,7 +24,7 @@ Second, by simply traversing all the data nodes and getting each in a loop. This
 .RE
 
 
-In a nutshell: 5 source files, 160 lines of code; no database; web browser; Nginx; Unix sockets;
+In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -129,7 +129,7 @@ vf json
 
 See \fBvf\fP for more options to help you achieve best performance.
 
-To stop your application server:
+If you want to stop your application server:
 
 .RS 4
 .EX
@@ -214,12 +214,14 @@ http://127.0.0.1/json/json_form
 Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
 Copy the contents of file cities.json (see under FILES) to a text area in the form.
 
-\fBRun from Javascript via fetch method\fP
+
+.B - Run from Javascript via fetch method
+
 You can also test JSON parsing via Javascript/fetch mechanism. First, copy the file to your web server in a separate directory:
 
 .RS 4
 \[bu]    
-For Apache:
+For Apache or older versions of Nginx:
 
 .RS 4
 .EX
@@ -245,7 +247,7 @@ http://127.0.0.1/velytest/post.html
 
 .RS 4
 \[bu]    
-For Nginx:
+For newer versions of Nginx:
 
 .RS 4
 .EX
@@ -643,4 +645,4 @@ void json_process() {
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

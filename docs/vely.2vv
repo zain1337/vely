@@ -38,17 +38,34 @@ A Vely application works by processing standard HTTP requests, which simplifies 
 
 .B - Quality and continuous testing
 
-Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1525 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1537 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
 
 .B - Report bugs, request features, contact
 
 Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
+
+.B - Source code
+
+Official source code git repo is \fBhere\fP (click on Source to clone), and mirrors are on \fBgithub\fP and \fBgitlab\fP.
+
+
+
 \fBhl
 
 .LP
 .B RELEASE NOTES
 .LP
 
+
+
+.RS 4
+\[bu]    
+\fI2023-05-01\fP
+Vely release notes for 16.9.4
+- Release: fixed bug: path info would not work with query string in FastCGI Client C API; updated tests and added example to documentation.
+- Release: vim highlighting update for Vely syntax.
+
+.RE
 
 
 .RS 4
@@ -98,126 +115,6 @@ Vely release notes for 16.7.0
 - Minor: added on-error-exit, on-error-continue, error and error-text to begin,commit and rollback transaction.
 - Release: added current year to vv -v.
 - Release: documentation update and 10 new functional tests.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2023-03-08\fP
-Vely release notes for 16.6.0
-- Minor: added dynamic boolean expression support for previously static true/false flags in the following statements: count-substring, decrypt/encrypt-data, derive-key, hash-string, match-regex, out-header, send-file, read-hash, set-cookie, delete-cookie, write-file. This change allows for less code that is easier to read. Each flag that is enhanced signifies a static choice (such as download in send-file); now however, each such flag will also have an optional boolean expression that allows run-time selection.
-- Minor: added secure clause in delete-cookie since newer changes in popular browsers require this option when deleting a secure cookie.
-- Minor: added checks for cookie name/value per RFC6265; SameSite clause is undefined now by default because newer changes correlate this value with Secure flag.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2023-02-27\fP
-Vely release notes for 16.4.0
-- Minor: Vely licensing changed from LGPL-3 to EPL-2 (Eclipse Public License 2).
-- Minor: new FastCGI client C API provides the ability to write standalone programs that connect to any FastCGI server.
-- Minor: pf-out, pf-url, pf-web now have to-error clause to write to stderr stream.
-- Minor: added -i option to vv as support for FastCGI C API library, producing the include and library flags for gcc.
-- Release: fixed bug in vv where it crashes when using --app-path with bad data.
-- Minor: vf will now kill children server processes if parent is killed. This allows for clean restarts.
-- Minor: added flush-output statement for partial output in a long-running request.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2023-01-18\fP
-Vely release notes for 15.2.0
-- Release: memory handling improvements: faster clearing of memory on allocation.
-- Minor: automatic closing of open-files. 
-- Minor: set errno to 0 when error is set by Vely to indicate error was not reported by the operating system.
-- Minor: added new file handling statements with file-id clause that increase performance: open-file, close-file, file-position and read-file, write-file.
-- Minor: added digest, binary and output-length clauses to hash-string for more useful output.
-- Minor: added derive-key statement in cryptography.
-- Release: fixed bug in encode-hex where some inputs would not encode correctly.
-- Release: tracing is now faster as it is conditionally included or excluded at code generation time.
-- Minor: added clear-cache to match-regex.
-- Minor: added salt-length, init-vector(IV) and iterations clauses to encrypt-data and decrypt-data.
-- Minor: added cache/clear-cache to encrypt-data and decrypt-data for caching of keys.
-- Minor: added PBKDF2 key generation.
-- Minor: added random-crypto generator which is cryptographically secure pseudo random generator (CSPRNG).
-- Minor: improved performance and memory usage of memory allocator by adding tracking of free memory list.
-- Minor: added block-size and init clauses to new-mem statement for more useful and faster memory allocation.
-- Minor: added binary clause to random-string statement for increased performance when needing purely binary output.
-- Release: documented each Vely statement that allocates memory so it can be released in a loop or a long running request.
-- Release: added 140 new tests.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-12-29\fP
-Vely release notes for 15.1.0
-- Release: json parsing performance improvement
-- Release: fixed issue with certain crypto algorithms not found
-- Release: improved hashing performance 4x times
-- Release: added 22 new tests
-- Release: report native OpenSSL errors
-- Minor: added ability to choose any cipher for encryption
-- Minor: added ability to choose any digest for encryption
-- Minor: added ability to choose any digest for hashing
-- Release: added how-to encryption article
-- Minor: added path_info/query_string and request_method to command line execution generator (vv -r)
-- Release: using digest and cipher fetching for openssl 3
-- Release: fixed issue with docker test
-- Release: added stress test for crypto
-- Release: added web site articles as a category for documentation
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-12-19\fP
-Vely release notes for 15.0.0
-- Minor: added 'define' to 'output' clause in run-query statement so that query output variables can be defined in the query itself. This makes query code shorter and easier to work with.
-- Minor: added set-input statement to dynamically change the value of an input parameter in the request handler.
-- Release: enforce that content length must be present if content type specified in a request.
-- Release: fixed bug where input parameter or query result name could not begin with underscore.
-- Major: removed url-param statement as it is harder to meaningfully manipulate both query string and path segments; use match-regex instead.
-- Minor: added '-r' option to vv to produce a helper output on how to specify HTTP environment variables for running a command-line program or FastCGI client.
-- Release: fixed bug where hyphens in query string parameter names do not get converted to underscores.
-- Release: increased performance of vv application building by fixing cache for database settings.
-- Major: removed 'url' clause in get-req as superfluous; obtain query string, path segments etc. by using get-sys with variables like QUERY_STRING, SCRIPT_NAME, PATH_INFO etc. Added 'Getting URL' to documentation detailing this.
-- Minor: added ability to process any kind of request method, aside from standard REST methods such as GET, PUT, POST, PATCH, DELETE. For example, a request method 'NEWMETHOD' can be used and processed like any other.
-- Release: added REST API example (shopping application).
-- Release: documentation typos fixed.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-11-29\fP
-Vely release notes for 14.2.0
-- Minor: simplified URLs to access applications. Path-based URLs are now the default form of URL. This means a URL path in form of /app-path/request-name followed by optional REST-style parameters and a query string. This kind of URL is easier to read and write, general-purpose, and flexible for both REST and non-REST usage. The existing normalized URL will still be available.
-- Minor: examples updated with new URL defaults; old ones still work the same to ensure backward compatibility.
-- Release: documentation on URL structure and URL building simplified and a number of erratas fixed.
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fI2022-11-20\fP
-Vely release notes for 14.1.2
-- Release: fix environment substitution issue for docker tests
-Vely release notes for 14.1.0
-- Release: bug fix with db config file when it ends with a dollar sign
-- Release: better documentation for request URLs (REST), clearer explanation of URL types
-- Release: changed environment variable substitution from gnu envsubst to Vely's own, equally fast but much smaller
-- Release: added more tests; now over 1050 Vely functional tests
-- Minor: added -u option to vv to perform environment substitutin at will
 
 .RE
 

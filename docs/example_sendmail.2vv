@@ -16,7 +16,7 @@ submittal of the form that sends an email, and confirmation displayed.
 .RE
 
 
-In a nutshell: 1 source files, 79 lines of code; no database; web browser; Apache; Unix sockets;
+In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -117,7 +117,7 @@ vf sendmail
 
 See \fBvf\fP for more options to help you achieve best performance.
 
-To stop your application server:
+If you want to stop your application server:
 
 .RS 4
 .EX
@@ -429,4 +429,4 @@ void mail()
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)

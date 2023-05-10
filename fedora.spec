@@ -2,7 +2,7 @@
 #Copyright 2017 DaSoftver LLC.
 
 Name:   vely    
-Version:    16.9.4
+Version:    16.10.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC
@@ -128,6 +128,7 @@ exit 0
 %{_libdir}/vely/v.vim
 %{_libdir}/vely/sys
 %{_libdir}/vely/v1
+%{_libdir}/vely/CHANGELOG
 %{_bindir}/vf
 %{_bindir}/vv
 %{_mandir}/man2/*.2v*

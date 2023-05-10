@@ -144,7 +144,7 @@ num vely_read_json (vely_json *j, char *key, char **to, num *type)
     VV_TRACE("");
 
     num st;
-    vely_jsonn *n = (vely_jsonn*)vely_find_hash (j->hash, key, 0, &st);
+    vely_jsonn *n = (vely_jsonn*)vely_find_hash (j->hash, key, 0, &st, NULL);
     if (st == VV_ERR_EXIST) return VV_ERR_EXIST; // VERR0 done in vely_find_hash
     else 
     {
@@ -195,7 +195,9 @@ void vely_add_json_hash (vely_json *j)
     for (i = 0; i < j->node_c; i++)
     {
         // not checking for old value, always gets replaced
-        vely_add_hash (j->hash, j->nodes[i].name, (void*)&(j->nodes[i]), &(st));
+        // do not check for old key in hash, because we do not allocate the key (it's part of the document passed in)
+        // so no need to free a duplicate key
+        vely_add_hash (j->hash, j->nodes[i].name, (void*)&(j->nodes[i]), &(st), NULL);
         // generally should be one or the other, but should always succeed
         // if (st != VV_OKAY && st != VV_ERR_EXIST) vely_report_error ("Cannot add JSON text to internal hash");
     }
