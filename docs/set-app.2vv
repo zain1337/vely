@@ -43,4 +43,10 @@ set-app process-data mydata
 
 See \fBglobal_process_data\fP for more details and an example.
 .SH SEE ALSO
- \fIApplication information\fP ( \fBget-app\fP   \fBset-app\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Application information
+
+\fBget-app\fP  
+\fBset-app\fP    
+See all 
+\fBdocumentation\fP

@@ -47,7 +47,7 @@ Note that request-specific variables provided by Vely are always managed interna
 
 You may want to store managed memory pointers in \fBglobal_process_data\fP in order to be useful across many requests - this is one purpose of unmanaged memory. Another is to use with external C APIs.
 
-\fIImportant\fP: using unmanaged memory carries additional responsibilities for the developer, because any such \fBallocated memory\fP must be explicitly deleted when not needed, or there will be a memory leak. Use it only in special circumstances; its use is generally discouraged otherwise. Such circumstances typically involve data that should survive automatic memory deallocation at the end of the request or with external C API. 
+Important: using unmanaged memory carries additional responsibilities for the developer, because any such \fBallocated memory\fP must be explicitly deleted when not needed, or there will be a memory leak. Use it only in special circumstances; its use is generally discouraged otherwise. Such circumstances typically involve data that should survive automatic memory deallocation at the end of the request or with external C API. 
 
 .SH EXAMPLES
 In this example, the input parameter to a very first request issued in a process is copied to variable "var", the value of which then persists for all following requests:
@@ -84,4 +84,13 @@ manage-memory on
 .RE
 
 .SH SEE ALSO
- \fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Memory
+
+\fBdelete-mem\fP  
+\fBmanage-memory\fP  
+\fBmemory_handling\fP  
+\fBnew-mem\fP  
+\fBresize-mem\fP    
+See all 
+\fBdocumentation\fP

@@ -45,4 +45,10 @@ if (strcmp (utf8, txt) || txt_status != VV_OKAY || txt_error[0] != 0) {
 .RE
 
 .SH SEE ALSO
- \fIUTF8\fP ( \fBjson-utf8\fP   \fButf8-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - UTF8
+
+\fBjson-utf8\fP  
+\fButf8-json\fP    
+See all 
+\fBdocumentation\fP

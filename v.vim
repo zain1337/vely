@@ -647,10 +647,66 @@ syn region vv_r_construct_uniq_file start="^[[:space:]]*uniq-file" skip="\\[[:sp
     hi def link vv_h_clause_uniq_file    velyClause
     hi def link vv_h_construct_uniq_file    velyConstruct
     hi def link vv_h_print_inline_uniq_file    velyConstruct
+syn region vv_r_construct_call_server start="^[[:space:]]*call-server" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_call_server,vv_r_inline_call_server,vv_r_at
+    syn match vv_h_construct_call_server "^[[:space:]]*call-server" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server " array-count \@=" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server " finished-okay \@=" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server " started \@=" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server " status \@=" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server "[=]\@<=define \@=" contained containedin=vv_r_construct_call_server
+    syn match vv_h_clause_call_server " define \@=" contained containedin=vv_r_construct_call_server
+    hi def link vv_h_clause_call_server    velyClause
+    hi def link vv_h_construct_call_server    velyConstruct
+    hi def link vv_h_print_inline_call_server    velyConstruct
+syn region vv_r_construct_delete_server start="^[[:space:]]*delete-server" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_delete_server,vv_r_inline_delete_server,vv_r_at
+    syn match vv_h_construct_delete_server "^[[:space:]]*delete-server" contained containedin=vv_r_construct_delete_server
+    syn match vv_h_clause_delete_server "[=]\@<=define \@=" contained containedin=vv_r_construct_delete_server
+    syn match vv_h_clause_delete_server " define \@=" contained containedin=vv_r_construct_delete_server
+    hi def link vv_h_clause_delete_server    velyClause
+    hi def link vv_h_construct_delete_server    velyConstruct
+    hi def link vv_h_print_inline_delete_server    velyConstruct
+syn region vv_r_construct_read_server start="^[[:space:]]*read-server" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_read_server,vv_r_inline_read_server,vv_r_at
+    syn match vv_h_construct_read_server "^[[:space:]]*read-server" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " data \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " data-length \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " error \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " error-length \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " request-status \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " status \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " status-text \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server "[=]\@<=define \@=" contained containedin=vv_r_construct_read_server
+    syn match vv_h_clause_read_server " define \@=" contained containedin=vv_r_construct_read_server
+    hi def link vv_h_clause_read_server    velyClause
+    hi def link vv_h_construct_read_server    velyConstruct
+    hi def link vv_h_print_inline_read_server    velyConstruct
+syn region vv_r_construct_new_server start="^[[:space:]]*new-server" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_new_server,vv_r_inline_new_server,vv_r_at
+    syn match vv_h_construct_new_server "^[[:space:]]*new-server" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " app-path \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " content \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " content-length \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " content-type \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " environment \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " location \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " method \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " request-body \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " request-path \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " timeout \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " url-payload \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server "[=]\@<=define \@=" contained containedin=vv_r_construct_new_server
+    syn match vv_h_clause_new_server " define \@=" contained containedin=vv_r_construct_new_server
+    hi def link vv_h_clause_new_server    velyClause
+    hi def link vv_h_construct_new_server    velyConstruct
+    hi def link vv_h_print_inline_new_server    velyConstruct
 syn region vv_r_construct_call_web start="^[[:space:]]*call-web" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_call_web,vv_r_inline_call_web,vv_r_at
     syn match vv_h_construct_call_web "^[[:space:]]*call-web" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " cert \@=" contained containedin=vv_r_construct_call_web
+    syn match vv_h_clause_call_web " content \@=" contained containedin=vv_r_construct_call_web
+    syn match vv_h_clause_call_web " content-length \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " content-type \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " cookie-jar \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " custom \@=" contained containedin=vv_r_construct_call_web
@@ -660,8 +716,6 @@ syn region vv_r_construct_call_web start="^[[:space:]]*call-web" skip="\\[[:spac
     syn match vv_h_clause_call_web " method \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " no-cert \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " no-cert$" contained containedin=vv_r_construct_call_web
-    syn match vv_h_clause_call_web " payload \@=" contained containedin=vv_r_construct_call_web
-    syn match vv_h_clause_call_web " payload-length \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " request-body \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " request-headers \@=" contained containedin=vv_r_construct_call_web
     syn match vv_h_clause_call_web " response \@=" contained containedin=vv_r_construct_call_web

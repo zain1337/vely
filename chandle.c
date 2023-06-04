@@ -230,9 +230,6 @@ void signal_handler(int sig)
 
     switch(sig)
     {
-        case SIGUSR1:
-        case SIGUSR2:
-            // ignore USR1,2 as it has no meaning in VELY. 
         case SIGFPE:
             vely_strncpy(expla, "Caught SIGFPE: math exception, such as divide by zero\n",
                 MAX_EXPL_LEN - 1);
@@ -301,11 +298,11 @@ void set_signal_handler()
     sigaction(SIGBUS, &psa, NULL);
     sigaction(SIGTERM, &psa, NULL);
     sigaction(SIGHUP, &psa, NULL);
-    sigaction(SIGUSR1, &psa, NULL);
-    sigaction(SIGUSR2, &psa, NULL);
     // ignore these
     signal(SIGPIPE, SIG_IGN); // ignore broken pipe
     signal(SIGINT, SIG_IGN); // ignore ctrl c and such
+    signal(SIGUSR1, SIG_IGN); // ignore as it has no meaning for Vely
+    signal(SIGUSR2, SIG_IGN); // ignore as it has no meaning for Vely
     // CANNOT ignore SIGCHLD because we DO need status from them
     // DO NOT do anything with SIGALRM - curl uses it for timeouts
 }

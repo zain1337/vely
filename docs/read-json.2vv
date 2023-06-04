@@ -212,4 +212,11 @@ read-json jv key "glossary"."title" value d
 .RE
 
 .SH SEE ALSO
- \fIJSON\fP ( \fBdelete-json\fP   \fBnew-json\fP   \fBread-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - JSON
+
+\fBdelete-json\fP  
+\fBnew-json\fP  
+\fBread-json\fP    
+See all 
+\fBdocumentation\fP

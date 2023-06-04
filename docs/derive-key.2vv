@@ -54,4 +54,14 @@ derive-key define mk from "clave secreta" digest "sha-256" salt rs9 salt-length 
 .RE
 
 .SH SEE ALSO
- \fIEncryption\fP ( \fBdecrypt-data\fP   \fBderive-key\fP   \fBencrypt-data\fP   \fBhash-string\fP   \fBrandom-crypto\fP   \fBrandom-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Encryption
+
+\fBdecrypt-data\fP  
+\fBderive-key\fP  
+\fBencrypt-data\fP  
+\fBhash-string\fP  
+\fBrandom-crypto\fP  
+\fBrandom-string\fP    
+See all 
+\fBdocumentation\fP

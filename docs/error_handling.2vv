@@ -50,4 +50,12 @@ vv -e 3
 .RE
 
 .SH SEE ALSO
- \fIError handling\fP ( \fBerror_code\fP   \fBerror_handling\fP   \fBon-error\fP   \fBreport-error\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Error handling
+
+\fBerror_code\fP  
+\fBerror_handling\fP  
+\fBon-error\fP  
+\fBreport-error\fP    
+See all 
+\fBdocumentation\fP

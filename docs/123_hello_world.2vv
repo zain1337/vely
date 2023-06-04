@@ -111,6 +111,11 @@ export PATH_INFO="/hello"
 The end result looks like this (notice in bold the responses from your web application and the command line):
 
 (Image 123result.png not available in man page, see web page documentation)
-You have run Hello World with Vely, first by talking directly to a \fBFastCGI\fP server and then from command line. See \fBFastCGI_client\fP for a similar example that uses TCP sockets.
+You have run Hello World with Vely, first by talking directly to a \fBFastCGI\fP server and then from command line. See \fBFastCGI_command_line_client\fP for a similar example that uses TCP sockets.
 .SH SEE ALSO
- \fIQuick start\fP ( \fB123_hello_world\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Quick start
+
+\fB123_hello_world\fP    
+See all 
+\fBdocumentation\fP

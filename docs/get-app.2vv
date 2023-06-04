@@ -95,4 +95,10 @@ if (!strcmp (dbv, VV_POSTGRES)) {
 .RE
 
 .SH SEE ALSO
- \fIApplication information\fP ( \fBget-app\fP   \fBset-app\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Application information
+
+\fBget-app\fP  
+\fBset-app\fP    
+See all 
+\fBdocumentation\fP

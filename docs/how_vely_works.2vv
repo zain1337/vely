@@ -191,6 +191,14 @@ ln -s /home/disk0/file /var/lib/vv/<app name>/app/file
 
 
 .LP
+.B REMOTE CALLS
+.LP
+
+You can make remote requests, i.e. requests to other \fBFastCGI\fP servers by using \fBcall-server\fP statement, including unlimited number of parallel remote requests, meaning executing in separate threads at the same time without any thread programming on developer's part. 
+
+Because Vely processes that execute remote requests are kept alive, the cost of starting and terminating requests is zero. That's why this method of parallel distributed computing is very fast; it is also easier and safer because each request executed in parallel does not need to be MT-safe, since such requests execute in separate single-threaded processes. The cost of these processes vs threads is generally small on Linux and because Vely creates lightweight native executables.
+
+.LP
 .B MEMORY ALLOCATION
 .LP
 
@@ -207,5 +215,26 @@ Vely \fBstatement_APIs\fP use mostly strings (char* type only, i.e. no "const ch
 .LP
 
 Do not use object names (such as variables, functions, types) that start with "_vv", "_vely", "vv" or "vely" as those are reserved by Vely.
+
+.LP
+.B LIBRARIES
+.LP
+
+You can use any external libraries with Vely (see "--lflag", "--cflag" with \fBvv\fP). For the implementation of its own functionality, Vely uses standard libraries wherever possible (such as cURL, OpenSSL, PostgreSQL, MariaDB, SQLite etc.). Those libraries are loaded when needed automatically; thus the run-time memory usage is minimized based on your program needs.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

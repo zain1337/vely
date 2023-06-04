@@ -30,4 +30,10 @@ Note that the string to decode can have whitespaces before it (such as spaces or
 .SH EXAMPLES
 See \fBencode-base64\fP.
 .SH SEE ALSO
- \fIBase64\fP ( \fBdecode-base64\fP   \fBencode-base64\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Base64
+
+\fBdecode-base64\fP  
+\fBencode-base64\fP    
+See all 
+\fBdocumentation\fP

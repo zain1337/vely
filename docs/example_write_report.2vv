@@ -2,25 +2,7 @@
 .SH NAME
 example_write_report \- Vely documentation (examples)
 .SH DESCRIPTION
-Builds a report of employees from a database: 
-
-.RS 4
-\[bu]    
-Creates a "reports" directory and a file name with a time stamp, then 
-
-.RE
-
-.RS 4
-\[bu]    
-writes the report to a file and also, 
-
-.RE
-
-.RS 4
-\[bu]    
-displays the report to a web page.
-.RE
-
+Builds a report of employees from a database. Creates a "reports" directory and a file name with a time stamp, then writes the report to a file and also displays the report to a web page.
 
 In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
 
@@ -419,4 +401,23 @@ void write_report()
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Examples
+
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

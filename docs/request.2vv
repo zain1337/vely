@@ -58,4 +58,19 @@ http://<your website>/stocks/get-stock?some_param=some_value...
 
 A request can have any number of input parameters, and based on them, perform any number of actions. A "request" generally refers to a combination of input parameters. Those requests that share the same request name but have different set of parameter names are its subrequests.
 .SH SEE ALSO
- \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP    
+See all 
+\fBdocumentation\fP

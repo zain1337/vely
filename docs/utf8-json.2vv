@@ -57,4 +57,10 @@ if (!strcmp (json_text, expected_result) && encstatus!=-1) {
 .RE
 
 .SH SEE ALSO
- \fIUTF8\fP ( \fBjson-utf8\fP   \fButf8-json\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - UTF8
+
+\fBjson-utf8\fP  
+\fButf8-json\fP    
+See all 
+\fBdocumentation\fP

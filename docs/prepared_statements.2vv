@@ -161,4 +161,19 @@ select col1 from test where someId>='%s' and col1 like concat( '%s'::text ,'%')
 
 This solution generally works for any Postgres client, not just Vely, regardless of how is the positional input parameter specified.
 .SH SEE ALSO
- \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBdelete-query\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Database
+
+\fBbegin-transaction\fP  
+\fBcommit-transaction\fP  
+\fBcurrent-row\fP  
+\fBdatabase_config_file\fP  
+\fBdatabase_queries\fP  
+\fBdelete-query\fP  
+\fBon-error\fP  
+\fBprepared_statements\fP  
+\fBquery-result\fP  
+\fBrollback-transaction\fP  
+\fBrun-query\fP    
+See all 
+\fBdocumentation\fP

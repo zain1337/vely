@@ -7,78 +7,400 @@ documentation \- Vely documentation (documentation)
 .B REFERENCE
 .LP
 
-\fBNote\fP: All the topics below are available as a \fBsingle-page documentation\fP. You can also \fBdownload it\fP as a .tar.gz file and use it on your computer, host it on your web site etc.
+Note: All the topics below are available as a \fBsingle-page documentation\fP. You can also \fBdownload it\fP as a .tar.gz file and use it on your computer, host it on your web site etc.
+
+udl
+ldx
+.B - Application information
+
+\fBget-app\fP  
+\fBset-app\fP   
+.RE
 
 
-\fIApplication information\fP ( \fBget-app\fP   \fBset-app\fP  ) 
+ldx
+.B - Base64
 
-\fIBase64\fP ( \fBdecode-base64\fP   \fBencode-base64\fP  ) 
+\fBdecode-base64\fP  
+\fBencode-base64\fP   
+.RE
 
-\fICookies\fP ( \fBdelete-cookie\fP   \fBget-cookie\fP   \fBset-cookie\fP  ) 
 
-\fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBdelete-query\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  ) 
+ldx
+.B - Client
 
-\fIDebugging\fP ( \fBdebugging\fP   \fBtrace-run\fP  ) 
+\fBFastCGI_API\fP  
+\fBFastCGI_command_line_client\fP   
+.RE
 
-\fIDocumentation\fP ( \fBdocumentation\fP  ) 
 
-\fIEncryption\fP ( \fBdecrypt-data\fP   \fBderive-key\fP   \fBencrypt-data\fP   \fBhash-string\fP   \fBrandom-crypto\fP   \fBrandom-string\fP  ) 
+ldx
+.B - Cookies
 
-\fIError handling\fP ( \fBerror_code\fP   \fBerror_handling\fP   \fBon-error\fP   \fBreport-error\fP  ) 
+\fBdelete-cookie\fP  
+\fBget-cookie\fP  
+\fBset-cookie\fP   
+.RE
 
-\fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  ) 
 
-\fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  ) 
+ldx
+.B - Database
 
-\fIFiles\fP ( \fBclose-file\fP   \fBcopy-file\fP   \fBdelete-file\fP   \fBfile-position\fP   \fBfile_storage\fP   \fBfile_uploading\fP   \fBlock-file\fP   \fBopen-file\fP   \fBread-file\fP   \fBread-line\fP   \fBrename-file\fP   \fBstat-file\fP   \fBtemporary_file\fP   \fBuniq-file\fP   \fBunlock-file\fP   \fBwrite-file\fP  ) 
+\fBbegin-transaction\fP  
+\fBcommit-transaction\fP  
+\fBcurrent-row\fP  
+\fBdatabase_config_file\fP  
+\fBdatabase_queries\fP  
+\fBdelete-query\fP  
+\fBon-error\fP  
+\fBprepared_statements\fP  
+\fBquery-result\fP  
+\fBrollback-transaction\fP  
+\fBrun-query\fP   
+.RE
 
-\fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  ) 
 
-\fIHash table\fP ( \fBget-hash\fP   \fBnew-hash\fP   \fBpurge-hash\fP   \fBread-hash\fP   \fBresize-hash\fP   \fBwrite-hash\fP  ) 
+ldx
+.B - Debugging
 
-\fIHex encoding\fP ( \fBdecode-hex\fP   \fBencode-hex\fP  ) 
+\fBdebugging\fP  
+\fBtrace-run\fP   
+.RE
 
-\fIJSON\fP ( \fBdelete-json\fP   \fBnew-json\fP   \fBread-json\fP  ) 
 
-\fILanguage\fP ( \fBdot\fP   \fBinline_code\fP   \fBstatement_APIs\fP   \fBsyntax_highlighting\fP   \fBunused-var\fP  ) 
+ldx
+.B - Distributed computing
 
-\fILicense\fP ( \fBlicense\fP  ) 
+\fBcall-server\fP  
+\fBdelete-server\fP  
+\fBnew-server\fP  
+\fBread-server\fP   
+.RE
 
-\fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  ) 
 
-\fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  ) 
+ldx
+.B - Documentation
 
-\fIProcess\fP ( \fBglobal_process_data\fP  ) 
+\fBdocumentation\fP   
+.RE
 
-\fIProgram execution\fP ( \fBexec-program\fP   \fBexit-code\fP  ) 
 
-\fIProgram flow\fP ( \fBexit-request\fP  ) 
+ldx
+.B - Encryption
 
-\fIQuick start\fP ( \fB123_hello_world\fP  ) 
+\fBdecrypt-data\fP  
+\fBderive-key\fP  
+\fBencrypt-data\fP  
+\fBhash-string\fP  
+\fBrandom-crypto\fP  
+\fBrandom-string\fP   
+.RE
 
-\fIRegex\fP ( \fBmatch-regex\fP  ) 
 
-\fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  ) 
+ldx
+.B - Error handling
 
-\fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  ) 
+\fBerror_code\fP  
+\fBerror_handling\fP  
+\fBon-error\fP  
+\fBreport-error\fP   
+.RE
 
-\fIRunning application\fP ( \fBapplication_setup\fP   \fBCGI\fP   \fBClient_API\fP   \fBcommand_line\fP   \fBcontainerize_application\fP   \fBFastCGI\fP   \fBFastCGI_client\fP   \fBplain_C_FCGI\fP  ) 
 
-\fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  ) 
+ldx
+.B - Examples
 
-\fISystem information\fP ( \fBget-sys\fP  ) 
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP   
+.RE
 
-\fITime\fP ( \fBget-time\fP  ) 
 
-\fIURL encoding\fP ( \fBdecode-url\fP   \fBencode-url\fP  ) 
+ldx
+.B - FIFO
 
-\fIUTF8\fP ( \fBjson-utf8\fP   \fButf8-json\fP  ) 
+\fBnew-fifo\fP  
+\fBpurge-fifo\fP  
+\fBread-fifo\fP  
+\fBrewind-fifo\fP  
+\fBwrite-fifo\fP   
+.RE
 
-\fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  ) 
 
-\fIWeb encoding\fP ( \fBdecode-web\fP   \fBencode-web\fP  ) 
+ldx
+.B - Files
 
-\fIWeb servers\fP ( \fBconnect_apache_tcp_socket\fP   \fBconnect_apache_unix_socket\fP   \fBconnect_nginx_tcp_socket\fP   \fBconnect_nginx_unix_socket\fP  ) 
+\fBclose-file\fP  
+\fBcopy-file\fP  
+\fBdelete-file\fP  
+\fBfile-position\fP  
+\fBfile_storage\fP  
+\fBfile_uploading\fP  
+\fBlock-file\fP  
+\fBopen-file\fP  
+\fBread-file\fP  
+\fBread-line\fP  
+\fBrename-file\fP  
+\fBstat-file\fP  
+\fBtemporary_file\fP  
+\fBuniq-file\fP  
+\fBunlock-file\fP  
+\fBwrite-file\fP   
+.RE
+
+
+ldx
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP   
+.RE
+
+
+ldx
+.B - Hash table
+
+\fBget-hash\fP  
+\fBnew-hash\fP  
+\fBpurge-hash\fP  
+\fBread-hash\fP  
+\fBresize-hash\fP  
+\fBwrite-hash\fP   
+.RE
+
+
+ldx
+.B - Hex encoding
+
+\fBdecode-hex\fP  
+\fBencode-hex\fP   
+.RE
+
+
+ldx
+.B - JSON
+
+\fBdelete-json\fP  
+\fBnew-json\fP  
+\fBread-json\fP   
+.RE
+
+
+ldx
+.B - Language
+
+\fBdot\fP  
+\fBinline_code\fP  
+\fBstatement_APIs\fP  
+\fBsyntax_highlighting\fP  
+\fBunused-var\fP   
+.RE
+
+
+ldx
+.B - License
+
+\fBlicense\fP   
+.RE
+
+
+ldx
+.B - Memory
+
+\fBdelete-mem\fP  
+\fBmanage-memory\fP  
+\fBmemory_handling\fP  
+\fBnew-mem\fP  
+\fBresize-mem\fP   
+.RE
+
+
+ldx
+.B - Output
+
+\fBfinish-output\fP  
+\fBflush-output\fP  
+\fBoutput_statement\fP  
+\fBp-dbl\fP  
+\fBpf-out\fP  
+\fBpf-url\fP  
+\fBpf-web\fP  
+\fBp-num\fP  
+\fBp-out\fP  
+\fBp-path\fP  
+\fBp-url\fP  
+\fBp-web\fP   
+.RE
+
+
+ldx
+.B - Process
+
+\fBglobal_process_data\fP   
+.RE
+
+
+ldx
+.B - Program execution
+
+\fBexec-program\fP  
+\fBexit-code\fP   
+.RE
+
+
+ldx
+.B - Program flow
+
+\fBexit-request\fP   
+.RE
+
+
+ldx
+.B - Quick start
+
+\fB123_hello_world\fP   
+.RE
+
+
+ldx
+.B - Regex
+
+\fBmatch-regex\fP   
+.RE
+
+
+ldx
+.B - Request information
+
+\fBget-req\fP  
+\fBinput-param\fP  
+\fBrequest-body\fP  
+\fBset-input\fP  
+\fBset-req\fP   
+.RE
+
+
+ldx
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP   
+.RE
+
+
+ldx
+.B - Running application
+
+\fBapplication_setup\fP  
+\fBCGI\fP  
+\fBcommand_line\fP  
+\fBcontainerize_application\fP  
+\fBFastCGI\fP  
+\fBplain_C_FCGI\fP   
+.RE
+
+
+ldx
+.B - Strings
+
+\fBcopy-string\fP  
+\fBcount-substring\fP  
+\fBlower-string\fP  
+\fBsplit-string\fP  
+\fBtrim-string\fP  
+\fBupper-string\fP  
+\fBwrite-string\fP   
+.RE
+
+
+ldx
+.B - System information
+
+\fBget-sys\fP   
+.RE
+
+
+ldx
+.B - Time
+
+\fBget-time\fP   
+.RE
+
+
+ldx
+.B - URL encoding
+
+\fBdecode-url\fP  
+\fBencode-url\fP   
+.RE
+
+
+ldx
+.B - UTF8
+
+\fBjson-utf8\fP  
+\fButf8-json\fP   
+.RE
+
+
+ldx
+.B - Web
+
+\fBcall-web\fP  
+\fBout-header\fP  
+\fBsend-file\fP  
+\fBsilent-header\fP   
+.RE
+
+
+ldx
+.B - Web encoding
+
+\fBdecode-web\fP  
+\fBencode-web\fP   
+.RE
+
+
+ldx
+.B - Web servers
+
+\fBconnect_apache_tcp_socket\fP  
+\fBconnect_apache_unix_socket\fP  
+\fBconnect_nginx_tcp_socket\fP  
+\fBconnect_nginx_unix_socket\fP   
+.RE
+
+
 
 
 .LP

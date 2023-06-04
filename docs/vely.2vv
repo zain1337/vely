@@ -4,45 +4,119 @@ vely \- Vely documentation (general)
 .SH DESCRIPTION
 Vely official web page
 
+.LP
+.B VELY
+.LP
+
+
+.B - What is Vely?
+
+Vely is a C web framework (and also a general-purpose framework for C programming language) for building high-performance and lightweight software applications. It's Free \fBOpen Source\fP (under the \fBEclipse Public License 2 (EPL-2)\fP).
+
+
+.B - Why Vely?
+
+Get maximum possible performance with code that's ergonomic, feature-rich, easy to write and read, and considerably safer than C alone. If you'd like to know more why you should use C in your next project with Vely as a framework, read about \fBwhy C and why Vely\fP.
+
+
+.B - Uses of Vely
+
+You can develop web applications, plain command-line programs, cloud applications, middleware, database applications or anything else and benefit from C's high performance at the same time. There is no need to compromise between the two.
+
+
+.B - Native and Earth-friendly
+
+Vely applications are 100% native high-performance and low-footprint without interpreters or byte-code schemes. Vely is not object-oriented, it's declarative and functional. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. It's time to help the Earth while making programming easier and applications faster!
+
+.LP
+.B C PROGRAMMING LANGUAGE
+.LP
+
+
 .B - The power of C
 
-C is the \fBfastest and most energy-efficient\fP programming language. Buffer overwrites, memory management and low-level coding may have been reasons you'd choose another language in the past. Vely changes that by turning C into a rapid software development platform that's safer and easier. You can develop cloud applications, middleware, database applications or anything else and benefit from C's high performance at the same time. There is no need to compromise between the two. Moore's Law is slowing down and it's time to transition away from the bloated programming languages and frameworks, and towards efficiency and high performance. From the \fBMIT Technology review\fP: "Thompson and his colleagues showed that they could get a computationally intensive calculation to run some 47 times faster just by switching from ... a popular general-purpose programming language, to the more efficient C". More on \fBwhy C and why Vely\fP.
+C is the \fBfastest and most energy-efficient\fP programming language. Buffer overwrites, memory management and low-level coding may have been reasons you'd choose another language in the past. Vely changes that by turning C into a rapid software development platform that's safer and easier. 
 
-.B - Free Open Source framework
 
-Vely is a general-purpose framework for building high-performance and lighweight software applications, based on C programming language. It is especially well suited for web applications. It's Free \fBOpen Source\fP (under the \fBEclipse Public License 2 (EPL-2)\fP), created by \fBSergio Mijatovic\fP. 
+.B - Moore's Law and the Big Bloat
 
-.B - Start now
+Moore's Law is slowing down spelling trouble for the bloated languages and frameworks. From the \fBMIT Technology review\fP: "Thompson and his colleagues showed that they could get a computationally intensive calculation to run some 47 times faster just by switching from ... a popular general-purpose programming language, to the more efficient C".
 
-You don't need to be a C expert. Install \fBin minutes\fP, then try \fB123_hello_world\fP and \fBexamples\fP for everything from a database example and a file manager to a multitenant SaaS application. 
+.LP
+.B STANDARDS, RELIABILITY, COMPLIANCE
+.LP
 
-.B - Application server
 
-Run a FastCGI application server that is accessible from Apache, Nginx or any other web server in minutes, for enhanced performance, safety and stability.
+.B - Proven libraries
 
-.B - Database support
+Vely uses well-known and widely used Free Open Source libraries like cURL, OpenSSL, crypto, FastCGI, standard database-connectivity libraries from MariaDB, PostgreSQL, SQLite etc., increasing compliance, performance and reliability.
 
-Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP). 
-
-.B - Support for just about anything
-
-Vely \fBstatements\fP are \fBprecompiled\fP into C code, and cover web, database, strings, files, flow and execution, encoding/encryption, REST, JSON, time, error handling, daemon-izing code and other common tasks (see \fBdocumentation\fP). They are safer than C (no need to allocate memory or free it, avoiding major pitfalls) and very easy - generally one-liners, largely self-explanatory and more powerful than traditional API. Vely code is a breeze to read - it's just as important as the ease of writing it. Same code works for both web applications and \fBcommand_line\fP programs. Easily \fBcontainerize_application\fPs. 
-
-.B - Native and simple
-
-Vely applications are 100% native high-performance and low-footprint \fIwithout interpreters or byte-code schemes\fP. Vely is not object-oriented, it's declarative and functional. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. It's time to help the Earth while making programming easier and applications faster!
 
 .B - Standards-based
 
 A Vely application works by processing standard HTTP requests, which simplifies the program interface across the board. Each \fBrequest_URL\fP by default states the application name and a request name which is the source file handling it. So, "/appname/mycode" means that application name is "appname" and that "mycode()" function defined in file mycode.vely will execute. Read more about \fBvely_architecture\fP and \fBhow_vely_works\fP.
 
+.LP
+.B IN MINUTES
+.LP
+
+
+.B - Start now
+
+You don't need to be a C expert. Install \fBin minutes\fP, then try \fB123_hello_world\fP and \fBexamples\fP for everything from a database example and a file manager to a multitenant SaaS application.
+
+.LP
+.B DO ANYTHING WITH VELY
+.LP
+
+
+.B - Application server
+
+Run a FastCGI application server that is accessible from Apache, Nginx or any other web server in minutes, for enhanced performance, safety and stability.
+
+
+.B - Database support
+
+Database support is included (\fBMariaDB\fP, \fBPostgreSQL\fP, \fBSQLite\fP). You don't have to do link with libraries or learn complicated API - see how simple \fBrun-query\fP is.
+
+
+.B - Support for virtually anything
+
+Vely \fBstatements\fP are \fBprecompiled\fP into C code, and cover web, database, strings, files, flow and execution, encoding/encryption, REST, JSON, time, error handling, daemon-izing code and other common tasks (see \fBdocumentation\fP).
+
+
+.B - Writing Vely code
+
+Vely is safer than C (no need to allocate memory or free it) and generally one-liners, largely self-explanatory and more powerful than traditional API. Vely code is a breeze to read - it's just as important as the ease of writing it. Same code works for both web applications and \fBcommand_line\fP programs. Easily \fBcontainerize_application\fPs.
+
+
+.B - Distributed parallel computing without multi-threaded coding
+
+Execute remote requests in parallel, and get results, error messages and exit status in a single command (see \fBcall-server\fP). This makes it easy to distribute and parallelize your application logic and/or build application tiers on a local or any number of remote machines, without having to write any multi-threaded code.
+
+
+.B - Keep existing applications
+
+Use existing C code in Vely applications. Use simple \fBFastCGI_API\fP to connect to a Vely application server from any program, C or otherwise - as long as it has C linkage capability, which most languages do. This works with both single and multi-threaded applications.
+
+.LP
+.B QUALITY
+.LP
+
+
 .B - Quality and continuous testing
 
-Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1537 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release. 
+Each Vely release must pass rigorous tests on every platform where it's available before it's released. There are currently 1603 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
+
 
 .B - Report bugs, request features, contact
 
 Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
+
+.LP
+.B SOURCE CODE
+.LP
+
 
 .B - Source code
 
@@ -50,7 +124,14 @@ Official source code git repo is \fBhere\fP (click on Source to clone), and mirr
 
 
 
-\fBhl
+
+
+
+
+
+
+
+
 
 .LP
 .B RELEASE NOTES
@@ -60,7 +141,21 @@ Official source code git repo is \fBhere\fP (click on Source to clone), and mirr
 
 .RS 4
 \[bu]    
-\fI2023-05-01\fP
+2023-05-10
+Vely release notes for 16.10.0
+- Release: Vely available on Fedora 38.    
+- Release: added -a option to vv for viewing changelog for the current release.
+- Release: fixed bug in deleting key in hash list due to memory leak.
+- Minor: added old-key clause in read-hash statement.
+- Release: added hash server example.
+- Release: added 11 new tests.
+
+.RE
+
+
+.RS 4
+\[bu]    
+2023-05-01
 Vely release notes for 16.9.4
 - Release: fixed bug: path info would not work with query string in FastCGI Client C API; updated tests and added example to documentation.
 - Release: vim highlighting update for Vely syntax.
@@ -70,7 +165,7 @@ Vely release notes for 16.9.4
 
 .RS 4
 \[bu]    
-\fI2023-04-27\fP
+2023-04-27
 Vely release notes for 16.9.0
 - Minor: added unmanaged memory, i.e. memory that can be used for the life of the process across many requests, and also with any external C API libraries.
 - Release: fixed duplicate memory leak in vf process manager.
@@ -99,7 +194,7 @@ Vely release notes for 16.9.0
 
 .RS 4
 \[bu]    
-\fI2023-04-14\fP
+2023-04-14
 Vely release notes for 16.8.0
 - Minor: added 'name' clause to run-query to be used with any statements that operate on a query afterwards.
 - Minor: added delete-query statement to release all memory associated with the query, including the query results.
@@ -108,15 +203,6 @@ Vely release notes for 16.8.0
 .RE
 
 
-.RS 4
-\[bu]    
-\fI2023-04-10\fP
-Vely release notes for 16.7.0
-- Minor: added on-error-exit, on-error-continue, error and error-text to begin,commit and rollback transaction.
-- Release: added current year to vv -v.
-- Release: documentation update and 10 new functional tests.
-
-.RE
-
-
 For more release notes, \fBclick here\fP.
+
+Vely's author is \fBSergio Mijatovic\fP.

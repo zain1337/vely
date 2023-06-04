@@ -53,4 +53,19 @@ A single Vely process (see \fBhow_vely_works\fP and \fBvely_architecture\fP) kee
 
 The autocommit feature is enabled by default on all supported databases. Do not disable it, as that would cause unpredictable and inconsistent behavior.  Whenever you need a transactional behavior, use \fBcommit-transaction\fP to begin a transaction and \fBcommit-transaction\fP/\fBrollback-transaction\fP to end it.  Also, in general, multiple DML statements (such as INSERT) are faster within a transaction block because the data is not flushed with each one, but rather once per block.
 .SH SEE ALSO
- \fIDatabase\fP ( \fBbegin-transaction\fP   \fBcommit-transaction\fP   \fBcurrent-row\fP   \fBdatabase_config_file\fP   \fBdatabase_queries\fP   \fBdelete-query\fP   \fBon-error\fP   \fBprepared_statements\fP   \fBquery-result\fP   \fBrollback-transaction\fP   \fBrun-query\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Database
+
+\fBbegin-transaction\fP  
+\fBcommit-transaction\fP  
+\fBcurrent-row\fP  
+\fBdatabase_config_file\fP  
+\fBdatabase_queries\fP  
+\fBdelete-query\fP  
+\fBon-error\fP  
+\fBprepared_statements\fP  
+\fBquery-result\fP  
+\fBrollback-transaction\fP  
+\fBrun-query\fP    
+See all 
+\fBdocumentation\fP

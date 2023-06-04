@@ -2,7 +2,7 @@
 .SH NAME
 normalized_URL \- Vely documentation (requests)
 .SH DESCRIPTION
-A \fBrequest_URL\fP can be written entirely as a query string. This is normalized URL. In this case, request name is omitted as a path segment and is specified as a "req" input parameter along with all other input parameters. Query string follows the application path. 
+A \fBrequest_URL\fP can be written entirely as a query string. This is a normalized URL. In this case, request path is omitted and is specified as a "req" input parameter along with all other input parameters. Query string follows the application path. 
 
 For instance a URL like:
 
@@ -28,4 +28,19 @@ A \fBrequest\fP name "buy_item" (hyphens get converted to underscores) is now th
 
 Note that parameter name "req" has a special meaning only in normalized URLs. You can use it just like any other input parameter otherwise.
 .SH SEE ALSO
- \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP    
+See all 
+\fBdocumentation\fP

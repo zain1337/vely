@@ -77,4 +77,10 @@ if (!strncmp(dt,new_dt,6)) {
 .RE
 
 .SH SEE ALSO
- \fIBase64\fP ( \fBdecode-base64\fP   \fBencode-base64\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Base64
+
+\fBdecode-base64\fP  
+\fBencode-base64\fP    
+See all 
+\fBdocumentation\fP

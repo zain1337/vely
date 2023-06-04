@@ -61,21 +61,21 @@ Run in the foreground. The process does not return to the command line prompt un
 
 .RS 4
 \[bu]    
--p
-TCP/IP port number your FCGI program will listen on (and accept connections), if you are using TCP/IP. You typically need to specify ProxyPass, "location" or similar FCGI directives in your proxy web server so it can connect to your application. You can either use TCP/IP or Unix domain sockets (-x option). Typically, you would use Unix domain sockets if proxy web server runs on the same computer as your application server. If you specify neither -x nor -p, -x (unix domain socket) is assumed to be used. See \fBSELinux\fP if you are using it, as additional steps may be required.
+-p <port number>
+TCP/IP port number your FCGI program will listen on (and accept connections), if you are using TCP/IP. You typically need to specify ProxyPass, "location" or similar FCGI directives in your proxy web server so it can connect to your application. If you are using \fBFastCGI_API\fP or \fBcall-server\fP, you would use "<host name>:<port number>", for instance "127.0.0.1:2301" if the server is local and <port number> is 2301. You can either use TCP/IP or Unix domain sockets (-x option). Typically, you would use Unix domain sockets if proxy web server runs on the same computer as your application server. If you specify neither -x nor -p, -x (unix domain socket) is assumed to be used. See \fBSELinux\fP if you are using it, as additional steps may be required.
 
 .RE
 
 .RS 4
 \[bu]    
 -x
-Use Unix domain socket to connect from proxy web server to your application server. This socket is automatically created by vf. You typically need to specify ProxyPass, "location" or similar FCGI directives in your proxy web server so it can connect to your application. If you specify neither -x nor -p (TCP/IP socket), then -x (unix domain socket) is assumed to be used.
+Use Unix domain socket to connect from proxy web server to your application server. This socket is automatically created by vf and its full path name is "/var/lib/vv/<app name>/sock/sock" (you can connect to it via \fBFastCGI_API\fP, \fBcall-server\fP etc.). When using a proxy web server (like Apache or Nginx), you typically need to specify ProxyPass, "location" or similar FCGI directives so it can connect to your application. If you specify neither -x nor -p (TCP/IP socket), then -x (unix domain socket) is assumed to be used.
 
 .RE
 
 .RS 4
 \[bu]    
--l
+-l <backlog size>
 The size of socket listening backlog for incoming connections. It must be a number between 10 and SOMAXCONN-1, inclusive. The default is 400. Increase it if your system is very busy to improve performance.
 
 .RE
@@ -110,15 +110,15 @@ Timeout before the number of FCGI processes is reduced to meet the reduced load.
 
 .RS 4
 \[bu]    
--w
+-w <worker processes>
 Number of parallel FCGI processes ("worker" processes) that will be started. These processes do not exit; they serve incoming requests in parallel, one request per process. The number of processes should be guided by the concurrent user demand of your application. If neither -d nor -w is specified, -d is the default.
 
 .RE
 
 .RS 4
 \[bu]    
--m
-Send a command to vf daemon serving an application. Command can be "start" (to start FCGI processes), "stop" (to stop FCGI processes), "restart" (to restart FCGI processes), "quit" (to stop vf daemon altogether) or "status" (to display status of vf). 
+-m <command>
+Send a command to vf daemon serving an application. <command> can be "start" (to start FCGI processes), "stop" (to stop FCGI processes), "restart" (to restart FCGI processes), "quit" (to stop vf daemon altogether) or "status" (to display status of vf). 
 
 .RE
 
@@ -138,14 +138,14 @@ Do not restart FCGI processes when their executable changes. By default, they wi
 
 .RS 4
 \[bu]    
--a
-Specify any command-line arguments for your application (typically retrieved by argc/argv arguments to main()). The arguments should be double-quoted as a whole, while use of single quotes to quote arguments that contain whitespaces is permitted. 
+-a <args>
+Specify any command-line arguments for your application (typically retrieved by argc/argv arguments to main()). The <args> should be double-quoted as a whole, while use of single quotes to quote arguments that contain whitespaces is permitted. 
 
 .RE
 
 .RS 4
 \[bu]    
--s
+-s <sleep millisecs>
 The basis time period (in milliseconds) that vf will sleep before checking for commands (specified by -m option), or check for dead FCGI processes that need restarting. It can be between 100 and 5000 milliseconds. Smaller value will mean higher responsiveness but also higher CPU usage. The default value usually suffices nicely, and should not be changed without due consideration.
 
 .RE
@@ -337,4 +337,19 @@ pkg-config systemd --variable=systemdsystemunitdir
 
 The file should be saved as <app name>.service (or similar). Once saved, you can use standard systemctl commands to start, stop and restart your service.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

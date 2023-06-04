@@ -77,4 +77,9 @@ get-sys os-name to define os_name
 .RE
 
 .SH SEE ALSO
- \fISystem information\fP ( \fBget-sys\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - System information
+
+\fBget-sys\fP    
+See all 
+\fBdocumentation\fP

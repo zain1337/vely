@@ -47,7 +47,7 @@ else
     VV_FCGI_INCLUDE=
 endif
 
-_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
+_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_FCGI_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
 
 
 

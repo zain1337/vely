@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-FastCGI_client \- Vely documentation (running_application)
+FastCGI_command_line_client \- Vely documentation (Client)
 .SH DESCRIPTION
 You can use cgi-fcgi command-line utility to communicate with your \fBFastCGI\fP application without using a web server. Use it to get responses from the command line. This is useful for shell scripting, debugging, testing etc.
 
@@ -128,4 +128,10 @@ export VV_SILENT_HEADER=no
 .RE
 
 .SH SEE ALSO
- \fIRunning application\fP ( \fBapplication_setup\fP   \fBCGI\fP   \fBClient_API\fP   \fBcommand_line\fP   \fBcontainerize_application\fP   \fBFastCGI\fP   \fBFastCGI_client\fP   \fBplain_C_FCGI\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Client
+
+\fBFastCGI_API\fP  
+\fBFastCGI_command_line_client\fP    
+See all 
+\fBdocumentation\fP

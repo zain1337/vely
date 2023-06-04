@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "16.10.0"
+#define VV_VERSION "17.0.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -99,6 +99,18 @@
 #   include "openssl/bio.h"
 #   include "openssl/buffer.h"
 #   include "openssl/rand.h"
+#endif
+
+// Fcgi calls (new-fcgi)
+#if VV_APPMAKE==1 
+#   if defined(VV_FCGI_INCLUDE)
+#       define VV_INC_FCGI
+#   endif
+#else
+#   define VV_INC_FCGI
+#endif
+#ifdef VV_INC_FCGI
+#   include "vfcgi.h"
 #endif
 
 // Web calls (curl)
@@ -259,6 +271,21 @@ typedef double dbl;
 //Request parsing errors
 #define VV_ERR_DUPREQ "Input parameter 'req' specified more than once."
 
+//
+// Vely memory adjustment:
+// sizeof(num) is the overhead for VELY memory checksum before each block(see below), which is 8 bytes
+// however, since all memory needs to be 16 bytes aligned (as of now), we need to have that
+// much memory for the overhead, so that the actual memory served is always 16-bytes aligned
+// What is important is that our overhead is smaller, i.e. sizeof(num)<=k*16
+// Another important requirement is that num MUST always be on a 8 byte boundary (or sizeof(num))
+// whatever it is. If it is not, CPU will NOT read it correctly, it may be garbage.
+// change this if in the future CPU alignment is 32 bytes alignment,instead of 16 for example! Note that CPU 
+// alignment is INDEPENDENT of sizeof(num). 16 here is the CPU alignment. It must be minimum that.
+// But if the amount needed is greater than that, then it must be a multiple of 16, as computed below.
+#define VV_CPUALIGN (16)
+#define VV_MULTALIGN(x) (((x)/VV_CPUALIGN+(x%VV_CPUALIGN !=0 ? 1:0)) * VV_CPUALIGN)
+#define VV_ALIGN (VV_MULTALIGN(sizeof(num)))
+
 // 
 // Data type definitions
 //
@@ -359,6 +386,7 @@ typedef struct vely_cookies_s
 typedef struct s_vely_header
 {
     char *ctype; // content type
+    num clen; // content length (call-web only?)
     char *disp; // header content disposition
     char *file_name; // file name being sent
     char *cache_control; // cache control http header
@@ -655,6 +683,7 @@ VV_MEMINLINE num vely_safe_free (void *ptr);
 VV_MEMINLINE char *_vely_strdup (char *s);
 VV_MEMINLINE void vely_set_mem_status (unsigned char s, num ind);
 VV_MEMINLINE num vely_add_mem (void *p);
+VV_MEMINLINE void *vely_vmset (void *p, num r);
 void vely_done ();
 void vely_get_stack(char *fname);
 #if defined(VV_INC_MARIADB) || defined(VV_INC_POSTGRES)
@@ -793,6 +822,11 @@ void vely_flush_out(void);
 void vely_end_all_db();
 void vely_exit (void);
 
+#ifdef VV_INC_FCGI
+void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env);
+void vv_fc_delete (vv_fc *callin);
+num vv_call_fcgi (vv_fc **req, num threads, num *finokay, num *started);
+#endif
 
 #ifdef VV_INC_CRYPTO
 void vely_sec_load_algos(void);

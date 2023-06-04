@@ -35,4 +35,10 @@ encode-web str to define result output-length define len_of_result
 
 The "result" is "   x&lt;y&gt;z&amp;&quot;&apos;  " and "len_of_result" is 33.
 .SH SEE ALSO
- \fIWeb encoding\fP ( \fBdecode-web\fP   \fBencode-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web encoding
+
+\fBdecode-web\fP  
+\fBencode-web\fP    
+See all 
+\fBdocumentation\fP

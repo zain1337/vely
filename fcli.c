@@ -4,6 +4,13 @@
 // FastCGI client library. It's part of Vely for the corresponding call* statements
 // and it is also a standalone library API for writing FastCGI clients in C.
 
+//
+// All memory here is OS, except for a few interface pointers. 
+// Vely mem is not used here because for MT, it would have to be made
+// MT-safe, which would slow it down too much. Thus, all memory here must be absolutely
+// proofed for leaks with tools like asan, valgrind etc.
+//
+
 // General includes
 #include <fcntl.h>
 #include <stdio.h>
@@ -32,21 +39,22 @@
 
 // If memory allocation fails in Vely, this is handled by vely_* functions
 // For a FCGI client, the handling is explicit here in code
-#if VV_APPMAKE==1
-#define vv_malloc vely_malloc
-#define vv_calloc vely_calloc
-#define vv_realloc vely_realloc
-#define vv_strdup vely_strdup
-#define vv_free vely_free
-#define VV_ONE_BYTE VV_EMPTY_STRING
+#if VV_VELYSRV==1
+#include "vely.h"
+// OS malloc is used here, and not Vely, due to multithreading. Vely mem alloc is not
+// MT safe, and would be too slow if made to do so.
+void *vv_fc_one (void *inp);
+// Memory adjustment between Vely memory and OS memory
+// if OS memory is used, then see below VV_MADJ, there should be
+// no adjustment for Vely access memory
+#define VV_ADD_FOR_VELY (vely_mem_os?0:VV_ALIGN)
 #else
-#define vv_malloc malloc
-#define vv_calloc calloc
-#define vv_realloc realloc
-#define vv_strdup strdup
-#define vv_free free
-#define VV_ONE_BYTE calloc(1,1)
+#define VV_ADD_FOR_VELY 0
+#define VV_EMPTY_STRING NULL
 #endif
+// If manage-memory is false in Vely, then adjustment is 0
+// because in this case memory allocated is just like for Client_API
+#define VV_MADJ(x) ((x)+VV_ADD_FOR_VELY)
 
 // Fcgi end request (the body)
 typedef struct {
@@ -258,12 +266,12 @@ void shut_sock(fc_local *fc_l)
 //
 // When reading from server, check length of data read. This indicates problem
 // with connection or success. read_len is the data read.
-// fc_l->fc->read_status is set to negative if there's a problem.
+// fc_l->fc->internal.read_status is set to negative if there's a problem.
 // Returns true if okay, false if problem.
 //
 void check_read(fc_local *fc_l, int read_len)
 {
-    if (read_len < 0) { fc_l->fc->read_status = VV_FC_ERR_SOCK_READ; return; } // error in reading from server
+    if (read_len < 0) { fc_l->fc->internal.read_status = VV_FC_ERR_SOCK_READ; return; } // error in reading from server
 
     if (read_len == 0)
     {
@@ -272,14 +280,14 @@ void check_read(fc_local *fc_l, int read_len)
         // this is when no more bytes to read, but we haven't reached the end of header or message or padding
         if (fc_l->done_header || fc_l->msg_remain > 0 || fc_l->padding_len > 0) 
         {
-            fc_l->fc->read_status = VV_FC_ERR_PROT_ERR;
+            fc_l->fc->internal.read_status = VV_FC_ERR_PROT_ERR;
             return;
         }
         //
         // spurious zero-length read should not happen, but it's not clear if they sometime do, so
         // just in case, we already read the message, and so do not declare error
         //
-        if (!fc_l->read_done) fc_l->fc->read_status = VV_FC_ERR_PROT_ERR;
+        if (!fc_l->read_done) fc_l->fc->internal.read_status = VV_FC_ERR_PROT_ERR;
         return; // done here
     }
 }
@@ -287,7 +295,7 @@ void check_read(fc_local *fc_l, int read_len)
 
 //
 // Read data from the server (this is a client). 
-// fc_l->fc->read_status is VV_FC_ERR_SOCK_READ if error reading, VV_FC_ERR_PROT_ERR if protocol error, VV_FC_ERR_BAD_VER if bad fcgi version.
+// fc_l->fc->internal.read_status is VV_FC_ERR_SOCK_READ if error reading, VV_FC_ERR_PROT_ERR if protocol error, VV_FC_ERR_BAD_VER if bad fcgi version.
 // VV_FC_ERR_SRV server cannot complete request, VV_FC_ERR_UNK server says unknown type, VV_FC_ERR_OUT_MEM if out of memory,
 // 0 if okay
 //
@@ -308,8 +316,8 @@ void fc_server_read(fc_local *fc_l)
             {
                 char *inbuff;
                 // get the buffer to read into
-                if (header.type == VV_FC_STDOUT) inbuff = fc_l->fc->data+fc_l->fc->data_len;
-                else if (header.type == VV_FC_STDERR) inbuff = fc_l->fc->error+fc_l->fc->error_len;
+                if (header.type == VV_FC_STDOUT) inbuff = VV_MADJ(fc_l->fc->internal.data)+fc_l->fc->data_len;
+                else if (header.type == VV_FC_STDERR) inbuff = VV_MADJ(fc_l->fc->internal.error)+fc_l->fc->error_len;
                 else inbuff = fc_l->fc->other+fc_l->fc->other_len;
 
                 // read data, this reads all of it specified (msg_remain)
@@ -319,34 +327,34 @@ void fc_server_read(fc_local *fc_l)
                 if (header.type == VV_FC_STDOUT) 
                 {
                     fc_l->fc->data_len += cnt;
-                    if (fc_l->fc->out_hook != NULL) (*(fc_l->fc->out_hook))(inbuff, cnt); // exec out hook if there
+                    if (fc_l->fc->out_hook != NULL) (*(fc_l->fc->out_hook))(inbuff, cnt, fc_l->fc); // exec out hook if there
                 }
                 else if (header.type == VV_FC_STDERR) 
                 {
                     fc_l->fc->error_len += cnt;
-                    if (fc_l->fc->err_hook != NULL) (*(fc_l->fc->err_hook))(inbuff, cnt); // exec err hook if there
+                    if (fc_l->fc->err_hook != NULL) (*(fc_l->fc->err_hook))(inbuff, cnt, fc_l->fc); // exec err hook if there
                 }
                 else if (header.type == VV_FC_END_REQ)// end record 
                 {
                     //finish output with null for convenience
-                    fc_l->fc->data[fc_l->fc->data_len] = 0;
-                    fc_l->fc->error[fc_l->fc->error_len] = 0;
+                    VV_MADJ(fc_l->fc->internal.data)[fc_l->fc->data_len] = 0;
+                    VV_MADJ(fc_l->fc->internal.error)[fc_l->fc->error_len] = 0;
 
                     // end of request
                     if (cnt != sizeof(fc_end_req_body)) 
                     {
-                        fc_l->fc->read_status = VV_FC_ERR_PROT_ERR;
+                        fc_l->fc->internal.read_status = VV_FC_ERR_PROT_ERR;
                         return;
                     }
                     fc_end_req_body *server_end = (fc_end_req_body*)inbuff; // end of request, when server fulfills the request, it sends this
                     fc_l->read_done = true; // whole reply message from server received
                     if(server_end->status != VV_FC_REQ_DONE) {
                         // this can be VV_FC_REQ_OVERLOADED overloaded only
-                        fc_l->fc->read_status = VV_FC_ERR_SRV;
+                        fc_l->fc->internal.read_status = VV_FC_ERR_SRV;
                         return;
                     }
                     fc_l->fc->req_status = (server_end->app_status3 << 24) + (server_end->app_status2 << 16) + (server_end->app_status1 <<  8) + (server_end->app_status0);
-                    if (fc_l->fc->out_hook != NULL) (*(fc_l->fc->out_hook))("", 0); // exec out hook if there, end request
+                    if (fc_l->fc->out_hook != NULL) (*(fc_l->fc->out_hook))("", 0, fc_l->fc); // exec out hook if there, end request
                 }
                 else fc_l->fc->other_len += cnt;
 
@@ -362,7 +370,7 @@ void fc_server_read(fc_local *fc_l)
             }
             if (header.type == VV_FC_UNK_TYPE)
             {
-                fc_l->fc->read_status = VV_FC_ERR_UNK;
+                fc_l->fc->internal.read_status = VV_FC_ERR_UNK;
                 return;
             }
             //
@@ -387,11 +395,11 @@ void fc_server_read(fc_local *fc_l)
             int cnt = vv_read_socket (fc_l, (char*)&header, sizeof(header));
             if (cnt <= 0) return;
 
-            if (header.ver != VV_FC_VER_1) { fc_l->fc->read_status = VV_FC_ERR_BAD_VER; return; }
+            if (header.ver != VV_FC_VER_1) { fc_l->fc->internal.read_status = VV_FC_ERR_BAD_VER; return; }
 
             if (header.req_id_0 + (header.req_id_1 << 8) != fc_l->req_id) 
             { // must be 1 as req ID
-                fc_l->fc->read_status = VV_FC_ERR_PROT_ERR;
+                fc_l->fc->internal.read_status = VV_FC_ERR_PROT_ERR;
                 return;
             }
             
@@ -401,23 +409,23 @@ void fc_server_read(fc_local *fc_l)
             // allocate memory for the reply and/or error, depending on what this header is
             if (header.type == VV_FC_STDOUT) 
             {
-                // Originally we set fc_l->fc->data to calloc(1,1) or VV_EMPTY_STRING so it can be re-alloced
+                // Originally we set fc_l->fc->internal.data to calloc(1,VV_ADD_FOR_VELY+1) so it can be re-alloced
                 // Initially fc_l->fc->data_len is 0
-                fc_l->fc->data = vv_realloc(fc_l->fc->data, fc_l->fc->data_len+fc_l->msg_remain+1);
-                if (fc_l->fc->data == NULL)
+                fc_l->fc->internal.data = realloc(fc_l->fc->internal.data, VV_ADD_FOR_VELY+fc_l->fc->data_len+fc_l->msg_remain+1);
+                if (fc_l->fc->internal.data == NULL)
                 {
-                    fc_l->fc->read_status = VV_FC_ERR_OUT_MEM;
+                    fc_l->fc->internal.read_status = VV_FC_ERR_OUT_MEM;
                     return;
                 }
             }
             else if (header.type == VV_FC_STDERR) 
             {
-                // Originally we set fc_l->fc->error to calloc(1,1) or VV_EMPTY_STRING so it can be re-alloced
+                // Originally we set fc_l->fc->internal.error to calloc(1,VV_ADD_FOR_VELY+1) so it can be re-alloced
                 // Initially fc_l->fc->error_len is 0
-                fc_l->fc->error = vv_realloc(fc_l->fc->error, fc_l->fc->error_len+fc_l->msg_remain+1);
-                if (fc_l->fc->error == NULL) 
+                fc_l->fc->internal.error = realloc(fc_l->fc->internal.error, VV_ADD_FOR_VELY+fc_l->fc->error_len+fc_l->msg_remain+1);
+                if (fc_l->fc->internal.error == NULL) 
                 {
-                    fc_l->fc->read_status = VV_FC_ERR_OUT_MEM;
+                    fc_l->fc->internal.read_status = VV_FC_ERR_OUT_MEM;
                     return;
                 }
             }
@@ -426,10 +434,10 @@ void fc_server_read(fc_local *fc_l)
                 // Originally we set fc_l->fc->other to calloc(1,1) or VV_EMPTY_STRING so it can be re-alloced
                 // Initially fc_l->fc->other_len is 0
                 // This is the buffer we get VV_FC_END_REQ into as well.
-                fc_l->fc->other = vv_realloc(fc_l->fc->other, fc_l->fc->other_len+fc_l->msg_remain+1);
+                fc_l->fc->other = realloc(fc_l->fc->other, fc_l->fc->other_len+fc_l->msg_remain+1);
                 if (fc_l->fc->other == NULL) 
                 {
-                    fc_l->fc->read_status = VV_FC_ERR_OUT_MEM;
+                    fc_l->fc->internal.read_status = VV_FC_ERR_OUT_MEM;
                     return;
                 }
             }
@@ -569,7 +577,7 @@ int vv_connect_socket(fc_local *fc_l, char *conn_string)
     fc_l->sock = -1; // default when not created
     if ((col = strchr(conn_string, ':')) != NULL) 
     {
-        hn = vv_strdup (conn_string);
+        hn = strdup (conn_string);
         if (hn == NULL) { return VV_FC_ERR_OUT_MEM; }
         hn[col-conn_string] = 0;
         port = col+1;
@@ -582,7 +590,7 @@ int vv_connect_socket(fc_local *fc_l, char *conn_string)
         struct addrinfo* cres = NULL;
         // Get all possible addresses for hn:port
         if (getaddrinfo(hn, port, 0, &res)) { return VV_FC_ERR_RESOLVE_ADDR; }
-        vv_free (hn); // free host name
+        free (hn); // free host name
         int len;
         // Init IP4 and IP6 ports to nothing
         tcp_sock.sin_port = 0;
@@ -675,14 +683,14 @@ int fc_edge(fc_local *fc_l, int timeout, bool start)
         // the line stating ENDINIT
         //
         // initialize reading stats, in case we return prior to reading so they have default values
-        fc_l->fc->read_status = VV_OKAY; // by default, read succeeds, we set error if it doesn't
-        fc_l->fc->data = VV_ONE_BYTE;
-        if (fc_l->fc->data == NULL) { return VV_FC_ERR_OUT_MEM; }
+        fc_l->fc->internal.read_status = VV_OKAY; // by default, read succeeds, we set error if it doesn't
+        fc_l->fc->internal.data = calloc(1,VV_ADD_FOR_VELY+1); // add VV_ADD_FOR_VELY so it works with Vely
+        if (fc_l->fc->internal.data == NULL) { return VV_FC_ERR_OUT_MEM; }
         fc_l->fc->data_len = 0;
-        fc_l->fc->error = VV_ONE_BYTE;
-        if (fc_l->fc->error == NULL) { return VV_FC_ERR_OUT_MEM; }
+        fc_l->fc->internal.error = calloc(1,VV_ADD_FOR_VELY+1); //add VV_ADD_FOR_VELY so it works with Vely
+        if (fc_l->fc->internal.error == NULL) { return VV_FC_ERR_OUT_MEM; }
         fc_l->fc->error_len = 0;
-        fc_l->fc->other = VV_ONE_BYTE;
+        fc_l->fc->other = calloc(1,1); // other is not used for now like data or error
         if (fc_l->fc->other == NULL) { return VV_FC_ERR_OUT_MEM; }
         fc_l->fc->other_len = 0;
         fc_l->read_done = false;
@@ -696,6 +704,8 @@ int fc_edge(fc_local *fc_l, int timeout, bool start)
         fc_l->tout.tv_sec = 0;
         fc_l->tout.tv_usec = 0;
         fc_l->interrupted = false;
+        fc_l->fc->done = false;
+        fc_l->fc->return_code = VV_OKAY; // set on return by VV_FC_RET
         if (timeout != 0)
         {
             // check if timeout value in range, don't do anythig if not
@@ -708,11 +718,12 @@ int fc_edge(fc_local *fc_l, int timeout, bool start)
     else
     {
         shut_sock(fc_l); // close socket if not already closed
-        if (fc_l->env != NULL) vv_free(fc_l->env);
-        if (fc_l->env_nlen != NULL) vv_free(fc_l->env_nlen);
-        if (fc_l->env_vlen != NULL) vv_free(fc_l->env_vlen);
-        if (fc_l->fc->other != NULL) vv_free (fc_l->fc->other);
-        if (fc_l->just_query_path != NULL) { vv_free (fc_l->query_string); vv_free (fc_l->path_info); };
+        if (fc_l->env != NULL) free(fc_l->env);
+        if (fc_l->env_nlen != NULL) free(fc_l->env_nlen);
+        if (fc_l->env_vlen != NULL) free(fc_l->env_vlen);
+        if (fc_l->fc->other != NULL) free (fc_l->fc->other);
+        if (fc_l->just_query_path != NULL) { free (fc_l->query_string); free (fc_l->path_info); };
+        fc_l->fc->done = true;
     }
     return VV_OKAY;
 }
@@ -772,12 +783,12 @@ int parse_payload (fc_local *fc_l, int *query_string_l, int *path_info_l)
             // create new payload which is pure query string, if no ?query_string, then just empty
             if (fc_l->query_string[l_payload])
             {
-                fc_l->query_string = vv_strdup (fc_l->query_string + l_payload + 1);
+                fc_l->query_string = strdup (fc_l->query_string + l_payload + 1);
                 *query_string_l -= l_payload + 1;
             }
             else 
             {
-                fc_l->query_string = vv_strdup("");
+                fc_l->query_string = strdup("");
                 *query_string_l = 0;
             }
             if (fc_l->query_string == NULL) { shut_sock(fc_l); return VV_FC_ERR_OUT_MEM; }
@@ -789,7 +800,7 @@ int parse_payload (fc_local *fc_l, int *query_string_l, int *path_info_l)
             // Query path needs to be appended to request name to become path info
             int old_path_info_l = *path_info_l;
             *path_info_l += l_payload; // add path segments length to request name (which is current *path_info_l)
-            char *preq = vv_malloc(*path_info_l + 1); // allocate for new path_name
+            char *preq = malloc(*path_info_l + 1); // allocate for new path_name
             if (preq == NULL) { shut_sock(fc_l); return VV_FC_ERR_OUT_MEM; }
             memcpy (preq, fc_l->path_info , old_path_info_l); // copy /req_name first
             memcpy (preq + old_path_info_l, fc_l->just_query_path, l_payload); // then append path segments
@@ -800,11 +811,11 @@ int parse_payload (fc_local *fc_l, int *query_string_l, int *path_info_l)
     return VV_OKAY;
 }
 
-// Returning from fc_request must annul the alarm, close socket, and account for any timeout.
-// This will cancel the alarm and restore original (if any) alarm handler, close socket, and return either the exit code or
+// Returning from fc_request must close socket, and account for any timeout.
+// This will close socket, and return either the exit code or
 // the value for being interrupted. Also set error message;
 // fc_l is fcgi thread context
-#define VV_FC_RET(rc) {fc_edge (fc_l, fc_l->fc->timeout, false); int _rc = (fc_l->interrupted?VV_FC_ERR_TIMEOUT:(rc)); if (_rc != VV_OKAY) fc_l->fc->errm = fc_l->errm[-_rc]; else fc_l->fc->errm = ""; return _rc;}
+#define VV_FC_RET(rc) {fc_edge (fc_l, fc_l->fc->timeout, false); int _rc = (fc_l->interrupted?VV_FC_ERR_TIMEOUT:(rc)); fc_l->fc->return_code = _rc; if (_rc != VV_OKAY) fc_l->fc->errm = fc_l->errm[-_rc]; else {fc_l->fc->errm = ""; if (fc_l->fc->done_hook != NULL) (*(fc_l->fc->done_hook))(VV_MADJ(fc_l->fc->internal.data), fc_l->fc->data_len, VV_MADJ(fc_l->fc->internal.error), fc_l->fc->error_len, fc_l->fc); } return _rc;}
 
 //
 // Make a request to FCGI server from a client. 
@@ -913,8 +924,8 @@ int vv_fc_request (vv_fc *fc_in)
     {
         while (fc_l->fc->env[envn] != NULL) envn++;
         if (envn % 2 != 0) VV_FC_RET(VV_FC_ERR_ENV_ODD);
-        fc_l->env_nlen = vv_calloc (envn/2, sizeof(int));
-        fc_l->env_vlen = vv_calloc (envn/2, sizeof(int));
+        fc_l->env_nlen = calloc (envn/2, sizeof(int));
+        fc_l->env_vlen = calloc (envn/2, sizeof(int));
         if (fc_l->env_nlen == NULL || fc_l->env_vlen == NULL) { shut_sock(fc_l); VV_FC_RET (VV_FC_ERR_OUT_MEM); }
         int i;
         for (i = 0; i < envn; i+=2) vv_size_env(fc_l, fc_l->env_nlen[i/2]=strlen(fc_l->fc->env[i]), fc_l->env_vlen[i/2]=strlen(fc_l->fc->env[i+1]));
@@ -925,7 +936,7 @@ int vv_fc_request (vv_fc *fc_in)
     if (vv_write_socket(fc_l, (char *)&header, sizeof(header)) < 0) { shut_sock(fc_l); VV_FC_RET(VV_FC_ERR_SOCK_WRITE);}
     // send environment, total limit just under 64K (query string limited to 32K in Vely)
     // Build environment string to send
-    fc_l->env = vv_malloc (fc_l->param_len);
+    fc_l->env = malloc (fc_l->param_len);
     if (fc_l->env == NULL) { shut_sock(fc_l); VV_FC_RET (VV_FC_ERR_OUT_MEM); }
     fc_l->env_p = 0;
     vv_send_env(fc_l, "REQUEST_METHOD", strlen("REQUEST_METHOD"), fc_l->fc->req_method, req_method_l);
@@ -985,7 +996,190 @@ int vv_fc_request (vv_fc *fc_in)
     // some clients may have connected to server process A, server process B may be open and idling. A strategy to overcome this may
     // be costly. The end result can go either way, but for now single connection seems to deliver better results. Perhaps
     // in the future we will support connection reuse on both client and server, but that remains to be seen.
-    VV_FC_RET(fc_l->fc->read_status);
+    VV_FC_RET(fc_l->fc->internal.read_status);
 }
 // Note: valgrind testing with (for tf.c source test):
 // valgrind --log-file=$(pwd)/tf.log -s --trace-children=yes --track-origins=yes --verbose  --leak-check=full --show-leak-kinds=all --  ./tf
+
+//
+// Free a fast cgi request callin, including any data/errors returned.
+//
+void vv_fc_delete (vv_fc *callin)
+{
+#if VV_VELYSRV==1
+    VV_TRACE("");
+    _vely_free (VV_MADJ(callin->internal.data), 0);
+    _vely_free (VV_MADJ(callin->internal.error), 0);
+    _vely_free (callin, 0);
+#else
+    // for Client API, check if NULL
+    if (callin->internal.data != VV_EMPTY_STRING) free (VV_MADJ(callin->internal.data));
+    if (callin->internal.data != VV_EMPTY_STRING) free (VV_MADJ(callin->internal.error));
+    // do not free like for Vely (where it's always allocated pointer), here it may not be, as it's any C above this call
+#endif
+}
+
+//
+// Return data response from server
+//
+char *vv_fc_data (vv_fc *callin)
+{
+#if VV_VELYSRV==1
+    VV_TRACE("");
+#endif
+    return VV_MADJ(callin->internal.data);
+}
+
+//
+// Return error response from server
+//
+char *vv_fc_error (vv_fc *callin)
+{
+#if VV_VELYSRV==1
+    VV_TRACE("");
+#endif
+    return VV_MADJ(callin->internal.error);
+}
+
+
+#if VV_VELYSRV==1
+//
+// Create FCGI object for call-fcgi. call is the object, server is the server (or Unix socket location)
+// req_method is GET, POST etc. app_path is application path, req is request path, url_payload is URL payload (i.e. the resot of URL)
+// ctype is content type, body is body content, clen is content length, timeout is timeout for fcgi call, env is a list of environment
+// vars=vals to be passed to fcgi server.
+// server, req_method, app_path and request path are mandatory. If body is specified, then clen and ctype are considered, otherwise not.
+//
+void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env)
+{
+    VV_TRACE("");
+#if VV_VELYSRV==1
+    *callin = _vely_calloc (1, sizeof(vv_fc)); // always allocated
+#else
+    *callin = calloc (1, sizeof(vv_fc)); // always allocated
+#endif
+    vv_fc *call = *callin;
+    if (env != NULL) call->env = env;
+    call->fcgi_server = server; // IP:port (TCP) or Unix socket path string
+    call->req_method = req_method;
+    call->app_path = app_path;
+    call->req = req;
+    if (url_payload != NULL) call->url_payload = url_payload;
+    if (body != NULL) call->content_type = ctype;
+    if (body != NULL) call->req_body = body;
+    if (body != NULL) 
+    {
+        if (clen == 0) clen = strlen (body);
+        call->content_len = clen;
+    }
+    if (timeout >0) call->timeout = timeout;
+}
+
+//
+// Execute single fcgi call. inp is request (vv_fc*), returns its status as void*
+// This is for multithreaded execution
+//
+void *vv_fc_one (void *inp)
+{
+    VV_TRACE("");
+    vv_fc *req = (vv_fc*) inp;
+
+    int res = vv_fc_request (req);
+     
+    return (void*)(off_t)res;
+}
+
+
+
+//
+// Call-fcgi implementation. req is an array of fcgi requests, threads is how many
+// in this array. Returns VV_OKAY if all threads ran and finished okay, or VV_ERR_TOO_MANY 
+// if threads is less than 0 or more than a million, VV_ERR_FAILED if not all started or
+// not all finished okay (see further, VV_OKAY return). finokay is the number of them that finished
+// with VV_OKAY (just finished, nothing about any app errors). started is the number of them
+// that actually started. 
+//
+num vv_call_fcgi (vv_fc **req, num threads, num *finokay, num *started)
+{
+    VV_TRACE("");
+    if (threads == 1) 
+    {
+        // special case: just one thread, so no need for thread library
+        if (started != NULL) *started = 1; 
+        int res = vv_fc_request (req[0]);
+        if (finokay != NULL)
+        {
+            if (res == VV_OKAY) *finokay = 1; else *finokay = 0;
+        }
+        return (res == VV_OKAY ? VV_OKAY:VV_ERR_FAILED);
+    }
+
+    if (threads < 0 || threads > 1000000) { return VV_ERR_TOO_MANY; }
+    pthread_t *thread_id = calloc (threads, sizeof(pthread_t)); // threads to execute
+    // Run threads
+    num i = 0;
+    num totrun = 0;
+    for (i = 0; i < threads; i++){ // execute in parallel
+        // If user tries to set hooks manually, disable them; this would be disastrous
+        // if user code runs from many threads - Vely is made for single-threaded execution
+        // aside from new-fcgi. That would not work; and even if Vely was MT, user could 
+        // do exit-request or report-error, which would make execution go passed new-fcgi
+        // and there would be multiple threads accepting on the same socket; bad all around.
+        req[i]->out_hook = NULL;
+        req[i]->err_hook = NULL; 
+        req[i]->done_hook = NULL;
+        // If thread creation fails, we will notify user how many succeeded
+        // Since those that succeeded are running, we cannot back out, it must finish to join
+        if (pthread_create(&(thread_id[i]), NULL, vv_fc_one, req[i]))
+        {
+            req[i]->internal.invalid_thread = 1; // mark threads that didn't start
+            VV_TRACE("Thread creation failed with [%d] [%s]", errno, strerror(errno));
+        } else totrun++;
+    }
+    if (started != NULL) *started = totrun; 
+    void *thread_res;
+    num totok =0;
+    // wait for all to complete, count those successful; wait only for however many started
+    for (i = 0; i < threads; i++){
+        if (req[i]->internal.invalid_thread != 1) //if couldn't start a thread, do not try to join
+        {
+            if (pthread_join(thread_id[i], &thread_res) != 0)
+            {
+                // This should not happen: no deadlock (fcgi lib does no join), it's not the self-join;
+                // created threads are joinable. Likely thread crashed and is dead anyway.
+                VV_TRACE("Thread join failed with [%d] [%s]", errno, strerror(errno));
+                // allocate empty freeable memory for unable to join
+                req[i]->internal.data = VV_EMPTY_STRING;
+                req[i]->internal.error = VV_EMPTY_STRING;
+            }
+            else
+            {
+                // convert memory to Vely if okay, so it goes under garbage collection
+                // but NOT if this is 'manage-memory false', as in this case there's no 
+                // Vely memory and no garbage collection.
+#if VV_VELYSRV==1
+                if (!vely_mem_os) 
+                {
+                    num mm = vely_add_mem (req[i]->internal.data);
+                    vely_vmset(req[i]->internal.data,mm);
+                    mm = vely_add_mem (req[i]->internal.error);
+                    vely_vmset(req[i]->internal.error,mm);
+                }
+#endif
+                int r = (int)(off_t)(thread_res);
+                if (r == VV_OKAY) totok++; // these are the ones that surely finished
+            }
+        } 
+        else
+        {
+            // allocate empty freeable memory for unable to start
+            req[i]->internal.data = VV_EMPTY_STRING;
+            req[i]->internal.error = VV_EMPTY_STRING;
+        }
+    }
+    free (thread_id); // free threads
+    if (finokay != NULL) *finokay = totok;
+    return (totrun == threads && totok == threads) ? VV_OKAY:VV_ERR_FAILED;
+}
+#endif
+

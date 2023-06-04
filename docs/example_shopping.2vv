@@ -2,52 +2,7 @@
 .SH NAME
 example_shopping \- Vely documentation (examples)
 .SH DESCRIPTION
-This is a shopping web service REST API with basic functions:
-
-.RS 4
-\[bu]    
-add customer
-
-.RE
-
-.RS 4
-\[bu]    
-add item
-
-.RE
-
-.RS 4
-\[bu]    
-create order
-
-.RE
-
-.RS 4
-\[bu]    
-add item to order
-
-.RE
-
-.RS 4
-\[bu]    
-update order
-
-.RE
-
-.RS 4
-\[bu]    
-delete item from order
-
-.RE
-
-.RS 4
-\[bu]    
-delete order
-.RE
-
-The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details.
-
-The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
+This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 
 In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 11 source files, 212 lines of code.
 
@@ -237,7 +192,7 @@ This shows how to connect your application listening on a Unix socket (started w
 
 .B - Step 1
 :
-To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
 
 .RS 4
 \[bu]    
@@ -386,7 +341,7 @@ Here is REST API for the application.
 
 Substitute the loopback "127.0.0.1" with the IP or web address of your server.
 
-\fBTo add a customer\fP, use the POST URL to create new "customer" resource:
+To add a customer, use the POST URL to create new "customer" resource:
 
 .RS 4
 .EX
@@ -408,7 +363,7 @@ curl -X POST  "http://127.0.0.1/api/v1/shopping/customers/first-name/Mia/last-na
 
 The return value is a JSON document containing a single value, and that is <customer ID> of a newly created customer.
 
-\fBTo add an item\fP to the list of inventory items, use the POST URL to create new "item" resource:
+To add an item to the list of inventory items, use the POST URL to create new "item" resource:
 
 .RS 4
 .EX
@@ -430,7 +385,7 @@ curl -X POST  "http://127.0.0.1/api/v1/shopping/items/name/rice-pudding?descript
 
 The return value is a JSON document containing a single value, and that is <item ID> of a newly created item.
 
-\fBTo create an order\fP, use the following POST URL to create a new "order" resource, and use <customer ID> previously obtained:
+To create an order, use the following POST URL to create a new "order" resource, and use <customer ID> previously obtained:
 
 .RS 4
 .EX
@@ -452,7 +407,7 @@ curl -X POST "http://127.0.0.1/api/v1/shopping/orders/customer-id/1"
 
 The return value is a JSON document containing a single value, and that is <order ID> of a newly created order.
 
-\fBTo add an item to an order\fP, use the following POST URL to create a new "order/item" resource, and use <order ID> and <item ID> previously obtained:
+To add an item to an order, use the following POST URL to create a new "order/item" resource, and use <order ID> and <item ID> previously obtained:
 
 .RS 4
 .EX
@@ -474,7 +429,7 @@ curl -X POST "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/1?quant
 
 The return value is a JSON document containing a single value, and that is the number of line items created ("1" or "0").
 
-\fBTo update an order\fP (meaning change the number of items), use the following PUT URL, and use <order ID> and <item ID> previously obtained:
+To update an order (meaning change the number of items), use the following PUT URL, and use <order ID> and <item ID> previously obtained:
 
 .RS 4
 .EX
@@ -496,7 +451,7 @@ curl -X PUT "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/1?quanti
 
 The return value is a JSON document containing a single value, and that is the number of line items updated ("1" or "0"). Per REST methodology, this is an idemopotent operation, i.e. it can be repeated any number of times with the same result.
 
-\fBTo delete an item from order\fP, use the following DELETE URL, and use <order ID> and <item ID> previously obtained:
+To delete an item from order, use the following DELETE URL, and use <order ID> and <item ID> previously obtained:
 
 .RS 4
 .EX
@@ -518,7 +473,7 @@ curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/2"
 
 The return value is a JSON document containing a single value, and that is the number of line items delete ("1" or "0"). 
 
-\fBTo list all orders\fP, use the following GET URL:
+To list all orders, use the following GET URL:
 
 .RS 4
 .EX
@@ -530,7 +485,7 @@ curl -X GET "http://127.0.0.1/api/v1/shopping/orders"
 
 The return value is a JSON document with all orders, including customer information, as well as items, their descriptions and quantities.
 
-\fBTo list a specific order\fP, use the following GET URL:
+To list a specific order, use the following GET URL:
 
 .RS 4
 .EX
@@ -552,7 +507,7 @@ curl -X GET "http://127.0.0.1/api/v1/shopping/orders/order-id/1"
 
 The return value is a JSON document with a specific order, including customer information, as well as items, their descriptions and quantities.
 
-\fBTo delete a specific order\fP, use the following DELETE URL:
+To delete a specific order, use the following DELETE URL:
 
 .RS 4
 .EX
@@ -928,4 +883,23 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Examples
+
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

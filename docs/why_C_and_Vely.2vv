@@ -16,13 +16,15 @@ On the other hand, the reason why you wouldn't have picked up C in the past may 
 .B VELY
 .LP
 
-Vely is a framework for C that lets you rapidly build server-side applications of maximum possible performance with code that's ergonomic, easy to write and read, and considerably safer than C alone, because you do not need to allocate/free memory, or worry about buffer overruns or memory violations. You also get automatic memory allocation/garbage collector and automatic file closing.
+Vely is a framework for C that lets you rapidly build server-side applications of maximum possible performance with code that's ergonomic, easy to write and read, and considerably safer than C alone.
 
-Vely \fBstatements\fP are embedded in C code and designed to be declarative, i.e. a single line of code performs a task that is meaningful to a human, and without having to know details of how exactly to do it. Such tasks include building strings, querying databases, outputting data, file manipulation, memory structures like hash and fifo, program execution, encryption, encoding, JSON parsing, web stuff like cookies, input parameters, uploading and downloading files, request handling, daemonizing etc. - in short, lots of high-level stuff you need every day and don't want to spend time reinventing the wheel. 
+Vely \fBstatements\fP are embedded in C code and designed to be declarative, i.e. a single line of code performs a task that is meaningful to a human, and without having to know details of how exactly to do it. Such tasks include building strings, querying databases, outputting data, distributed computing, file manipulation, memory structures like hash and fifo, program execution, encryption, encoding, JSON parsing, web stuff like cookies, input parameters, uploading and downloading files, request handling, daemonizing etc. - in short, lots of high-level stuff you need every day and don't want to spend time reinventing the wheel. 
+
+When you use Vely statements, you do not need to allocate/free memory, or worry about buffer overruns or memory violations; you also get automatic memory freeing and automatic file closing.
 
 Vely generates C underneath for several reasons. It is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
 
-Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means all the important and difficult parts are done by single-line Vely statements. The purpose of C is then just a "programming glue" that binds together your application and business logic.
+Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means the important and difficult parts are done by single-line Vely statements.
 
 .LP
 .B SIMPLE AND PRACTICAL
@@ -85,4 +87,19 @@ void list_employees() {
 
 Highlighted with Vely's \fBsyntax_highlighting\fP using \fB2html\fP.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

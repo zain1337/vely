@@ -33,4 +33,13 @@ request-body reqb length define reqb_length
 .RE
 
 .SH SEE ALSO
- \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Request information
+
+\fBget-req\fP  
+\fBinput-param\fP  
+\fBrequest-body\fP  
+\fBset-input\fP  
+\fBset-req\fP    
+See all 
+\fBdocumentation\fP

@@ -1,9 +1,15 @@
-Vely release notes for 16.10.0
+Vely release notes for 17.0.0
 
-- Release: Vely available on Fedora 38.    
-- Release: added -a option to vv for viewing changelog for the current release.
-- Release: fixed bug in deleting key in hash list due to memory leak.
-- Minor: added old-key clause in read-hash statement.
-- Release: added hash server example.
-- Release: added 11 new tests.
+- Notes: This Vely release adds a major new feature: support for distributed computing (see call-server). It allows for server-2-server calls over FastCGI protocol, a fast and capable binary protocol; many calls can be made in parallel, running in separate threads in MT-safe fashion. Further improvements have been made to FastCGI API, a client API for FastCGI, including a completion hook and additional information pertinent to multi-threaded runs, such as done/return_code. Several statements that had limitations on resources are now unlimited (i.e. limited only by OS/machine resources), namely for call-web, exec-program, out-header, send-file; and those improvements have actually reduced the amount of memory used.
+- Minor: added new-server, call-server, read-server and delete-server statements for server-to-server calls (distributed computing).
+- Minor: added completion hook for FastCGI API.
+- Major: added a request pointer to output/error hooks in FastCGI API.
+- Minor: added "done" and "return_code" members to FastCGI API request structure ("vv_fc").
+- Major: payload-length clause has moved to request-headers and is now content-length in call-web; payload clause is renamed to content. content-type is now mandatory unless files or fields clauses are used. This is to be in accordance with RFC 9110, HTTP Semantics to avoid confusion with frame payloads in HTTP2/3.
+- Release: improved error reporting when parsing statements to detect missing parameter in a clause.
+- Release: SIGUSR1, SIGUSR2 signals are now ignored as they have no meaning in Vely.
+- Minor: the maximum number of input parameter in exec-program is now unlimited.
+- Minor: the maximum number of fields and files in call-web is now unlimited.
+- Minor: the maximum number of custom headers in HTTP for call-web is now unlimited.
+- Release: reduced memory footprint by generating the code for the exact memory usage of internal arrays.
 

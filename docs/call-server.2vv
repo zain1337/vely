@@ -1,0 +1,130 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+call-server \-  (distributed_computing)
+.SH PURPOSE
+Make a remote server request.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+call-server ( <server> [ ,... ] ) | \\
+                ( <server> [ array-count <array count> ] ) \\
+    [ status [ define ] <status> ]  \\
+    [ started [ define ] <started> ] \\
+    [ finished-okay [ define ] <finished okay> ] 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+call-server will make FastCGI call(s) as described in a single <server>, a list of <server>s, or an array of <server>s. Unless only a single <server> is specified, each call will execute in parallel with others (as multiple threads).
+
+<server> is a pointer to a variable of type "vv_fc". This variable must have been created with \fBnew-server\fP statement. 
+
+A <server> call is made to a remote server. "Remote server" means a process accepting requests that is not the same process executing call-server; it may be running on the same or a different computer, or it may be a different process started by the very same application. 
+
+
+.B - Multiple server calls in parallel
+
+Executing multiple <server> calls in parallel is possible in two ways:
+
+.RS 4
+\[bu]    
+Specify a list of <server>s separated by a comma, or
+
+.RE
+
+.RS 4
+\[bu]    
+Specify an array <server> variable containing <array count> elements (specified with "array-count" clause). Each element of <server> array must be a pointer to a variable of type "vv_fc"; each such variable must have been created by \fBnew-server\fP. This is convenient if you have a great many parallel server calls to make (for example dozens, hundreds or even thousands). <server> array must be indexed from 0. Here's an example, where an array of server calls ("srv_arr") is created via \fBnew-server\fP in a loop, and executed with a single call-server, then the results gathered via \fBread-server\fP - this is the same example as in \fBnew-server\fP with the exception that it's using an array of <server> variables:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+void srv() {
+    out-header default
+    char *upay[3]; // list of URL payloads
+    vv_fc *srv_arr[3]; // array of servers
+    num i;
+    for (i = 0; i < 3; i++) {
+        // build URL payload string
+        (( upay[i]
+        @/op/add/key/key_<<p-num i>>/data/data_<<p-num i>>"
+        ))
+        // Create resources (prepare) for 3 server calls
+        new-server srv_arr[i] location "/var/lib/vv/hash/sock/sock" \\
+            method "GET" app-path "/hash" request-path "/server" \\
+            url-payload upay[i]
+    }
+    // Make 3 server calls in parallel, each in it own thread
+    call-server srv_arr array-count 3 status define st \\
+        started define start \\
+        finished-okay define fok
+    // Check if all calls were completed
+    if (st == VV_OKAY) {
+        @No errors from call-server
+    }
+    if (start == 3) {
+        @All three server calls started.
+    }
+    if (fok == 3) {
+        @All three server calls finished.
+    }
+    // Display output data from server calls
+    for (i = 0; i < 3; i++) {
+        read-server srv_arr[i] data define rdata
+        p-out rdata
+        @
+    }
+}
+
+.EE
+.RE
+
+
+.RE
+
+There is no limit on how many <server>s you can call at the same time; it is limited only by the underlying Operating System resources, such as threads/processes and sockets.
+
+
+.B - Call status
+
+Optional <status> (in "status" clause) will be VV_OKAY if all <server> calls have each returned VV_OKAY; this means all have started and all have finished with a valid message from the server; or VV_ERR_FAILED if at least one did not (for example if the server could not be contacted, if there was a network error etc.). Note that VV_OKAY does not mean that the reply is considered a success in any logical sense; only that the request was made and a reply was received according to the server protocol. 
+
+
+.B - Request(s) status
+
+Note that the actual application status for each <server>, as well as data returned and any application errors can be obtained via "request-status", "data"/"data-length" and "error"/"error-length" clauses of \fBread-server\fP statement, respectively.
+
+
+.B - Request(s) duration
+
+call-server will wait for all <server> requests to finish. For that reason, it is a good idea to specify "timeout" clause in \fBnew-server\fP for each <server> used, in order to limit the time you would wait. Use \fBread-server\fP to detect a timeout, in which case "request-status" clause would produce VV_FC_ERR_TIMEOUT.
+
+
+.B - How many calls started and finished
+
+Optional <started> (in "started" clause) will be the number of server calls that have started. Optional <finished okay> (in "finished-okay" clause) is the number of calls that have finished with return value of VV_OKAY as described above. By using <status>, <started> and <finished okay> you may surmise whether the results of call-server meet your expectations.
+
+<status>, <started> and <finished okay> variables can be created with optional "define".
+
+
+.B - Performance, security
+
+call-server is faster than \fBcall-web\fP because it does not use HTTP protocol in addition to FastCGI; rather it only uses small and binary FastCGI protocol, which is extremenly fast, especially when using Unix sockets on the same machine (see \fBnew-server\fP). Note that FastCGI protocol does not have any inherent security built-in; that is part of the reason why it is fast. As such, it is very well suited for remote server calls on the same machine or between networked machines on a secure network. 
+
+.SH EXAMPLES
+See \fBnew-server\fP.
+.SH SEE ALSO
+ 
+.B - Distributed computing
+
+\fBcall-server\fP  
+\fBdelete-server\fP  
+\fBnew-server\fP  
+\fBread-server\fP    
+See all 
+\fBdocumentation\fP

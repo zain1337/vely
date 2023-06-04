@@ -79,7 +79,7 @@ If "etag" is used without optional boolean expression <etag>, or if <etag> evalu
 
 .RS 4
 \[bu]    
-To set any type of generic HTTP header, use "custom" subclause, where <header name> and <header value> represent the name and value of a single header. Multiple headers are separated by a comma. The maximum number of such headers is 64. You must not use "custom" to set headers already set elsewhere (such as "etag" for instance), as that may cause unpredictable behavior. For instance this sets two custom headers:
+To set any type of generic HTTP header, use "custom" subclause, where <header name> and <header value> represent the name and value of a single header. Multiple headers are separated by a comma. There is no limit on the maximum number of such headers, other than of the underyling HTTP protocol. You must not use "custom" to set headers already set elsewhere (such as "etag" for instance), as that may cause unpredictable behavior. For instance this sets two custom headers:
 
 .RS 4
 .EX
@@ -132,4 +132,12 @@ send-file "/home/user/file.pdf" headers download content-type "application/pdf"
 .RE
 
 .SH SEE ALSO
- \fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web
+
+\fBcall-web\fP  
+\fBout-header\fP  
+\fBsend-file\fP  
+\fBsilent-header\fP    
+See all 
+\fBdocumentation\fP

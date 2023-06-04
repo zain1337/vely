@@ -26,4 +26,13 @@ and also update your local $HOME/.vimrc file to use this syntax for files with .
 
 The Vely highlighting syntax is tested with Vim 8.1.
 .SH SEE ALSO
- \fILanguage\fP ( \fBdot\fP   \fBinline_code\fP   \fBstatement_APIs\fP   \fBsyntax_highlighting\fP   \fBunused-var\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Language
+
+\fBdot\fP  
+\fBinline_code\fP  
+\fBstatement_APIs\fP  
+\fBsyntax_highlighting\fP  
+\fBunused-var\fP    
+See all 
+\fBdocumentation\fP

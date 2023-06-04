@@ -78,10 +78,10 @@ export SCRIPT_NAME="/shopping"
 
 
 .LP
-.B REQUEST NAME
+.B REQUEST PATH
 .LP
 
-Request name is always the first path segment after the application path, for instance:
+Request path is always the first path segment after the application path that has the request name, for instance:
 
 .RS 4
 .EX
@@ -91,7 +91,7 @@ https://some.web.site/shopping/buy-item
 .EE
 .RE
 
-In this case the request name is "buy_item". Note that hyphen ("-") in the URL name is always converted to underscore ("_") for a Vely request name. This is true for all input parameters, see \fBinput-param\fP.
+In this case the request name is "buy_item" (written as request path "/buy-item"). Note that hyphen ("-") in the URL name is always converted to underscore ("_") for a Vely request name. This is true for all input parameters, see \fBinput-param\fP.
 
 A request name can be can be made up of alphanumeric characters, hyphen or underscore only and cannot start with a digit. Often it is in the same form as the names of Vely \fBstatement_APIs\fP, which is that of "verb"-"object", for example "add-note", "show-orders" etc. This form clearly communicates the functional purpose of the request in the URL itself, as well as the names of source code files that handle them, which in this case would be "add_note.vely", "show_orders.vely" etc. Note however you can name a request any way you like.
 
@@ -99,7 +99,7 @@ A request name can be can be made up of alphanumeric characters, hyphen or under
 .B URL PAYLOAD
 .LP
 
-The actual URL payload, i.e. the input parameters, follow after the request name. For example, the full URL may be:
+The actual URL payload, i.e. the input parameters, follow after the request path. For example, the full URL may be:
 
 .RS 4
 .EX
@@ -268,4 +268,19 @@ void buy_item() {
 
 You can also write URLs where the entire request, including the request name, is in the query string. See \fBnormalized_URL\fP.
 .SH SEE ALSO
- \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP    
+See all 
+\fBdocumentation\fP

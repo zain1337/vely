@@ -139,4 +139,9 @@ void mycode () {
 .RE
 
 .SH SEE ALSO
- \fIProcess\fP ( \fBglobal_process_data\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Process
+
+\fBglobal_process_data\fP    
+See all 
+\fBdocumentation\fP

@@ -30,4 +30,15 @@ upper-string str
 .RE
 
 .SH SEE ALSO
- \fIStrings\fP ( \fBcopy-string\fP   \fBcount-substring\fP   \fBlower-string\fP   \fBsplit-string\fP   \fBtrim-string\fP   \fBupper-string\fP   \fBwrite-string\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Strings
+
+\fBcopy-string\fP  
+\fBcount-substring\fP  
+\fBlower-string\fP  
+\fBsplit-string\fP  
+\fBtrim-string\fP  
+\fBupper-string\fP  
+\fBwrite-string\fP    
+See all 
+\fBdocumentation\fP

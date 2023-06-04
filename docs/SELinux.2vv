@@ -122,4 +122,19 @@ sudo restorecon -R /your/new/dir
 .RE
 
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

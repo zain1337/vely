@@ -7,12 +7,27 @@ quality_control \- Vely documentation (general)
 .B QUALITY CONTROL
 .LP
 
-Each candidate for a Vely release must build successfully for a given Linux distribution and on its native architecture, without simulators or cross-compilers. A suite of functional tests (including bug fixes to prevent regressions) must run without errors; currently, there are 1537 such tests. 
+Each candidate for a Vely release must build successfully for a given Linux distribution and on its native architecture, without simulators or cross-compilers. A suite of functional tests (including bug fixes to prevent regressions) must run without errors; currently, there are 1603 such tests. 
 
-Vely is tested on following distros: archlinux_rolling, debian_10, debian_11, fedora_37, fedora_38, mageia_8, opensuse_tumbleweed, redhat_8, redhat_9, ubuntu_20, ubuntu_22, windows_11 however it may work on other distros derived from this list (see \fBinstallation page\fP). Both builds and tests are automated to prevent gaps in coverage.
+Vely is tested on following distros: archlinux_rolling, debian_10, debian_11, fedora_37, fedora_38, mageia_8, opensuse_tumbleweed, redhat_8, redhat_9, ubuntu_18, ubuntu_20, ubuntu_22, windows_11 however it may work on other distros derived from this list (see \fBinstallation page\fP). Both builds and tests are automated to prevent gaps in coverage.
 
 Valgrind and Google Address Sanitizer (ASAN) are used to help eliminate memory violations and leaks.
 
 Vely documentation is automated to a good degree, with internal/external link checking, HTML/troff make and reference/index building.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

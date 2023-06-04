@@ -31,4 +31,10 @@ decode-web str output-length define dec_len
 .RE
 
 .SH SEE ALSO
- \fIWeb encoding\fP ( \fBdecode-web\fP   \fBencode-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web encoding
+
+\fBdecode-web\fP  
+\fBencode-web\fP    
+See all 
+\fBdocumentation\fP

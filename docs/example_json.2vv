@@ -2,27 +2,7 @@
 .SH NAME
 example_json \- Vely documentation (examples)
 .SH DESCRIPTION
-This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. The JSON data is also not fixed - some array members contain data that others don't. So the example is fairly involved.
-
-Use of UTF8 Unicode data is also shown - some cities have such characters in their names.
-
-JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). The first one uses URL-query POST from a form. The second one demonstrates a request with "application/json" content type and use of \fBrequest-body\fP to get the HTTP request body.
-
-Each JSON data node is retrieved using built-in hash statements (see \fBnew-json\fP).
-
-The JSON parsing demonstrates two ways to do it:
-
-.RS 4
-\[bu]    
-First, by searching for specific elements, in this case all the countries, then all the states under a country, and then all cities under a state. This shows how to deal with a generic JSON document where structure is known but can change.
-
-.RE
-
-.RS 4
-\[bu]    
-Second, by simply traversing all the data nodes and getting each in a loop. This is useful to get all the data even if you don't know its structure and search for what interests you along the way.
-.RE
-
+This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
 
 In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
 
@@ -645,4 +625,23 @@ void json_process() {
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Examples
+
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

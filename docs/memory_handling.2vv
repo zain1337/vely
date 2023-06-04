@@ -7,7 +7,9 @@ memory_handling \- Vely documentation (memory)
 .B MANAGED AND UNMANAGED
 .LP
 
-Memory allocated by Vely statements (and internally by Vely) can be managed or unmanaged. By default it's managed and it might be the only kind you use.  Managed memory is tracked and always fully freed at the end of a request, even if you don't do it. In fact that is preferrable in most cases (more on this below). This is the default behavior. In this case, your program is in "managed memory mode". 
+Memory allocated by Vely statements (and internally by Vely) can be managed or unmanaged. By default it's managed and it might be the only kind you use.  
+
+Managed memory used by Vely statements is tracked and always fully freed at the end of a request, even if you don't do it. In fact that is preferrable in most cases (more on this below). This is the default behavior. In this case, your program is in "managed memory mode". 
 
 Unmanaged memory is rarely used; more on it further down.
 
@@ -37,6 +39,8 @@ releasing memory programmatically in some cases prolongs the duration of the req
 In the end, it is up to you whether to release memory explicitly, let Vely do it, or a bit of both. 
 
 Managed memory is freed even if it is no longer accessible to the program, thus preventing memory leaks; this is important for stability of long-running processes. 
+
+Note that managed memory is not the same as "garbage collector", which can consume considerable resources. Vely's managed memory is very light because it only tracks memory used by Vely statements and such memory is simply released at the end of a request; there is nothing more to it - no scanning of the heap, tracking of objects, counting references, compacting memory etc. Hence "managed memory" is managed so lightly to have virtually no impact on performance.
 
 .LP
 .B INTERNAL PROCESS MEMORY
@@ -84,4 +88,13 @@ manage-memory on
 
 If you are using unmanaged memory, then you must explicitly manage it by using \fBdelete-mem\fP or \fBresize-mem\fP, or use statements that explicitly do that (such as \fBdelete-query\fP for instance) - these operations must be performed in unmanaged memory mode as well.
 .SH SEE ALSO
- \fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Memory
+
+\fBdelete-mem\fP  
+\fBmanage-memory\fP  
+\fBmemory_handling\fP  
+\fBnew-mem\fP  
+\fBresize-mem\fP    
+See all 
+\fBdocumentation\fP

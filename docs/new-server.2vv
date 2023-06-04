@@ -1,0 +1,191 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+new-server \-  (distributed_computing)
+.SH PURPOSE
+Create resources for a server call.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+new-server [ define ] <server> \\
+    location <location> \\
+    method <request method> \\
+    app-path <app path> \\
+    request-path <request path> \\
+    [ request-body content <content> \\
+        [ content-length <content length> ] \\
+        [ content-type <content type> ] ] \\
+    [ url-payload <url payload> ] \\
+    [ environment <name>=<value> [ , ... ] ] \\
+    [ timeout <timeout> ] 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+new-server will create resources needed for a FastCGI server call (see \fBcall-server\fP); these resources are contained in <server>, which is a pointer to a variable of type "vv_fc". It can be created with optional "define". 
+
+<location> (in "location" clause) is a string representing either a Unix socket or a TCP socket of a remote server, and is:
+
+.RS 4
+\[bu]    
+for a Unix socket, a fully qualified name to a Unix socket file used to communicate with the server (for a Vely server, it's "/var/lib/vv/<app name>/sock/sock", where <app name> is the application name), or
+
+.RE
+
+.RS 4
+\[bu]    
+for a TCP socket, a host name and a port number in the form of "<host name>:<port number>", specifying where is the server listening on (for instance "127.0.0.1:2301" if the server is local and runs on TCP port 2301).
+.RE
+
+<request method> (in "method" clause) is a request method, such as "GET", "POST", "DELETE", "PUT" etc.
+
+<app path> (in "app-path" clause) is the application path used to access a URL resource in server <location>, see \fBrequest_URL\fP.
+
+<request path> (in "request-path" clause) is the request path used to access a URL resource in server <location>, see \fBrequest_URL\fP.
+
+Optional request body (i.e. body content) is specified via "request-body" clause. Within it, <content> (in "content" subclause) is the actual body content string. Optional <content length>  (in "content-length" subclause) specifies the number of bytes in <content>; by default it will be the string length of <content>. Mandatory <content type> (in "content-type" subclause) is the body content type (for instance  "application/json" or "image/jpg").
+
+Optional <url payload> (in "url payload" clause) is the URL payload, see \fBrequest_URL\fP.
+
+Optional <environment> (in "environment" clause) is the environment passed to a server call, in the form of "name"="value" list where such environment elements are separated by a comma. This way you can send any environment variables to the request executed remotely. For a Vely server, you can access those variables in a remote request by using "web-environment" clause of \fBget-sys\fP statement. There is no limit on the number of environment variables you can use this way, other than the underlying communication library.
+
+Optional <timeout> (in "timeout" clause) is the number of seconds after which a server call will timeout; meaning the duration of a server call should not exceed this period of time. For no timeout, specify 0. Note that time needed for a DNS resolution of <location> is not counted in <timeout>. Maximum value is 86400 seconds. Even though it's optional, it is recommended to specify <timeout> in order to avoid a Vely process waiting for a very long time (see \fBhow_vely_works\fP). Note that even if your server call times out, the actual request executing on the server may continue until it's done.
+
+.SH EXAMPLES
+In this example, 3 server calls are resourced ("srv1", "srv2" and "srv3"), and they will connect to a hash server (see \fBexample_hash_server\fP) and each will add a key ("key1" with data "data_1", "key2" with data "data_2" and "key3" with data "data_3"). All three connect via Unix socket. A full URL path (for "srv1" for example), would be "/hash/server/op/add/key/key_1/data/data_1" (see \fBexample_hash_server\fP).
+
+Then \fBcall-server\fP will make all three server calls in parallel (i.e. as threads executing at the same time). You can examine if everything went okay, how many threads have started, and how many finished with a reply from the server (this means any kind of reply, even if an error). Finally, the output from each call is displayed (that's "data" clause in \fBread-server\fP statement at the end). Create file "srv.vely" and copy to it this code:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+void srv() {
+    out-header default
+    // Create resources (prepare) for 3 server calls
+    new-server define srv1 location "/var/lib/vv/hash/sock/sock" \\
+        method "GET" app-path "/hash" request-path "/server" \\
+        url-payload "/op/add/key/key_1/data/data_1"
+    new-server define srv2 location "/var/lib/vv/hash/sock/sock" \\
+        method "GET" app-path "/hash" request-path "/server" \\
+        url-payload "/op/add/key/key_2/data/data_2"
+    new-server define srv3 location "/var/lib/vv/hash/sock/sock" \\
+        method "GET" app-path "/hash" request-path "/server" \\
+        url-payload "/op/add/key/key_3/data/data_3"
+    // Make 3 server calls in parallel, each in it own thread
+    call-server srv1, srv2, srv3 status define st \\
+        started define start \\
+        finished-okay define fok
+    // Check if all calls were completed
+    if (st == VV_OKAY) {
+        @No errors from call-server
+    }
+    if (start == 3) {
+        @All three server calls started.
+    }
+    if (fok == 3) {
+        @All three server calls finished.
+    }
+    read-server srv1 data define rdata1
+    read-server srv2 data define rdata2
+    read-server srv3 data define rdata3
+    p-out rdata1
+    @
+    p-out rdata2
+    @
+    p-out rdata3
+    @
+}
+
+.EE
+.RE
+
+Create the application:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) callhash
+
+.EE
+.RE
+
+Make it:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+Get the bash code to execute from command line:
+
+.RS 4
+.EX
+
+vv -r --req="/callhash/srv"
+
+.EE
+.RE
+
+Copy and paste the result:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/callhash"
+export PATH_INFO="/srv"
+export QUERY_STRING=""
+/var/lib/vv/bld/callhash/callhash
+
+.EE
+.RE
+
+And the result is (assuming you have started hash example above):
+
+.RS 4
+.EX
+
+Content-type: text/html;charset=utf-8
+Cache-Control: max-age=0, no-cache
+Pragma: no-cache
+Status: 200 OK
+
+No errors from call-server
+All three server calls started.
+All three server calls finished.
+Added [key_1]
+
+Added [key_2]
+
+Added [key_3]
+
+.EE
+.RE
+
+Assuming you don't need the HTTP headers output, execute this prior to the above:
+
+.RS 4
+.EX
+
+export VV_SILENT_HEADER=yes
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Distributed computing
+
+\fBcall-server\fP  
+\fBdelete-server\fP  
+\fBnew-server\fP  
+\fBread-server\fP    
+See all 
+\fBdocumentation\fP

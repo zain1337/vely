@@ -28,7 +28,6 @@
 bool vely_mem_os = false;
 
 // functions
-VV_MEMINLINE void *vely_vmset (void *p, num r);
 VV_MEMINLINE num vely_get_memory (void *ptr);
 char *vely_out_mem_mess = "Out of memory for [%lld] bytes";
 
@@ -39,19 +38,6 @@ char *VV_EMPTY_STRING=NULL;
 
 
 
-// sizeof(num) is the overhead for VELY memory checksum before each block(see below), which is 8 bytes
-// however, since all memory needs to be 16 bytes align (as of now), we need to have that
-// much memory for the overhead, so that the actual memory served is always 16-bytes aligned
-// What is important is that our overhead is smaller, i.e. sizeof(num)<=k*16
-// Another important requirement is that num MUST always be on a 8 byte boundary (or sizeof(num))
-// whatever it is. If it is not, CPU will NOT read it correctly, it may be garbage.
-
-// change this if in the future CPU alignment is 32 bytes alignment,instead of 16 for example! Note that CPU 
-// alignment is INDEPENDENT of sizeof(num). 16 here is the CPU alignment. It must be minimum that.
-// But if the amount needed is greater than that, then it must be a multiple of 16, as computed below.
-#define VELYCPUALIGN (16)
-#define VELYMULTALIGN(x) (((x)/VELYCPUALIGN+(x%VELYCPUALIGN !=0 ? 1:0)) * VELYCPUALIGN)
-#define VELYALIGN (VELYMULTALIGN(sizeof(num)))
 
 #define VV_MEM_FREE 1
 #define VV_MEM_FILE 2
@@ -173,7 +159,7 @@ VV_MEMINLINE void *vely_vmset (void *p, num r)
 {
     // num must be aligned to 8 byte bounder, which is fine since malloc'd mem is 16-byte aligned
     memcpy ((unsigned char*)p, &r, sizeof (num));
-    return (unsigned char*)p + VELYALIGN;
+    return (unsigned char*)p + VV_ALIGN;
 }
 
 
@@ -197,10 +183,10 @@ VV_MEMINLINE void *_vely_malloc(size_t size)
         } else return p;
     }
     size_t t;
-    void *p = malloc (t=size + VELYALIGN);
+    void *p = malloc (t=size + VV_ALIGN);
     if (p == NULL) 
     {
-        vely_report_error (vely_out_mem_mess, size+VELYALIGN);
+        vely_report_error (vely_out_mem_mess, size+VV_ALIGN);
     }
     // add memory pointer to memory block
     num r = vely_add_mem (p);
@@ -222,7 +208,7 @@ VV_MEMINLINE void *_vely_calloc(size_t nmemb, size_t size)
         } else return p;
     }
     size_t t;
-    void *p =  calloc (1, t=(nmemb*size + VELYALIGN));
+    void *p =  calloc (1, t=(nmemb*size + VV_ALIGN));
     if (p == NULL) 
     {
         vely_report_error (vely_out_mem_mess, t);
@@ -236,7 +222,7 @@ VV_MEMINLINE void *_vely_calloc(size_t nmemb, size_t size)
 //
 VV_MEMINLINE num vely_get_memory (void *ptr)
 {
-    return *(num*)((unsigned char*)ptr-VELYALIGN);
+    return *(num*)((unsigned char*)ptr-VV_ALIGN);
 }
 
 
@@ -271,13 +257,13 @@ VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe)
     num r = vely_get_memory(ptr);
     if (safe) 
     {
-        if ((r < 0 || r >= vm_curr) || vm[r].ptr != ((unsigned char*)ptr-VELYALIGN)) vely_report_error("Invalid memory to realloc");
+        if ((r < 0 || r >= vm_curr) || vm[r].ptr != ((unsigned char*)ptr-VV_ALIGN)) vely_report_error("Invalid memory to realloc");
     }
     vm[r].ptr = NULL;
-    void *p= realloc ((unsigned char*)ptr-VELYALIGN, t=size + VELYALIGN);
+    void *p= realloc ((unsigned char*)ptr-VV_ALIGN, t=size + VV_ALIGN);
     if (p == NULL) 
     {
-        vely_report_error (vely_out_mem_mess, size+VELYALIGN);
+        vely_report_error (vely_out_mem_mess, size+VV_ALIGN);
     }
     r = vely_add_mem(p);
     return vely_vmset(p,r);
@@ -326,7 +312,7 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
         // not match.
         //
         if (r < 0 || r >= vm_curr) { return false;} 
-        if (vm[r].ptr != ((unsigned char*)ptr-VELYALIGN)) {return false;}
+        if (vm[r].ptr != ((unsigned char*)ptr-VV_ALIGN)) {return false;}
         //
         // Now we know the pointer is valid (very high probability, chances of random point in memory having
         // the exact pointer to data passed to here are practially zero).
@@ -342,7 +328,7 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
     // free mem
     vm[r].ptr = NULL;
     vm[r].status |= VV_MEM_FREE; // freed
-    free ((unsigned char*)ptr-VELYALIGN);
+    free ((unsigned char*)ptr-VV_ALIGN);
     // Set memory marked as freed, would be -1 if there's no free blocks at this moment
     vm[r].next_free = vm_first_free;
     vm_first_free = r;
@@ -394,7 +380,7 @@ void vely_done ()
                 }
                 else
                 {
-                    _vely_free ((unsigned char*)vm[i].ptr+VELYALIGN, 0);
+                    _vely_free ((unsigned char*)vm[i].ptr+VV_ALIGN, 0);
                 }
             }
         }

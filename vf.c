@@ -304,7 +304,7 @@ static num srvhere(num op) {
 }
 
 //
-// Sleep milliseconds milli
+// Sleep milliseconds milli. We don't have signals here, so no need for remaining time to be considered.
 //
 static void sleepabit(num milli) {
    struct timespec slp;

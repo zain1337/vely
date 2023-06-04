@@ -41,4 +41,19 @@ At the end of the request, all strings allocated by Vely will be freed.
 
 You cannot change the implementation of vely_dispatch_request(), but you can see it in the build directory (see \fBvv\fP).
 .SH SEE ALSO
- \fIRequests\fP ( \fBafter_request_handler\fP   \fBbefore_request_handler\fP   \fBbuilding_URL\fP   \fBgetting_URL\fP   \fBglobal_request_data\fP   \fBnon_request\fP   \fBnormalized_URL\fP   \fBrequest\fP   \fBrequest_URL\fP   \fBstartup_handler\fP   \fBvely_dispatch_request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP    
+See all 
+\fBdocumentation\fP

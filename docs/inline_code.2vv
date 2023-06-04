@@ -94,4 +94,13 @@ There is <<p-out mins>> minutes left!
 .RE
 
 .SH SEE ALSO
- \fILanguage\fP ( \fBdot\fP   \fBinline_code\fP   \fBstatement_APIs\fP   \fBsyntax_highlighting\fP   \fBunused-var\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Language
+
+\fBdot\fP  
+\fBinline_code\fP  
+\fBstatement_APIs\fP  
+\fBsyntax_highlighting\fP  
+\fBunused-var\fP    
+See all 
+\fBdocumentation\fP

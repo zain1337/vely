@@ -108,6 +108,7 @@
 #define VV_KEYBUFFERED "buffered"
 #define VV_KEYDEFAULT "default"
 #define VV_KEYERROR "error "
+#define VV_KEYERRORLENGTH "error-length "
 #define VV_KEYERRORFILE "error-file "
 #define VV_KEYERRORTEXT "error-text "
 #define VV_KEYERRORPOSITION "error-position "
@@ -117,6 +118,7 @@
 #define VV_KEYDEFINED "define "
 #define VV_KEYSECURE "secure"
 #define VV_KEYEXPIRES "expires "
+#define VV_KEYAPPPATH "app-path "
 #define VV_KEYPATH "path "
 #define VV_KEYPATH0 "path"
 #define VV_KEYFILEID "file-id "
@@ -134,6 +136,7 @@
 #define VV_KEYOUTPUT "output "
 #define VV_KEYUNKNOWNOUTPUT "unknown-output"
 #define VV_KEYMETHOD "method "
+#define VV_KEYLOCATION "location "
 #define VV_KEYARGS "args "
 #define VV_KEYAVERAGEREADS "average-reads "
 #define VV_KEYOUTPUTFILE "output-file "
@@ -143,13 +146,16 @@
 #define VV_KEYHEADERS "headers "
 #define VV_KEYRESPONSEHEADERS "response-headers "
 #define VV_KEYREQUESTHEADERS "request-headers "
+#define VV_KEYREQUESTPATH "request-path "
 #define VV_KEYFILES "files "
 #define VV_KEYFIELDS "fields "
 #define VV_KEYREQUESTBODY "request-body "
 #define VV_KEYCONTINUE "continue"
+#define VV_KEYCONTENT "content "
 #define VV_KEYCONTENTTYPE "content-type "
-#define VV_KEYPAYLOAD "payload "
-#define VV_KEYPAYLOADLENGTH "payload-length "
+#define VV_KEYCONTENTLENGTH "content-length "
+#define VV_KEYURLPAYLOAD "url-payload "
+#define VV_KEYTHREADID "thread-id "
 #define VV_KEYETAG "etag"
 #define VV_KEYFILENAME "file-name "
 #define VV_KEYNOCACHE "no-cache"
@@ -174,6 +180,8 @@
 #define VV_KEYWEBENCODE "webencode"
 #define VV_KEYURLENCODE "urlencode"
 #define VV_KEYDATA "data "
+#define VV_KEYDATALENGTH "data-length "
+#define VV_KEYREQUESTSTATUS "request-status "
 #define VV_KEYYEAR "year "
 #define VV_KEYMONTH "month "
 #define VV_KEYDAY "day "
@@ -204,11 +212,13 @@
 #define VV_KEYCOOKIECOUNT "cookie-count"
 #define VV_KEYCOOKIE "cookie "
 #define VV_KEYINPUT "input "
+#define VV_KEYFINISHEDOKAY "finished-okay "
+#define VV_KEYARRAYCOUNT "array-count "
+#define VV_KEYSTARTED "started "
 // Type for 'define' statements
 #define VV_DEFSTRING 1
 #define VV_DEFNUM 4
 #define VV_DEFVOIDPTRPTR 6
-#define VV_DEFCHAR 7
 #define VV_DEFBROKEN 8
 #define VV_DEFJSON 9
 #define VV_DEFHASH 10
@@ -218,6 +228,7 @@
 #define VV_DEFVOIDPTR 14
 #define VV_DEFENCRYPT 15
 #define VV_DEFFILE 16
+#define VV_DEFFCGI 18
 // maximum length of generated code line (in .c file, final line)
 #define VV_MAX_CODE_LINE 4096
 // error messages
@@ -233,12 +244,6 @@
 #define VV_QRY_USED 1
 #define VV_QRY_INACTIVE 0
 #define VV_QRY_ACTIVE 1
-// maximum number of input parameters to a program in exec-program
-#define VV_MAX_EXEC_PARAMS 32
-// maximum number of fields/files in call-web post, so half of this (2000/2=1000)
-#define VV_MAX_POST_COUNT 2000
-// maximum number of custom headers  in HTTP, so half of this (64)
-#define VV_MAX_HEADER_COUNT 128
 
 //guard against if (..) vely_statement, causes if (..) char ...; which is illegal
 #define VV_GUARD   oprintf("char _vely_statement_must_be_within_code_block_here_%lld; VV_UNUSED (_vely_statement_must_be_within_code_block_here_%lld);\n", vnone, vnone), vnone++;
@@ -380,6 +385,7 @@ num verbose = 0; // 1 if verbose output of preprocessing steps is displayed
 num no_vely_line = 0; // if 1, no #line generated
 num total_exec_programs=0; // enumerates instance of exec-program so generated argument array variables are unique
 num total_body=0; // enumerates instance of call-web for body fields and files
+num total_fcgi_arr=0; // enumerates instance of new-server for env
 // Application name - we must know it in order to figure out database config file
 // Database connections
 vely_db_connections vely_dbs;
@@ -418,7 +424,7 @@ num define_statement (char **statement, num type);
 // true if to emit line number in source file, do not do it if vely -x used
 #define VV_EMIT_LINE (no_vely_line == 0 && lnum>1)
 #define  VV_VERBOSE(lnum,...) out_verbose(lnum,  __VA_ARGS__)
-void parse_param_list (char *parse_list, vely_fifo **params);
+void parse_param_list (char *parse_list, vely_fifo **params, num *tot);
 void is_opt_defined (char **option, num *is_defined);
 char *find_keyword(char *str, char *find, num has_spaces);
 num find_connection(char *conn);
@@ -436,8 +442,8 @@ char *vely_db_vendor(num dbconn);
 void trimit(char *var);
 void check_vely (char *c);
 char *id_from_file (char *file);
-num outargs(char *args, char *outname, num outtot, num startwith, char pair);
-void process_http_header (char *statement, char *header, char *temp_header, num http_header_count, char request);
+num outargs(char *args, char *outname, char *type, num startwith, char pair);
+void process_http_header (char *statement, char *header, char *temp_header, num http_header_count, char request, char **content_len, char **content_type);
 char *make_default_header(int inittype, num http_header_count, char request);
 void on_error_act (char *on_error_cont, char *on_error_exit, char *act);
 void envsub ();
@@ -641,13 +647,19 @@ char *make_default_header(int inittype, num http_header_count, char request)
 // statement. temp_header is the name of the vely_header var generated via make_default_header().
 // http_header_count is the ID of the temp vely_header-type, the same as used in make_default_header().
 // request is 0 if this is reply header, or 1 if request. Some http headers are just for reply and vice versa.
+// content_type is content-type if set, NULL otherwise,
+// content_len is content-length if set, NULL otherwise (originally vely_header was to be used to set the values, but
+// there is an issue of types: here all types are char*, while at run-time, they can be different); can be NULL.
 //
-void process_http_header (char *statement, char *header, char *temp_header, num http_header_count, char request)
+void process_http_header (char *statement, char *header, char *temp_header, num http_header_count, char request, char **content_len, char **content_type)
 {
+    if (content_len != NULL) *content_len = NULL;
+    if (content_type != NULL) *content_type = NULL;
     if (header != NULL)
     {
         // process header clause
         char *ctype = NULL;
+        char *clen = NULL;
         char *download = NULL;
         char *cachecontrol = NULL;
         char *nocache = NULL;
@@ -668,6 +680,10 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
             statusid = find_keyword (mheader, VV_KEYSTATUSID, 1);
             statustext = find_keyword (mheader, VV_KEYSTATUSTEXT, 1);
         }
+        if (request == 1) 
+        {
+            clen = find_keyword (mheader, VV_KEYCONTENTLENGTH, 1);
+        }
         ctype = find_keyword (mheader, VV_KEYCONTENTTYPE, 1);
         custom = find_keyword (mheader, VV_KEYCUSTOM, 1);
         if (request == 0)
@@ -680,6 +696,10 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
             carve_statement (&statusid, statement, VV_KEYSTATUSID, 0, 1);
             carve_statement (&statustext, statement, VV_KEYSTATUSTEXT, 0, 1);
         }
+        if (request == 1) 
+        {
+            carve_statement (&clen, statement, VV_KEYCONTENTLENGTH, 0, 1);
+        }
         carve_statement (&ctype, statement, VV_KEYCONTENTTYPE, 0, 1);
         carve_statement (&custom, statement, VV_KEYCUSTOM, 0, 1);
 
@@ -688,7 +708,8 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
 
         if (nocache != NULL && cachecontrol != NULL) _vely_report_error( "both no-cache and cache-control specified, only one can be used");
         // gen header
-        if (ctype != NULL) oprintf ("(%s).ctype = %s;\n", temp_header, ctype);
+        if (ctype != NULL) { if (content_len != NULL) *content_type = ctype;  oprintf ("(%s).ctype = %s;\n", temp_header, ctype); }
+        if (clen != NULL) {if (content_len != NULL) *content_len = clen; oprintf ("(%s).clen = %s;\n", temp_header, clen);}
         if (download != NULL) oprintf ("(%s).disp = %s;\n", temp_header, downloadc);
         if (etag != NULL) oprintf ("(%s).etag = %s;\n", temp_header, etagc);
         if (filename != NULL) oprintf ("(%s).file_name = %s;\n", temp_header, filename);
@@ -705,7 +726,7 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
             // store custom headers
             char chead_var[100];
             snprintf (chead_var, sizeof (chead_var), "_vv_chead_arr%lld", http_header_count);
-            num tothead = outargs(mcustom, chead_var, VV_MAX_HEADER_COUNT, 0, 1);
+            num tothead = outargs(mcustom, chead_var, "char *", 0, 1);
             num i;
             num j = 0;
             // This pointer copying, first to _vv_chead_arr, then to control/value will
@@ -723,25 +744,26 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
 //
 // Generate code for 1) name=value,... statement, for example in call-web or 2) something,... statement
 // for example in exec-program. args is the actual text of what's parsed in the statement.
-// outname is the name of char ** array where the results are stored in generated code. outtot is the maximum number of
-// elements in outname array. startwith is 0 or 1, depending on whether to put the first element of the array
+// outname is the name of <type>* array where the results are stored in generated code. 
+// startwith is 0 or 1, depending on whether to put the first element of the array
 // in [0] or [1]. 'pair' is 0 for something,... or 1 for name=value,.... For name=value situation,
 // array is filled so it has name,value,name,value,etc.
 // 'something','name','value' can be quoted or in () in order to avoid conflicts.
 // The last element in the generated array always has NULL in it.
+// So type is the type of these elements.
 // Returns the index of the last element in array, the one that has NULL in it (in the code generated for the array).
 //
-num outargs(char *args, char *outname, num outtot, num startwith, char pair) 
+num outargs(char *args, char *outname, char *type, num startwith, char pair) 
 {
 
-    // define run-time list of program arguments
-    oprintf("char *%s[%lld];\n", outname, outtot);
 
     num exec_inputs=startwith; // we start with index 1 in order to fill in program name as arg[0] at run-time
                         // args[0] is filled with program name at run-time
 
+    num tote;
     if (args != NULL)
     {
+        num tot;
         // must duplicate string because we CHANGE curr_start in parse_param_list (because it removes
         // escaped quotes) and thus we change the 'line' (the current parsing line). As a result, we will
         // probably error out at the end of line because we will see null characters since the line has 
@@ -750,7 +772,12 @@ num outargs(char *args, char *outname, num outtot, num startwith, char pair)
 
         // parse program arguments
         vely_fifo *params = NULL;
-        parse_param_list (curr_start, &params);
+        parse_param_list (curr_start, &params, &tot);
+        // define run-time list of program arguments, account for the last NULL
+        // also account double when there's x=y pair, since that'll take 2 entries
+        // add startwith if not zero to account for pre-filled elements
+        oprintf("%s%s[%lld];\n", type,outname, tote=((pair == 1 ? 2:1)*tot+1+startwith));
+
         char *value;
         while (1)
         {
@@ -778,15 +805,17 @@ num outargs(char *args, char *outname, num outtot, num startwith, char pair)
                 oprintf("%s[%lld] = %s;\n", outname, exec_inputs, value);
                 exec_inputs++;
             }
-            if (exec_inputs>=outtot - 1)
-            {
-                _vely_report_error( "Too many program arguments [%lld]", exec_inputs);
-            }
         } 
+    } 
+    else 
+    {
+        oprintf("%s%s[%lld];\n", type,outname, tote=startwith+1); // no list (otherthan prefilled
+                                                                  // startwith, just one element for NULL
     }
 
     // final arg MUST be NULL
     oprintf("%s[%lld] = NULL;\n", outname, exec_inputs);
+    if (exec_inputs >= tote) _vely_report_error( "Internal error in building a list [%lld, %lld]", exec_inputs, tote);
 
     return exec_inputs;
 }
@@ -1611,8 +1640,8 @@ void carve_statement (char **statement, char *statement_name, char *keyword, num
 // 'statement' is the pointer to the pointer to data associated with statement name, for example in 'get-time to define res year 1'
 // 'statement' could point to 'define res' and define it as a string
 // 'type is VV_DEFSTRING('char *') or VV_DEFNUM or VV_DEFVOIDPTRPTR or VV_DEFCHARPTRPTR
-// or VV_DEFCHAR or VV_BROKEN or VV_DEFDBL or VV_DEFHASH or VV_DEFJSON or VV_DEFFIFO or VV_DEFVOID, or VV_DEFENCRYPT
-// or VV_DEFFILE 
+// or VV_BROKEN or VV_DEFDBL or VV_DEFHASH or VV_DEFJSON or VV_DEFFIFO or VV_DEFVOID, or VV_DEFENCRYPT
+// or VV_DEFFILE or VV_DEFFCGI
 // Returns 1 if there is a "define", 0 otherwise.
 //
 // if the '*statement' has () around it, those are removed (see comments below)
@@ -1636,6 +1665,15 @@ num define_statement (char **statement, num type)
         (*statement)++;
     }
 
+    // make sure *statement is not empty - this happens when data to a clause is not supplied
+    num lst = strlen (*statement);
+    *statement = vely_trim_ptr(*statement,  &lst);
+    if ((*statement)[0] == 0) 
+    {
+        _vely_report_error("Parameter missing in the statement");
+    }
+
+
     if (is_def_result == 1 && vely_is_valid_param_name(*statement) != 1)
     {
         _vely_report_error(VV_NAME_INVALID, *statement);
@@ -1648,13 +1686,13 @@ num define_statement (char **statement, num type)
         else if (type == VV_DEFCHARPTRPTR) oprintf ("char **%s = NULL;\n", *statement);
         else if (type == VV_DEFNUM) oprintf ("num %s = 0;\n", *statement);
         else if (type == VV_DEFDBL) oprintf ("dbl %s = 0;\n", *statement);
-        else if (type == VV_DEFCHAR) oprintf ("char *%s=NULL;\n", *statement);
         else if (type == VV_DEFBROKEN) oprintf ("vely_split_str *%s = NULL;\n", *statement);
         else if (type == VV_DEFJSON) oprintf ("vely_json *%s = NULL;\n", *statement);
         else if (type == VV_DEFHASH) oprintf ("vely_hash *%s = NULL;\n", *statement);
         else if (type == VV_DEFFIFO) oprintf ("vely_fifo *%s = NULL;\n", *statement);
         else if (type == VV_DEFENCRYPT) oprintf ("EVP_CIPHER_CTX *%s = NULL;\n", *statement);
         else if (type == VV_DEFFILE) oprintf ("vely_file *%s = NULL;\n", *statement);
+        else if (type == VV_DEFFCGI) oprintf ("vv_fc *%s = NULL;\n", *statement);
         else _vely_report_error( "Unknown define type (%lld)", type);
     }
     return is_def_result;
@@ -1744,13 +1782,15 @@ num terminal_width()
 // String representing list of parameters is parse_list. VELY list structure is 'params', which will
 // hold the parsed parameters. 
 // parse_list is advanced to its end during processing.
+// tot is the number of elements (single or x=y pairs encountered); it can be NULL.
 //
 // This is for a LIST of parameters separated by comma ONLY (i.e. start-query# and exec-program).
 // On return, parse_list is one byte passed the end of last character in the list, which is null character.
 //
-void parse_param_list (char *parse_list, vely_fifo **params)
+void parse_param_list (char *parse_list, vely_fifo **params, num *tot)
 {
     vely_store_init(params);
+    if (tot != NULL) *tot = 0;
 
     while (1)
     {
@@ -1795,6 +1835,7 @@ void parse_param_list (char *parse_list, vely_fifo **params)
         parse_list = end_of_parse_list; // positioned to next parameter
                                          // this needs to be before break below
                                          // because caller relies on parse_list being exhausted
+        if (tot != NULL) (*tot)++;
 
         // break if at the end
         if (*end_of_parse_list==0) break;
@@ -1817,7 +1858,7 @@ void get_all_input_param (vely_gen_ctx *gen_ctx, char *iparams)
 
     // parse params. 
     vely_fifo *params = NULL;
-    parse_param_list (iparams, &params);
+    parse_param_list (iparams, &params, NULL);
 
 
     char *value;
@@ -2867,7 +2908,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             //VV_HEADER_PAGE because output from a page isn't cached, it's dynamic
                             char *temp_header = make_default_header(VV_HEADER_PAGE, http_header_count, 0);
                             // VV_KEY* must be specified, even as a header, for getvim to pick up keywords for highlighting!
-                            process_http_header ("out-header", use, temp_header, http_header_count, 0); // VV_KEYCONTENTTYPE VV_KEYDOWNLOAD VV_KEYETAG VV_KEYFILENAME VV_KEYCACHECONTROL VV_KEYNOCACHE VV_KEYSTATUSID VV_KEYSTATUSTEXT VV_KEYCUSTOM
+                            process_http_header ("out-header", use, temp_header, http_header_count, 0, NULL, NULL); // VV_KEYCONTENTTYPE VV_KEYDOWNLOAD VV_KEYETAG VV_KEYFILENAME VV_KEYCACHECONTROL VV_KEYNOCACHE VV_KEYSTATUSID VV_KEYSTATUSTEXT VV_KEYCUSTOM
                             oprintf("vely_get_config ()->ctx.req->header=&(%s);\n", temp_header);
                             http_header_count++;
                         }
@@ -2953,7 +2994,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         // store exec-program args arguments in an array
                         char prog_var[100];
                         snprintf (prog_var, sizeof(prog_var), "_vv_prg_arr%lld", total_exec_programs);
-                        num exec_inputs = outargs(program_args, prog_var, VV_MAX_EXEC_PARAMS, 1, 0);
+                        num exec_inputs = outargs(program_args, prog_var, "char *", 1, 0);
 
                         // generate run-time call to execute program
                         // exec_inputs is always at least 1 (to account for args[0] being program name)
@@ -3001,7 +3042,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         oprintf ("(%s).file_name = basename(%s);\n", temp_header, mtext);
 
                         // specify keywords used in function for syntax highlighting to work properly
-                        process_http_header ("send-file", header, temp_header, http_header_count, 0); // VV_KEYCONTENTTYPE VV_KEYDOWNLOAD VV_KEYETAG VV_KEYFILENAME VV_KEYCACHECONTROL VV_KEYNOCACHE VV_KEYSTATUSID VV_KEYSTATUSTEXT VV_KEYCUSTOM
+                        process_http_header ("send-file", header, temp_header, http_header_count, 0, NULL, NULL); // VV_KEYCONTENTTYPE VV_KEYDOWNLOAD VV_KEYETAG VV_KEYFILENAME VV_KEYCACHECONTROL VV_KEYNOCACHE VV_KEYSTATUSID VV_KEYSTATUSTEXT VV_KEYCUSTOM
                         http_header_count++;
 
 
@@ -3484,10 +3525,6 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         else 
                             define_statement (&to, VV_DEFSTRING);
 
-                        if (path != NULL) define_statement (&path, VV_DEFSTRING);
-                        else if (basename != NULL) define_statement (&basename, VV_DEFSTRING);
-                        else if (type != NULL) define_statement (&type, VV_DEFNUM);
-                        else if (size != NULL) define_statement (&size, VV_DEFNUM);
 
                         if (size != NULL) oprintf ("%s=vely_get_file_size (%s);\n", to, mtext);
                         if (type != NULL) oprintf ("%s=vely_file_type (%s);\n", to, mtext);
@@ -3764,17 +3801,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         // process body clause after ward because it is done within a copy of carved out 'body' above
                         char *files = NULL;
                         char *fields = NULL;
-                        char *payload = NULL;
-                        char *payload_len = NULL;
+                        char *content = NULL;
                         if (body != NULL)
                         {
                             char *mbody = vely_strdup (body);
-                            payload = find_keyword (mbody, VV_KEYPAYLOAD, 1);
-                            payload_len = find_keyword (mbody, VV_KEYPAYLOADLENGTH, 1);
+                            content = find_keyword (mbody, VV_KEYCONTENT, 1);
                             files = find_keyword (mbody, VV_KEYFILES, 1);
                             fields = find_keyword (mbody, VV_KEYFIELDS, 1);
-                            carve_statement (&payload, "call-web", VV_KEYPAYLOAD, 0, 1);
-                            carve_statement (&payload_len, "call-web", VV_KEYPAYLOADLENGTH, 0, 1);
+                            carve_statement (&content, "call-web", VV_KEYCONTENT, 0, 1);
                             carve_statement (&files, "call-web", VV_KEYFILES, 0, 1);
                             carve_statement (&fields, "call-web", VV_KEYFIELDS, 0, 1);
                         }
@@ -3788,33 +3822,39 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         char *req_header = NULL;
                         char req_header_ptr[200];
+                        char* clen = NULL;
+                        char* ctype = NULL;
                         if (rhead != NULL)
                         {
                             // VV_HEADER_FILE/PAGE doesn't matter, cache is not used with request header
                             req_header = make_default_header(VV_HEADER_FILE, http_header_count, 1);
                             snprintf (req_header_ptr, sizeof(req_header_ptr), "&%s", req_header);
-                            process_http_header ("call-web", rhead, req_header, http_header_count, 1); // VV_KEYCONTENTTYPE VV_KEYCUSTOM
+                            process_http_header ("call-web", rhead, req_header, http_header_count, 1, &clen, &ctype); // VV_KEYCONTENTTYPE VV_KEYCUSTOM VV_KEYCONTENTLENGTH
                             http_header_count++;
                         }
-                        if ((payload == NULL && payload_len != NULL) && body != NULL) 
+                        if (content != NULL && ctype == NULL) 
                         {
-                            _vely_report_error( "'payload-length' can only be specified with 'payload' subclause in call-web statement");
+                            _vely_report_error( "'content-type' must be specified with 'content' subclause in 'request-body' in call-web statement");
                         }
-                        if ((payload != NULL) && body == NULL) 
+                        if (content == NULL && clen != NULL && body != NULL) 
                         {
-                            _vely_report_error( "'payload' can only be specified with 'body' clause in call-web statement");
+                            _vely_report_error( "'content-length' cannot be specified without 'content' subclause in 'request-body' in call-web statement");
                         }
-                        if ((files != NULL || fields != NULL) && body == NULL) 
+                        if (content == NULL && ctype != NULL && body != NULL) 
                         {
-                            _vely_report_error( "'files' and 'fields' can only be specified with 'body' clause in  call-web statement");
+                            _vely_report_error( "'content-type' cannot be specified without 'content' subclause in 'request-body' in call-web statement");
                         }
-                        if ((files == NULL && fields == NULL && payload == NULL ) && body != NULL) 
+                        if ((files == NULL && fields == NULL && content == NULL ) && body != NULL) 
                         {
-                            _vely_report_error( "either 'payload'/'content-type' or 'files'/'fields' must be specified with 'body' clause in  call-web statement");
+                            _vely_report_error( "either 'content' or 'files'/'fields' must be specified with 'body' clause in  call-web statement");
                         }
-                        if ((files != NULL || fields != NULL) && (payload != NULL)) 
+                        if ((files != NULL || fields != NULL)) 
                         {
-                            _vely_report_error( "you can specify either 'payload' or 'files'/'fields', but not both in  call-web statement");
+                            if (ctype == NULL) ctype = "multipart/form-data"; // when files or forms used, always this
+                        }
+                        if ((files != NULL || fields != NULL) && (content != NULL)) 
+                        {
+                            _vely_report_error( "you can specify either 'content' or 'files'/'fields', but not both in  call-web statement");
                         }
                         if (cert != NULL && nocert != NULL)
                         {
@@ -3829,20 +3869,166 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         if (fields != NULL)
                         {
                             snprintf (fields_var, sizeof (fields_var), "_vv_fields_arr%lld", total_body);
-                            outargs(fields, fields_var, VV_MAX_POST_COUNT, 0, 1);
+                            outargs(fields, fields_var, "char *", 0, 1);
                         }
                         if (files != NULL)
                         {
                             snprintf (files_var, sizeof (files_var), "_vv_files_arr%lld", total_body);
-                            outargs(files, files_var, VV_MAX_POST_COUNT, 0, 1);
+                            outargs(files, files_var, "char *", 0, 1);
                         }
 
                         total_body++;
 
                         oprintf ("%s%svely_post_url_with_response(%s, &(%s), %s%s%s, %s%s%s, %s, %s, %s%s%s, %s, %s, %s, %s, %s, %s, %s, %s);\n", len==NULL?"":len,len==NULL?"":"=",
-                            mtext, resp, head==NULL ? "":"&(",head==NULL ? "NULL":head, head==NULL ? "":")", err==NULL ? "":"&(",err==NULL ? "NULL":err, err==NULL ? "":")", nocert != NULL ? "NULL" : (cert != NULL ? cert : "\"\""), cookiejar == NULL ? "NULL":cookiejar, resp_code==NULL ? "":"&(",resp_code==NULL ? "NULL":resp_code, resp_code==NULL ? "":")", timeout==NULL ? "120":timeout, body == NULL ? "0":"1", fields == NULL ? "NULL":fields_var, files == NULL ? "NULL":files_var, req_header == NULL ? "NULL":req_header_ptr, method == NULL ? "NULL" :method, payload==NULL?"NULL":payload, payload_len==NULL?"-1":payload_len);
+                            mtext, resp, head==NULL ? "":"&(",head==NULL ? "NULL":head, head==NULL ? "":")", err==NULL ? "":"&(",err==NULL ? "NULL":err, err==NULL ? "":")", nocert != NULL ? "NULL" : (cert != NULL ? cert : "\"\""), cookiejar == NULL ? "NULL":cookiejar, resp_code==NULL ? "":"&(",resp_code==NULL ? "NULL":resp_code, resp_code==NULL ? "":")", timeout==NULL ? "120":timeout, body == NULL ? "0":"1", fields == NULL ? "NULL":fields_var, files == NULL ? "NULL":files_var, req_header == NULL ? "NULL":req_header_ptr, method == NULL ? "NULL" :method, content==NULL?"NULL":content, clen==NULL?"-1":clen);
 
 
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "new-server", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        //
+                        // Look for each option and collect relevant info
+                        //
+                        char *server = find_keyword (mtext, VV_KEYLOCATION, 1);
+                        char *method = find_keyword (mtext, VV_KEYMETHOD, 1);
+                        char *apath = find_keyword (mtext, VV_KEYAPPPATH, 1);
+                        char *req = find_keyword (mtext, VV_KEYREQUESTPATH, 1);
+                        char *body = find_keyword (mtext, VV_KEYREQUESTBODY, 1);
+                        char *upay = find_keyword (mtext, VV_KEYURLPAYLOAD, 1);
+                        char *timeout = find_keyword (mtext, VV_KEYTIMEOUT, 1);
+                        char *env = find_keyword (mtext, VV_KEYENVIRONMENT, 1);
+
+                        carve_statement (&server, "new-server", VV_KEYLOCATION, 1, 1);
+                        carve_statement (&method, "new-server", VV_KEYMETHOD, 1, 1);
+                        carve_statement (&apath, "new-server", VV_KEYAPPPATH, 1, 1);
+                        carve_statement (&req, "new-server", VV_KEYREQUESTPATH, 1, 1);
+                        carve_statement (&body, "new-server", VV_KEYREQUESTBODY, 0, 1);
+                        carve_statement (&upay, "new-server", VV_KEYURLPAYLOAD, 0, 1);
+                        carve_statement (&timeout, "new-server", VV_KEYTIMEOUT, 0, 1);
+                        carve_statement (&env, "new-server", VV_KEYENVIRONMENT, 0, 1);
+
+                        // process body clause after ward because it is done within a copy of carved out 'body' above
+                        char *ctype = NULL;
+                        char *content = NULL;
+                        char *clen = NULL;
+                        char *mbody = NULL;
+                        if (body != NULL)
+                        {
+                            mbody = vely_strdup (body);
+                            content = find_keyword (mbody, VV_KEYCONTENT, 1);
+                            clen = find_keyword (mbody, VV_KEYCONTENTLENGTH, 1);
+                            ctype = find_keyword (mbody, VV_KEYCONTENTTYPE, 1);
+                            carve_statement (&content, "new-server", VV_KEYCONTENT, 0, 1);
+                            carve_statement (&clen, "new-server", VV_KEYCONTENTLENGTH, 0, 1);
+                            carve_statement (&ctype, "new-server", VV_KEYCONTENTTYPE, 0, 1);
+                        }
+
+                        if (server == NULL) _vely_report_error( "'server' must be specified in new-server statement");
+                        if (method == NULL) _vely_report_error( "'request-method' must be specified in new-server statement");
+                        if (apath == NULL) _vely_report_error( "'app-path' must be specified in new-server statement");
+                        if (req == NULL) _vely_report_error( "'request-path' must be specified in new-server statement");
+                        if (body == NULL && ctype != NULL) _vely_report_error( "'content-type' cannot be specified without 'request-body' in new-server statement");
+                        if (body == NULL && clen != NULL) _vely_report_error( "'content-length' cannot be specified without 'request-body' in new-server statement");
+                        if (body != NULL && ctype == NULL) _vely_report_error( "'content-type' must be specified for 'request-body' in new-server statement");
+                        if (body != NULL && content == NULL) _vely_report_error( "'content' must be specified for 'request-body' in new-server statement");
+
+
+                        char env_var[100];
+                        snprintf (env_var, sizeof (env_var), "_vv_fc_env_arr%lld", total_fcgi_arr);
+                        if (env != NULL) outargs(env, env_var, "char *", 0, 1);
+
+                        // define for fcgi thread
+                        define_statement (&mtext, VV_DEFFCGI);
+                        oprintf ("vv_set_fcgi (&(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);\n", mtext, server, method, apath, req, upay==NULL?"NULL":upay,ctype==NULL?"NULL":ctype, body==NULL?"NULL":content, clen==NULL?"0":clen, timeout==NULL?"0":timeout, env==NULL?"NULL":env_var);
+
+                        total_fcgi_arr++;
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "read-server", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+                        char *data = find_keyword (mtext, VV_KEYDATA, 1);
+                        char *error = find_keyword (mtext, VV_KEYERROR, 1);
+                        char *ldata = find_keyword (mtext, VV_KEYDATALENGTH, 1);
+                        char *lerror = find_keyword (mtext, VV_KEYERRORLENGTH, 1);
+                        char *rcode = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *rmsg = find_keyword (mtext, VV_KEYSTATUSTEXT, 1);
+                        char *rstatus = find_keyword (mtext, VV_KEYREQUESTSTATUS, 1);
+
+                        carve_statement (&data, "read-server", VV_KEYDATA, 0, 1);
+                        carve_statement (&error, "read-server", VV_KEYERROR, 0, 1);
+                        carve_statement (&ldata, "read-server", VV_KEYDATALENGTH, 0, 1);
+                        carve_statement (&lerror, "read-server", VV_KEYERRORLENGTH, 0, 1);
+                        carve_statement (&rcode, "read-server", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&rmsg, "read-server", VV_KEYSTATUSTEXT, 0, 1);
+                        carve_statement (&rstatus, "read-server", VV_KEYREQUESTSTATUS, 0, 1);
+                        
+                        define_statement (&data, VV_DEFSTRING);
+                        define_statement (&error, VV_DEFSTRING);
+                        define_statement (&ldata, VV_DEFNUM);
+                        define_statement (&lerror, VV_DEFNUM);
+                        define_statement (&rcode, VV_DEFNUM);
+                        define_statement (&rstatus, VV_DEFNUM);
+                        define_statement (&rmsg, VV_DEFSTRING);
+
+                        if (data == NULL && error == NULL && ldata == NULL && lerror == NULL && rcode == NULL && rstatus == NULL) _vely_report_error( "at least one clause must be specified in new-server statement");
+                        if (data != NULL) oprintf ("%s = vv_fc_data(%s);\n", data, mtext);
+                        if (error != NULL) oprintf ("%s = vv_fc_error(%s);\n", error, mtext);
+                        if (ldata != NULL) oprintf ("%s = (%s)->data_len;\n", ldata, mtext);
+                        if (lerror != NULL) oprintf ("%s = (%s)->error_len;\n", lerror, mtext);
+                        if (rcode != NULL) oprintf ("%s = (%s)->return_code;\n", rcode, mtext);
+                        if (rmsg != NULL) oprintf ("%s = (%s)->errm;\n", rmsg, mtext);
+                        if (rstatus != NULL) oprintf ("%s = (%s)->req_status;\n", rstatus, mtext);
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "delete-server", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+
+                        oprintf ("vv_fc_delete (%s);\n", mtext);
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "call-server", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *st = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *finok = find_keyword (mtext, VV_KEYFINISHEDOKAY, 1);
+                        char *count = find_keyword (mtext, VV_KEYARRAYCOUNT, 1);
+                        char *started = find_keyword (mtext, VV_KEYSTARTED, 1);
+
+                        carve_statement (&st, "new-server", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&finok, "new-server", VV_KEYFINISHEDOKAY, 0, 1);
+                        carve_statement (&count, "new-server", VV_KEYARRAYCOUNT, 0, 1);
+                        carve_statement (&started, "new-server", VV_KEYSTARTED, 0, 1);
+
+                        define_statement (&st, VV_DEFNUM);
+                        define_statement (&finok, VV_DEFNUM);
+                        define_statement (&started, VV_DEFNUM);
+
+                        char req_var[100];
+                        char totreq_s[30];
+                        if (count == NULL)
+                        {
+                            // this is a list of fcgi calls, otherwise var is mtext, count is the length of array
+                            snprintf (req_var, sizeof (req_var), "_vv_fc_req_arr%lld", total_fcgi_arr);
+                            num totreq = outargs(mtext, req_var, "vv_fc *", 0, 0);
+                            snprintf (totreq_s, sizeof(totreq_s), "%lld", totreq);
+                        }
+
+                        oprintf ("%s%svv_call_fcgi (%s, %s, %s%s%s, %s%s%s);\n", st==NULL?"":st, st==NULL?"":"=",count!=NULL?mtext:req_var, count != NULL?count:totreq_s, finok==NULL?"":"&(", finok==NULL?"NULL":finok, finok==NULL?"":")", started==NULL?"":"&(", started==NULL?"NULL":started, started==NULL?"":")" );
+
+                        total_fcgi_arr++;
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "uniq-file", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5566,8 +5752,7 @@ int main (int argc, char* argv[])
         oprintf("VV_TRACE (\"STARTING REQUEST [%%s]\", vv_pc->app.trace_dir);\n");
 
 
-        // input parameter(s) from the FCGI process manager (vfcgi), up to VV_MAX_FCGI_INPUT params, but present 
-        // for standalone too
+        // input parameter(s) from the FCGI process manager (vfcgi),  but present for standalone too
         oprintf ("vv_pc->ctx.req->args.num_of_args = argc - 1;\nvv_pc->ctx.req->args.args = argv + 1;\n");
 
         // After startup, it must be Vely memory, even if set to true in _startup, so that first request is all Vely mem regardless

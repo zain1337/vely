@@ -132,11 +132,13 @@ install:
 	install -D -m 0755 libvelycurl.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libfcgively.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvely.so -t $(DESTDIR)$(V_LIB)/
-	install -D -m 0755 libfcgiclively.so -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 libvelyfcli.so -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 libvelyfsrv.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_sqlite.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_postgres.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_mariadb.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_gendb.o -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0644 stub_fcgi.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_curl.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_crypto.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_before.o -t $(DESTDIR)$(V_LIB)/
@@ -162,7 +164,7 @@ install:
 	install -m 0755 -d $(DESTDIR)$(V_VV_DOCS)
 	install -m 0755 -d $(DESTDIR)$(V_VV_EXAMPLES)
 	install -D -m 0644 docs/velydocker.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/hash.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/hash_server.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/cookies.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/create_table.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/form.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
@@ -184,7 +186,7 @@ install:
 binary:build
 	@;
 
-build: libfcgively.so libfcgiclively.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
+build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
 	@echo "Building version $(BUILDVER).$(BUILDREL)"
 	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o $(LDFLAGS) 
 
@@ -289,6 +291,9 @@ stub_crypto.o: stub.c vely.h
 stub_curl.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_CURL $< $(CFLAGS) 
 
+stub_fcgi.o: stub.c vely.h
+	$(CC) -c -o $@ -DVV_FCGI $< $(CFLAGS) 
+
 stub_sqlite.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_STUB_SQLITE $< $(CFLAGS) 
 
@@ -319,9 +324,14 @@ velymem.o: velymem.c vely.h
 vf.o: vf.c 
 	$(CC) -c -o $@ $< $(CFLAGS) 
 
-libfcgiclively.so: fcli.c vfcgi.h
-	rm -f libfcgiclively.so
-	$(CC) -shared -o libfcgiclively.so $^ $(CFLAGS)
-	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libfcgiclively.so ; fi
+libvelyfcli.so: fcli.c vfcgi.h
+	rm -f libvelyfcli.so
+	$(CC) -shared -o libvelyfcli.so $^ $(CFLAGS)
+	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelyfcli.so ; fi
+
+libvelyfsrv.so: fcli.c vfcgi.h
+	rm -f libvelyfsrv.so
+	$(CC) -shared -o libvelyfsrv.so $^ $(CFLAGS) -DVV_VELYSRV
+	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelyfsrv.so ; fi
 
 

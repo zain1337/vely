@@ -2235,6 +2235,7 @@ num vely_printf (bool iserr, num enc_type, char *format, ...)
         if (enc_type == VV_WEB || enc_type == VV_URL)
         {
             char *final_out = NULL;
+            // here final_out is allocated in vely_encode, and so is free 3 lines down
             num final_len = vely_encode (enc_type, ebuf, -1, &final_out);
             tot_written = vely_write_web (iserr, pc, final_out, final_len);
             vely_free (final_out);
@@ -2243,6 +2244,7 @@ num vely_printf (bool iserr, num enc_type, char *format, ...)
         {
             tot_written = vely_write_web (iserr, pc, ebuf, tot_written);
         }
+        vely_free (ebuf); // so there is no leak when unmanaged memory
         if (tot_written < 0) VV_TRACE ("Error in writing direct, error [%s]", strerror(errno));
         else VV_TRACE("Wrote direct [%lld] bytes", tot_written);
         return tot_written;

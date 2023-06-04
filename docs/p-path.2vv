@@ -53,4 +53,20 @@ In HTML forms:
 .RE
 
 .SH SEE ALSO
- \fIOutput\fP ( \fBfinish-output\fP   \fBflush-output\fP   \fBoutput_statement\fP   \fBp-dbl\fP   \fBpf-out\fP   \fBpf-url\fP   \fBpf-web\fP   \fBp-num\fP   \fBp-out\fP   \fBp-path\fP   \fBp-url\fP   \fBp-web\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Output
+
+\fBfinish-output\fP  
+\fBflush-output\fP  
+\fBoutput_statement\fP  
+\fBp-dbl\fP  
+\fBpf-out\fP  
+\fBpf-url\fP  
+\fBpf-web\fP  
+\fBp-num\fP  
+\fBp-out\fP  
+\fBp-path\fP  
+\fBp-url\fP  
+\fBp-web\fP    
+See all 
+\fBdocumentation\fP

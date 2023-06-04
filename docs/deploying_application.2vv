@@ -87,4 +87,19 @@ you would copy any custom files and directories you have created and that your a
 
 Each application owner (i.e. the user used in application creation with -u flag, see \fBvf\fP) can have any number of applications. At the same time, different application owners can create any number of applications of their own; the application directory for each application is owned by its respective owner with 700 permissions, meaning different users cannot access application files of other owners (see \fBhow_vely_works\fP). Similarly, application servers (i.e. FastCGI servers) run under the application owner permissions, and can only be managed by its owner.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

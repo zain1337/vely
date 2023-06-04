@@ -100,7 +100,7 @@ Skip generating line information when compiling .vely files. By default line inf
 .RS 4
 \[bu]    
 -i
-Display both include and linking flags for an application that uses \fBClient_API\fP to connect to Vely \fBFastCGI\fP server. The flags are for C compiler (gcc). If --include is used in addition, then only include flags are displayed. If --link is used in addition, then only linking flags are displayed. Use this to automate building of client applications with tools like Makefile.
+Display both include and linking flags for an application that uses \fBFastCGI_API\fP to connect to Vely \fBFastCGI\fP server. The flags are for C compiler (gcc). If --include is used in addition, then only include flags are displayed. If --link is used in addition, then only linking flags are displayed. Use this to automate building of client applications with tools like Makefile.
 
 .RE
 
@@ -216,7 +216,7 @@ Read stdin (standard input) and substitute any environment variables in the form
 .RS 4
 \[bu]    
 -m
-Add Vely syntax and keyword highlighting rules for files with .vely extension to Vim editor for the currently logged on user.
+Add Vely syntax and keyword highlighting rules for files with .vely extension to Vim editor for the currently logged on user. Note that you must have Vim installed; vi alone will not work.
 
 .RE
 
@@ -285,4 +285,19 @@ vv -q
 .RE
 
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

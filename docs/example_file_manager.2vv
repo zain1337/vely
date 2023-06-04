@@ -2,26 +2,7 @@
 .SH NAME
 example_file_manager \- Vely documentation (examples)
 .SH DESCRIPTION
-This is a file manager application.
-
-.RS 4
-\[bu]    
-Files such as JPG, PDF or other can be uploaded, and each file can have a description tag. 
-
-.RE
-
-.RS 4
-\[bu]    
-A list of uploaded files can be displayed. 
-
-.RE
-
-.RS 4
-\[bu]    
-Each file can be viewed or downloaded, and each file can be deleted.
-.RE
-
-Files metadata is kept in the database (name, path, description, size, extension), while the files themselves are kept in Vely \fBfile_storage\fP.
+This is a file manager application. Files such as JPG, PDF or other can be uploaded, and each file can have a description tag. A list of uploaded files can be displayed. Each file can be viewed or downloaded, and each file can be deleted. Files metadata is kept in the database (name, path, description, size, extension), while the files themselves are kept in Vely \fBfile_storage\fP.
 
 In a nutshell: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
 
@@ -213,7 +194,7 @@ This shows how to connect your application listening at TCP port 2310 (started w
 
 .B - Step 1
 :
-To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
 
 .RS 4
 \[bu]    
@@ -637,4 +618,23 @@ void delete ()
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Examples
+
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

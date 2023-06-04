@@ -41,4 +41,9 @@ void req_handler()
 .RE
 
 .SH SEE ALSO
- \fIProgram flow\fP ( \fBexit-request\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Program flow
+
+\fBexit-request\fP    
+See all 
+\fBdocumentation\fP

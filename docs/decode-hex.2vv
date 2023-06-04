@@ -46,4 +46,10 @@ char *binout = "\ex00""A""\ex00""\exF""AB""\ex00""\ex04";
 .RE
 
 .SH SEE ALSO
- \fIHex encoding\fP ( \fBdecode-hex\fP   \fBencode-hex\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Hex encoding
+
+\fBdecode-hex\fP  
+\fBencode-hex\fP    
+See all 
+\fBdocumentation\fP

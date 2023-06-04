@@ -37,4 +37,10 @@ encode-url str to define result output-length define len_of_result
 
 The "result" is "%20%20x%3Dy%3Fz%26%20%20" and "len_of_result" is 24.
 .SH SEE ALSO
- \fIURL encoding\fP ( \fBdecode-url\fP   \fBencode-url\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - URL encoding
+
+\fBdecode-url\fP  
+\fBencode-url\fP    
+See all 
+\fBdocumentation\fP

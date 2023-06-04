@@ -153,4 +153,14 @@ http://127.0.0.1/velydemo/<request name>...
 .RE
 
 .SH SEE ALSO
- \fIRunning application\fP ( \fBapplication_setup\fP   \fBCGI\fP   \fBClient_API\fP   \fBcommand_line\fP   \fBcontainerize_application\fP   \fBFastCGI\fP   \fBFastCGI_client\fP   \fBplain_C_FCGI\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Running application
+
+\fBapplication_setup\fP  
+\fBCGI\fP  
+\fBcommand_line\fP  
+\fBcontainerize_application\fP  
+\fBFastCGI\fP  
+\fBplain_C_FCGI\fP    
+See all 
+\fBdocumentation\fP

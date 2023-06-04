@@ -173,4 +173,14 @@ vf -m quit plain_fcgi
 
 Whenever you recompile your C program, vf will automatically reload it. For more information on all the options available, see \fBvf\fP.
 .SH SEE ALSO
- \fIRunning application\fP ( \fBapplication_setup\fP   \fBCGI\fP   \fBClient_API\fP   \fBcommand_line\fP   \fBcontainerize_application\fP   \fBFastCGI\fP   \fBFastCGI_client\fP   \fBplain_C_FCGI\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Running application
+
+\fBapplication_setup\fP  
+\fBCGI\fP  
+\fBcommand_line\fP  
+\fBcontainerize_application\fP  
+\fBFastCGI\fP  
+\fBplain_C_FCGI\fP    
+See all 
+\fBdocumentation\fP

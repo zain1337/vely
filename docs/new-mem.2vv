@@ -82,4 +82,13 @@ int *newmem = (int*)mymem;
 .RE
 
 .SH SEE ALSO
- \fIMemory\fP ( \fBdelete-mem\fP   \fBmanage-memory\fP   \fBmemory_handling\fP   \fBnew-mem\fP   \fBresize-mem\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Memory
+
+\fBdelete-mem\fP  
+\fBmanage-memory\fP  
+\fBmemory_handling\fP  
+\fBnew-mem\fP  
+\fBresize-mem\fP    
+See all 
+\fBdocumentation\fP

@@ -2,19 +2,7 @@
 .SH NAME
 example_form \- Vely documentation (examples)
 .SH DESCRIPTION
-This application is a guest tracking database. The user can:
-
-.RS 4
-\[bu]    
-input first and last name, which once submitted, are added to a database table,
-
-.RE
-
-.RS 4
-\[bu]    
-display web page showing the list of names queried from the database.
-.RE
-
+This application is a guest tracking database. The user can input first and last name, which are added to a database table. A web page shows the list of names queried from the database.
 
 In a nutshell: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
 
@@ -190,7 +178,7 @@ This shows how to connect your application listening on a Unix socket (started w
 
 .B - Step 1
 :
-To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done \fIonly once\fP:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
 
 .RS 4
 \[bu]    
@@ -494,4 +482,23 @@ void display_data ()
 .RE
 
 .SH SEE ALSO
- \fIExamples\fP ( \fBexample_cookies\fP   \fBexample_create_table\fP   \fBexample_docker\fP   \fBexample_file_manager\fP   \fBexample_form\fP   \fBexample_hash\fP   \fBexample_hello_world\fP   \fBexample_json\fP   \fBexample_multitenant_SaaS\fP   \fBexamples\fP   \fBexample_sendmail\fP   \fBexample_shopping\fP   \fBexample_stock\fP   \fBexample_utility\fP   \fBexample_write_report\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Examples
+
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

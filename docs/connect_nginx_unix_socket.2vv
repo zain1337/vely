@@ -53,4 +53,12 @@ sudo systemctl restart nginx
 
 Note: you must not have any other URL resource that starts with "/<app path>" (such as for example "/<app path>.html" or "/<app path>_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/<app path>", see \fBrequest_URL\fP.
 .SH SEE ALSO
- \fIWeb servers\fP ( \fBconnect_apache_tcp_socket\fP   \fBconnect_apache_unix_socket\fP   \fBconnect_nginx_tcp_socket\fP   \fBconnect_nginx_unix_socket\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web servers
+
+\fBconnect_apache_tcp_socket\fP  
+\fBconnect_apache_unix_socket\fP  
+\fBconnect_nginx_tcp_socket\fP  
+\fBconnect_nginx_unix_socket\fP    
+See all 
+\fBdocumentation\fP

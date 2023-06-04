@@ -35,4 +35,10 @@ exit-request
 .RE
 
 .SH SEE ALSO
- \fIProgram execution\fP ( \fBexec-program\fP   \fBexit-code\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Program execution
+
+\fBexec-program\fP  
+\fBexit-code\fP    
+See all 
+\fBdocumentation\fP

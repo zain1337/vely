@@ -63,4 +63,13 @@ purge-fifo mylist
 .RE
 
 .SH SEE ALSO
- \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - FIFO
+
+\fBnew-fifo\fP  
+\fBpurge-fifo\fP  
+\fBread-fifo\fP  
+\fBrewind-fifo\fP  
+\fBwrite-fifo\fP    
+See all 
+\fBdocumentation\fP

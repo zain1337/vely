@@ -1,0 +1,35 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+delete-server \-  (distributed_computing)
+.SH PURPOSE
+Delete resources for a server call.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+delete-server <server> 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+delete-server will delete resources allocated for a call to <server> (see \fBnew-server\fP). If you have used a server array (see "array-count" in \fBcall-server\fP), then delete-server would be used on each element of the array.
+
+Internal Vely memory associated with <server> is deleted. The actual data/errors returned (such as with \fBread-server\fP) are also deleted; do not attempt to use them after delete-server, since all resources allocated with a server call are released.
+
+See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+
+.SH EXAMPLES
+See \fBnew-server\fP.
+.SH SEE ALSO
+ 
+.B - Distributed computing
+
+\fBcall-server\fP  
+\fBdelete-server\fP  
+\fBnew-server\fP  
+\fBread-server\fP    
+See all 
+\fBdocumentation\fP

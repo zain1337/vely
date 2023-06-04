@@ -26,4 +26,13 @@ See \fBmemory_handling\fP for more on when (not) to delete memory explicitly lik
 .SH EXAMPLES
 See \fBread-fifo\fP.
 .SH SEE ALSO
- \fIFIFO\fP ( \fBnew-fifo\fP   \fBpurge-fifo\fP   \fBread-fifo\fP   \fBrewind-fifo\fP   \fBwrite-fifo\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - FIFO
+
+\fBnew-fifo\fP  
+\fBpurge-fifo\fP  
+\fBread-fifo\fP  
+\fBrewind-fifo\fP  
+\fBwrite-fifo\fP    
+See all 
+\fBdocumentation\fP

@@ -24,7 +24,7 @@ exec-program <program path> \\
 .SH DESCRIPTION
 exec-program executes a program specified in <program path>, which can be a program name without path that exists in the path specified by the PATH environment variable; or an absolute path; or a path relative to the application home directory (see \fBhow_vely_works\fP). 
 
-A program can have input arguments (specified with "args" clause), and if there are more than one, they must be separated by a comma. There can be a maximum of 32 input arguments. Each argument <program arg> may contain a comma if it is a string (i.e. double-quoted) or it is an expression within parenthesis. 
+A program can have input arguments (specified with "args" clause), and if there are more than one, they must be separated by a comma. There is no limit on the number of input arguments, other than of the underlying Operating System. Each argument <program arg> may contain a comma if it is a string (i.e. double-quoted) or it is an expression within parenthesis. 
 
 You can specify a status variable <exit status>, which either must exist, or if it doesn't, use "define" to create it - this variable will have program's exit status. Note that if the program was terminated by a signal, <exit status> will have a value of 128+signal_number, so for example if the program was terminated with signal 9 (i.e. KILL signal), <exit status> will be 137 (i.e. 128+9). Any other kind of abnormal program termination (i.e. program termination that did not end in setting the exit code with exit() or similar) will return 126 as <exit code>.
 
@@ -34,7 +34,7 @@ You can specify an <input string> to be passed to program's standard input (stdi
 
 You can redirect the program's output (which is "stdout") to a file <output file> using "output-file" clause. Alternatively, program's output can be captured in <output string> (via "output" clause) with its length in <output length> (via "output-length" clause), both of which can be created with optional "define". <output string> is \fBallocated memory\fP.
 
-To get the program's error output (which is "stderr") to a file <error file> using "error-file" clause. Alternatively, program's error output can be captured in <error string> (via "error" clause) which can be created with "define" if not existing. <error string> is \fBallocated memory\fP.
+To get the program's error output (which is "stderr") to a file <error file>, use "error-file" clause. Alternatively, program's error output can be captured in <error string> (via "error" clause) which can be created with "define". <error string> is \fBallocated memory\fP.
 
 If <input file> cannot be opened, VV_ERR_READ is reported in <exit status>, and if either <output file> or <error file> cannot be opened, the status is VV_ERR_WRITE.
 
@@ -96,4 +96,10 @@ p-out ovar
 .RE
 
 .SH SEE ALSO
- \fIProgram execution\fP ( \fBexec-program\fP   \fBexit-code\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Program execution
+
+\fBexec-program\fP  
+\fBexit-code\fP    
+See all 
+\fBdocumentation\fP

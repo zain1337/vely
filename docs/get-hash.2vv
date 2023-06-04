@@ -37,4 +37,14 @@ get-hash h length define l size define s average-reads define r
 .RE
 
 .SH SEE ALSO
- \fIHash table\fP ( \fBget-hash\fP   \fBnew-hash\fP   \fBpurge-hash\fP   \fBread-hash\fP   \fBresize-hash\fP   \fBwrite-hash\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Hash table
+
+\fBget-hash\fP  
+\fBnew-hash\fP  
+\fBpurge-hash\fP  
+\fBread-hash\fP  
+\fBresize-hash\fP  
+\fBwrite-hash\fP    
+See all 
+\fBdocumentation\fP

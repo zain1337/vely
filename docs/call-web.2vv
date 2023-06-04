@@ -15,13 +15,15 @@ call-web <URL> \\
     [ response-headers [ define ] <headers> ] \\
     [ status [ define ] <status> ] \\
     [ method <request method> ] \\
-    [ request-headers [ content-type <content type> ] \\
+    [ request-headers \\
+        [ content-type <content type> ] \\
+        [ content-length <content length> ] \\
         custom <header name>=<header value> [ , ... ] ] \\
     [ request-body \\
         ( [ fields <field name>=<field value> [ , ... ] ] \\
             [ files <file name>=<file location> [ , ... ] ] ) \\
         | \\
-        ( payload <body content> [ payload-length <content length> ] ) \\
+        ( content <body content> ) \\
     ] \\
     [ error [ define ] <error> ] \\
     [ cert <certificate> | no-cert ] \\
@@ -128,19 +130,19 @@ call-web "http://website.com/app_name/some_request" response resp response-code 
 .EE
 .RE
 
-You can specify a maximum of 1000 files and fields.
+There is no limit on the number of files and fields you can specify, other than of the underlying HTTP protocol.
 
 
 .B - Non-structured content
 
-To send any arbitrary (non-structured) content in the request body, such as JSON text for example, use "payload" subclause:
+To send any arbitrary (non-structured) content in the request body, such as JSON text for example, use "content" subclause:
 
 .RS 4
 .EX
 
 call-web "https://website.com" response resp \\
     request-headers content-type "application/json" \\
-    request-body payload "{ \\
+    request-body content "{ \\
         \[char92]"employee\[char92]": { \\
             \[char92]"name\[char92]":       \[char92]"sonoo\[char92]", \\
             \[char92]"salary\[char92]":      56000, \\
@@ -151,20 +153,21 @@ call-web "https://website.com" response resp \\
 .EE
 .RE
 
-Optional "payload-length" subclause can be specified to denote the length of body content:
+Optional "content-length" subclause (in "request-headers" clause) can be specified to denote the length of body content:
 
 .RS 4
 .EX
 
 read-file "somefile" to define file_contents status define file_length
 call-web "https://website.com" response resp \\
-    request-body payload file_contents \\
-    payload-length file_length
+    request-headers content-type "image/jpeg" \\
+    request-headers content-length file_length \\
+    request-body content file_contents 
 
 .EE
 .RE
 
-If "payload-length" is not used, then it is assumed to be the length of string <payload>.
+If "content-length" is not used, then it is assumed to be the length of string <content>.
 
 .LP
 .B REQUEST HEADERS
@@ -175,14 +178,14 @@ If your request has a body (i.e. "request-body" clause is used), you can set the
 .RS 4
 .EX
 
-call-web "https://<web address>/resource" request-headers \\
-    content-type "application/json" \\
-    request-body payload some.json
+call-web "https://<web address>/resource" \\
+    request-headers content-type "application/json" \\
+    request-body content some.json
 
 .EE
 .RE
 
-Note that using "content-type" without the request body may be ignored by the server processing your request or may cause it to consider the request invalid. If "content-type" is not used, the default is generally "multipart/form-data" if "fields" or "files" subclause(s) are used with "body-request" clause, or "application/x-www-form-urlencoded" otherwise. Thus, if you use "payload" subclause to send other types of data, you should set content type explicitly.
+Note that using "content-type" without the request body may be ignored by the server processing your request or may cause it to consider the request invalid. If "content-type" is not used, the default is "multipart/form-data" if "fields" or "files" subclause(s) are used with "body-request" clause. Otherwise, if you use "content" subclause to send other types of data, you must set content type explicitly via "content-type" subclause of "request-headers" clause.
 
 You can also specify custom request headers with "request-headers" clause, using "custom" subclause with a list of <header name>=<header value> pairs separated by a comma. For example, here custom header "Vely-header" has value of "Some_ID", and "Another-Header" a value of "New_ID":
 
@@ -231,4 +234,12 @@ write-file "pic.jpg" from resp length wlen
 .RE
 
 .SH SEE ALSO
- \fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web
+
+\fBcall-web\fP  
+\fBout-header\fP  
+\fBsend-file\fP  
+\fBsilent-header\fP    
+See all 
+\fBdocumentation\fP

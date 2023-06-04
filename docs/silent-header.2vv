@@ -17,7 +17,7 @@ silent-header
 .SH DESCRIPTION
 silent-header will suppress the output of HTTP headers, such as with \fBout-header\fP, or in any other case where headers are output. The effect applies to current \fBrequest\fP only; if you use it conditionally, then you can have it on or off dynamically. If you want to suppres the headers across the entire command-line application, use VV_SILENT_HEADER environment variable; see \fBcommand_line\fP.
 
-Note that you still have to use \fBout-header\fP regardless, as it is expected to be there if you output anything; however its actual output will be suppressed.
+Note that you still have to use \fBout-header\fP regardless, as it is expected to be there if you output anything; however its actual output will be suppressed. silent-header must be used prior to outputting headers.
 
 There are many uses for silent-header, among them:
 
@@ -53,4 +53,12 @@ out-header
 .RE
 
 .SH SEE ALSO
- \fIWeb\fP ( \fBcall-web\fP   \fBout-header\fP   \fBsend-file\fP   \fBsilent-header\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Web
+
+\fBcall-web\fP  
+\fBout-header\fP  
+\fBsend-file\fP  
+\fBsilent-header\fP    
+See all 
+\fBdocumentation\fP

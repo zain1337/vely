@@ -18,6 +18,32 @@ int vely_RAND_bytes(unsigned char *buf, int num) {
 }
 #endif
 
+#ifdef VV_FCGI
+void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env) {
+    VV_UNUSED(callin);
+    VV_UNUSED(server);
+    VV_UNUSED(req_method);
+    VV_UNUSED(app_path);
+    VV_UNUSED(req);
+    VV_UNUSED(url_payload);
+    VV_UNUSED(ctype);
+    VV_UNUSED(body);
+    VV_UNUSED(clen);
+    VV_UNUSED(timeout);
+    VV_UNUSED(env);
+}
+void vv_fc_delete (vv_fc *callin) {
+    VV_UNUSED(callin);
+}
+num vv_call_fcgi (vv_fc **req, num threads, num *finokay, num *started) {
+    VV_UNUSED(req);
+    VV_UNUSED(finokay);
+    VV_UNUSED(started);
+    VV_UNUSED(threads);
+    return 0;
+}
+#endif
+
 #ifdef VV_CURL
 void curl_global_cleanup(void) {}
 

@@ -39,4 +39,10 @@ trace-run
 
 See \fBexample_hello_world\fP for an example in debugging and tracing.
 .SH SEE ALSO
- \fIDebugging\fP ( \fBdebugging\fP   \fBtrace-run\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Debugging
+
+\fBdebugging\fP  
+\fBtrace-run\fP    
+See all 
+\fBdocumentation\fP

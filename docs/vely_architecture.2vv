@@ -24,6 +24,13 @@ Before the very first request a Vely program serves, startup code in optional _s
 (Image arch3.png not available in man page, see web page documentation)
 
 .LP
+.B DISTRIBUTED COMPUTING
+.LP
+
+Any number of requests can be executed on remote servers and their results presented to the caller in a single statement (see \fBcall-server\fP). These calls are made in parallel (as multiple threads); however the code executing both in caller and the remote servers does not need to be multithreaded, making code development easier, faster and safer. If remote requests are served by Vely servers, such servers run as stay-alive and low-footprint processes that serve requests extremely fast. These servers can be on a local machine, or on other computers. The protocol used is FastCGI, a very fast and capable means of communication.
+(Image arch4.png not available in man page, see web page documentation)
+
+.LP
 .B PERFORMANCE AND STABILITY
 .LP
 
@@ -33,7 +40,7 @@ FastCGI server processes generally stay up across any number of requests, increa
 
 Vely supports use of prepared database queries with true automatic unlimited reuse across any number of requests; database connections are persistent and stay connected for the life of the server process.  
 
-As far as stability, Vely \fBstatement_APIs\fP are designed for safety, ease of use, encapsulation and to some extent abstraction of tasks required, making it more difficult to write unstable code. Handling of \fBallocated memory\fP includes memory tracking and garbage collection, preventing memory leaks which can be fatal to long running processes; similarly, files open with file-handling statements are automatically closed at the end of each request, serving the same purpose. Request-processing and process daemon-izing infrastructure is included. Where possible, use Vely statements and infrastructure instead of pure C in order to get the most of stability enhancing benefits.
+As far as stability, Vely \fBstatement_APIs\fP are designed for safety, ease of use, encapsulation and to some extent abstraction of tasks required, making it more difficult to write unstable code. Handling of \fBallocated memory\fP includes memory tracking and automatic freeing, preventing memory leaks which can be fatal to long running processes; similarly, files open with file-handling statements are automatically closed at the end of each request, serving the same purpose. Request-processing and process daemon-izing infrastructure is included. Where possible, use Vely statements and infrastructure instead of pure C in order to get the most of stability enhancing benefits.
 
 .LP
 .B FROM SOURCE CODE TO EXECUTABLE
@@ -45,4 +52,19 @@ Vely programs are built in a single command-line step, and ready to use immediat
 
 Read more about \fBhow_vely_works\fP.
 .SH SEE ALSO
- \fIGeneral\fP ( \fBdeploying_application\fP   \fBhow_vely_works\fP   \fBquality_control\fP   \fBrename_files\fP   \fBSELinux\fP   \fBvely\fP   \fBvely_architecture\fP   \fBvely_removal\fP   \fBvf\fP   \fBvv\fP   \fBwhy_C_and_Vely\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - General
+
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP  
+\fBwhy_C_and_Vely\fP    
+See all 
+\fBdocumentation\fP

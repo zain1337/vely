@@ -34,4 +34,13 @@ set-req data mydata
 
 See \fBglobal_request_data\fP for more details and an example.
 .SH SEE ALSO
- \fIRequest information\fP ( \fBget-req\fP   \fBinput-param\fP   \fBrequest-body\fP   \fBset-input\fP   \fBset-req\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Request information
+
+\fBget-req\fP  
+\fBinput-param\fP  
+\fBrequest-body\fP  
+\fBset-input\fP  
+\fBset-req\fP    
+See all 
+\fBdocumentation\fP

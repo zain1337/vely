@@ -285,4 +285,13 @@ Vely will perform many sanity checks when possible while preprocessing your .vel
 
 When debugging (such as with using gdb), stepping through your code is similar to error reporting: by default gdb will treat Vely statement as a "single-statement" and step over it as such. If you use "--c-lines" option, then you will be able to step through final C code.
 .SH SEE ALSO
- \fILanguage\fP ( \fBdot\fP   \fBinline_code\fP   \fBstatement_APIs\fP   \fBsyntax_highlighting\fP   \fBunused-var\fP  )  \fISEE ALL\fP (\fBdocumentation\fP)
+ 
+.B - Language
+
+\fBdot\fP  
+\fBinline_code\fP  
+\fBstatement_APIs\fP  
+\fBsyntax_highlighting\fP  
+\fBunused-var\fP    
+See all 
+\fBdocumentation\fP

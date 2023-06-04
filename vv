@@ -390,7 +390,7 @@ function show_client_bld() {
         echo -n "-I$VV_INCLUDE_PATH "
     fi
     if [ "$_DO_CLIENT_LINK" == "1" ]; then
-        echo -n "-L$VV_LIBRARY_PATH -lfcgiclively -Wl,--rpath=$VV_LIBRARY_PATH "
+        echo -n "-L$VV_LIBRARY_PATH -lvelyfcli -Wl,--rpath=$VV_LIBRARY_PATH "
     fi
     echo ""
 }
@@ -639,9 +639,11 @@ function read_modules() {
 #
 
 #first look for all possible statements
-    grep -h -o "^[[:space:]]*\(call-web \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \)" *.vely>$VV_BLD/.findmod || true
+    grep -h -o "^[[:space:]]*\(call-web \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \|new-server \)" *.vely>$VV_BLD/.findmod || true
 #then from occurrances, look for curl
     if [[ $(grep -m 1 -o "^[[:space:]]*call-web " $VV_BLD/.findmod) != "" ]]; then _ISMOD_CURL="1"; fi
+#then from occurrances, look for fcgi
+    if [[ $(grep -m 1 -o "^[[:space:]]*new-server " $VV_BLD/.findmod) != "" ]]; then _ISMOD_FCGI="1"; fi
 #then from occurrances, look for crypto
     if [[ $(grep -m 1 -o "^[[:space:]]*\(hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \)" $VV_BLD/.findmod) != "" ]]; then _ISMOD_CRYPTO="1"; fi
 
@@ -694,6 +696,16 @@ function read_modules() {
         VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_mariadb.o"
         VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES mariadb"
     fi
+#fcgi module
+    if [ "$_ISMOD_FCGI" == "1" ]; then
+        VV_FCGI_USED="-DVV_FCGI_INCLUDE"
+        #VV_MODULES="$VV_MODULES -lfcgi" - nothing here since fcgi client implemented from scratch
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelyfsrv"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES fcgi"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_fcgi.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES curl"
+    fi
 #curl module
     if [ "$_ISMOD_CURL" == "1" ]; then
         VV_CURL_USED="-DVV_CURL_INCLUDE"
@@ -729,6 +741,7 @@ function read_modules() {
     export VV_C_MODULES
     export VV_LIST_ALL_MODULES
     export VV_MARIADB_USED
+    export VV_FCGI_USED
     export VV_CURL_USED
     export VV_CRYPTO_USED
 }
