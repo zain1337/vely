@@ -4,7 +4,7 @@ example_sendmail \- Vely documentation (examples)
 .SH DESCRIPTION
 Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
 
-In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
+In a nutshell:  web browser; Apache; Unix sockets; \fB1 source files, 79 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -326,7 +326,7 @@ You are now done with the example! What follows are the source files in this pro
 .B SEND EMAIL ON THE WEB (MAIL.VELY)
 .LP
 
-Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back with subrequest "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
+Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
 
 Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix or sendmail), and your computer must be authorized to send email on the internet. Otherwise you can test this by sending emails to your localhost.
 
@@ -347,9 +347,9 @@ void mail()
 
     out-header default
 
-    input-param action
+    task-param action
 
-    if (!strcmp (action, "show_form")) {
+    if-task "show_form"
 
         // Display HTML form to input email details. Here we will set the 'action' parameter
         // to 'submit_form'. This way, when the user submits the form, such a request would
@@ -379,7 +379,7 @@ void mail()
         @    <input type="submit" value="Send">
         @</form>
         
-    } else if (!strcmp (action, "submit_form")) {
+    else-task "submit_form"
 
         // Send email using data from the form. This code is called from the form above.
         // Effectively, in this file we have the code to display the form and the code
@@ -406,9 +406,9 @@ void mail()
         }
         @<hr/>
 
-    } else {
+    else-task other
         @Unrecognized action!<hr/>
-    }
+    end-task
 
 }
 
@@ -423,6 +423,7 @@ void mail()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

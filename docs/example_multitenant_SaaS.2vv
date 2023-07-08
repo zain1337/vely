@@ -4,7 +4,7 @@ example_multitenant_SaaS \- Vely documentation (examples)
 .SH DESCRIPTION
 This is a multi-tenant web application that you can run on the Internet as Software-as-a-Service (SaaS). Each user has a completely separate data space from any other. This web application will let user sign up for Notes service - a place where a user can create notes, and then view and delete them. This example also shows how to change application path (see \fBrequest_URL\fP) and use REST-like URLs for your API/application.
 
-In a nutshell: MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 312 lines of code.
+In a nutshell: MariaDB; web browser; Apache; Application path; Unix sockets; \fB7 source files, 315 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -598,7 +598,7 @@ If the user is currently logged in, go to the application's landing page.
 // for any multitenant Cloud application
 void login () {
     // Get URL input parameter "actions"
-    input-param actions
+    task-param actions
 
     // Get global request data, we record session information in it, so it's handy
     reqdata *rd;
@@ -615,13 +615,13 @@ void login () {
 
     // Application screen to get started. Show links to login or signup and show
     // home screen appropriate for this
-    if (!strcmp (actions, "begin")) {
+    if-task "begin" 
         _show_home();
         exit-request
 
     // Start creating new user. Ask for email and password, then proceed to create user
     // when this form is submitted.
-    } else if (!strcmp (actions, "newuser")) {
+    else-task "newuser"
         @Create New User<hr/>
         @<form action="<<p-path>>/login/actions/createuser" method="POST">
         @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
@@ -630,7 +630,7 @@ void login () {
         @</form>
 
     // Verify code sent to email by user. The code must match, thus verifying email address    
-    } else if (!strcmp (actions, "verify")) {
+    else-task "verify"
         input-param code
         input-param email
         // Get verify token based on email
@@ -648,7 +648,7 @@ void login () {
         exit-request
 
     // Create user - this runs when user submits form with email and password to create a user     
-    } else if (!strcmp (actions, "createuser")) {
+    else-task "createuser"
         input-param email
         input-param pwd
         // create hashed (one-way) password
@@ -689,7 +689,7 @@ void login () {
         }
 
     // This runs when logged-in user logs out.    
-    } else if (!strcmp (actions, "logout")) {
+    else-task "logout"
         // Update user table to wipe out session, meaning no such user is logged in
         if (rd->is_logged_in) {
             run-query @db_multitenant_SaaS = "update users set session='' where userId='%s'" : rd->sess_userId no-loop affected-rows define arows
@@ -701,7 +701,7 @@ void login () {
         _show_home();
 
     // Login: this runs when user enters user name and password
-    } else if (!strcmp (actions, "login")) {
+    else-task "login"
         input-param pwd
         input-param email
         // create one-way hash with the intention of comparing with user table - password is NEVER recorded
@@ -728,7 +728,7 @@ void login () {
         @Email or password are not correct. <<.login_or_signup();>><hr/>
 
     // Login screen, asks user to enter user name and password    
-    } else if (!strcmp (actions, "")) {
+    else-task ""
         login_or_signup();
         @Please Login:<hr/>
         @<form action="<<p-path>>/login/actions/login" method="POST">
@@ -736,7 +736,9 @@ void login () {
         @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
         @<button type="submit">Go</button>
         @</form>
-    }
+    else-task other
+        // do not display anything
+    end-task
 }
 
 // Display Login or Sign Up links
@@ -793,7 +795,7 @@ The application will be able to add notes, list them, and delete any given note.
 /notes/subreqs/delete_note - delete a note
 .RE
 
-while a few other subrequests are user-interface-only, such as:
+while a few other tasks are user-interface-only, such as:
 
 .RS 4
 \[bu]    
@@ -830,13 +832,13 @@ void notes () {
         exit-request
     }
     // Get URL parameter that tells Notes what to do
-    input-param subreqs
+    task-param subreqs
     // Display actions that Notes can do (add or list notes)
     @<a href="<<p-path>>/notes/subreqs/add">Add Note</a> <a href="<<p-path>>/notes/subreqs/list">List Notes</a><hr/>
 
 
     // List all notes for this user
-    if (!strcmp (subreqs, "list")) {
+    if-task "list"
         // select notes for this user ONLY
         run-query @db_multitenant_SaaS = "select dateOf, note, noteId from notes where userId='%s' order by dateOf desc" : rd->sess_userId output dateOf, note, noteId
             query-result dateOf to define dateOf
@@ -853,49 +855,50 @@ void notes () {
             @Note: <<p-out with_breaks>><br/>
             @<hr/>
         end-query
-    }
 
     // Ask to delete a note
-    else if (!strcmp (subreqs, "delete_note_ask")) {
+    else-task "delete_note_ask"
         input-param note_id
-        @Are you sure you want to delete a note? Use Back button to go back, or <a href="<<p-path>>/notes/subreqs/delete_note?note_id=<<p-out note_id>>">delete note now</a>.
-    }
+        @Are you sure you want to delete a note? Use Back button to go back,\\
+            or <a href="<<p-path>>/notes/subreqs/delete_note?note_id=<<p-out note_id>>">delete note now</a>.
 
     // Delete a note
-    else if (!strcmp (subreqs, "delete_note")) {
+    else-task "delete_note"
         input-param note_id
         // Delete note
-        run-query @db_multitenant_SaaS = "delete from notes where noteId='%s' and userId='%s'" : note_id, rd->sess_userId affected-rows define arows no-loop error define errnote
+        run-query @db_multitenant_SaaS = "delete from notes where noteId='%s' and userId='%s'" : note_id, rd->sess_userId \\
+            affected-rows define arows no-loop error define errnote
         // Inform user of status
         if (arows == 1) {
             @Note deleted
         } else {
             @Could not delete note (<<p-out errnote>>)
         }
-    }
 
     // Add a note
-    else if (!strcmp (subreqs, "add_note")) {
+    else-task "add_note"
         // Get URL POST data from note form
         input-param note
         // Insert note under this user's ID
-        run-query @db_multitenant_SaaS = "insert into notes (dateOf, userId, note) values (now(), '%s', '%s')" : rd->sess_userId, note affected-rows define arows no-loop error define errnote
+        run-query @db_multitenant_SaaS = "insert into notes (dateOf, userId, note) values (now(), '%s', '%s')" : rd->sess_userId, note \\
+            affected-rows define arows no-loop error define errnote
         // Inform user of status
         if (arows == 1) {
             @Note added
         } else {
             @Could not add note (<<p-out errnote>>)
         }
-    }
 
     // Display an HTML form to collect a note, and send it back here (with subreqs="add_note" URL param)
-    else if (!strcmp (subreqs, "add")) {
+    else-task "add"
         @Add New Note
         @<form action="<<p-path>>/notes/subreqs/add_note" method="POST">
         @<textarea name="note" rows="5" cols="50" required autofocus placeholder="Enter Note"></textarea>
         @<button type="submit">Create</button>
         @</form>
-    }
+    else-task other
+        // do not display anything
+    end-task
 }
 
 .EE
@@ -908,6 +911,7 @@ void notes () {
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

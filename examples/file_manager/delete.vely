@@ -7,7 +7,7 @@ void delete ()
 {
    out-header default
    @<h2>Delete a file</h2>
-   input-param action
+   task-param action
    input-param file_id
    char *file_name = NULL;
    char *desc = NULL;
@@ -20,10 +20,10 @@ void delete ()
        query-result localPath to local_path
    end-query
 
-   if (!strcmp (action, "confirm")) { // get file information to confirm what will be deleted
+   if-task "confirm" // get file information to confirm what will be deleted
        @Are you sure you want to delete file <<p-web file_name>> (<<p-web desc>>)? Click <a href="<<p-path>>?req=delete&amp;action=delete&amp;file_id=<<p-url file_id>>">Delete</a> or click the browser's Back button to go back.<br/>
 
-   } else if (!strcmp (action, "delete")) { // actual delete file, once confirmed
+   else-task "delete"  // actual delete file, once confirmed
        begin-transaction @db_file_manager
        run-query @db_file_manager= "delete from files where fileID='%s'" : file_id error define err no-loop
        if (atol(err) != 0) {
@@ -39,7 +39,7 @@ void delete ()
                @File could not be deleted, error <<pf-web "%lld", st>>
            }
        }
-   } else {
+   else-task other
        @Unrecognized action <<p-web action>>
-   }
+   end-task
 }

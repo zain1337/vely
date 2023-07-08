@@ -4,4 +4,3 @@ baseurl=http://127.0.0.1/pkg
 enabled=1
 gpgkey=http://127.0.0.1/pkg/OPENPGP
 gpgcheck=1
-metadata_expire=1m

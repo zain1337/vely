@@ -4,7 +4,7 @@ example_shopping \- Vely documentation (examples)
 .SH DESCRIPTION
 This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 
-In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 11 source files, 212 lines of code.
+In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; \fB11 source files, 212 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -334,7 +334,6 @@ Note: you must not have any other URL resource that starts with "/api/v1/shoppin
 .B ACCESS APPLICATION SERVER FROM THE BROWSER
 .LP
 
-Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
 
 Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
 Here is REST API for the application.
@@ -889,6 +888,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

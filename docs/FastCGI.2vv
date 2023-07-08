@@ -2,7 +2,26 @@
 .SH NAME
 FastCGI \- Vely documentation (running_application)
 .SH DESCRIPTION
-To run Vely web application with \fBFastCGI protocol\fP, you need to setup a reverse proxy, i.e. a web server that will forward request and send replies back to clients. Vely application runs as a number of (zero or more) background processes in parallel, processing requests.
+You can run a Vely application as a server by using \fBvf\fP program manager. Your application will communicate with outside world using with \fBFastCGI protocol\fP. 
+
+You can access your server application by means of:
+
+.RS 4
+\[bu]    
+A web server (which is probably the most common way). You need to setup a reverse proxy, i.e. a web server that will forward requests and send replies back to clients; see below.
+
+.RE
+
+.RS 4
+\[bu]    
+The command line, in which case you can use a \fBFastCGI_command_line_client\fP. 
+
+.RE
+
+.RS 4
+\[bu]    
+\fBFastCGI_API\fP, which allows any application in any programming language to access your server, as long as it has C linkage (by far most do). This method allows for MT (multithreaded) access to your application, where many client requests can be made in parallel.
+Vely server runs as a number of (zero or more) background processes in parallel, processing requests.
 
 .LP
 .B SETTING UP REVERSE PROXY (WEB SERVER)

@@ -7,9 +7,9 @@
 void cookies()
 {
 
-    input-param action
+    task-param action
 
-    if (!strcmp (action, "enter_cookie")) {
+    if-task "enter_cookie"
 
         // Display a form to get cookie value
         out-header default
@@ -22,7 +22,7 @@ void cookies()
         @    <input type="submit" value="Submit">
         @</form>
 
-    } else if (!strcmp (action, "save_cookie")) {
+    else-task "save_cookie"
         
         // Submittal of form: save the cookie through response to the browser
         input-param cookie_value
@@ -32,7 +32,7 @@ void cookies()
         @Cookie sent to browser!
         @<hr/>
 
-    } else if (!strcmp (action, "query_cookie")) {
+    else-task "query_cookie"
 
         // Web request that delivers cookie value back here (to server); display it.
         get-cookie define name="customer_name"  
@@ -40,10 +40,10 @@ void cookies()
         @Customer name is <<p-web name>>
         @<hr/>
 
-    } else {
+    else-task other
         out-header default
         @Unrecognized action<hr/>
-    }
+    end-task
 
 }
 

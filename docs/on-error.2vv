@@ -58,6 +58,7 @@ on-error continue @mydb
 
 \fBerror_code\fP  
 \fBerror_handling\fP  
+\fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP    
 See all 

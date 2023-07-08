@@ -10,7 +10,7 @@ You can deploy Vely applications in different ways.
 
 Using containers (such as with \fBdocker\fP or \fBpodman\fP) is an easy, reliable and portable way of deploying a Vely application. See  \fBcontainerize_application\fP.
 
-This method is also applicable for deployment to \fBInternet of Things\fP (IOT) systems, such as for example \fBFedora IOT\fP or with \fBRaspberry PI\fP Operating Systems often used for devices. For IOT, Vely can be deployed both on servers and devices.
+This method is also applicable for deployment to \fBInternet of Things\fP (IOT) systems, such as for example \fBRaspberry PI\fP Operating Systems often used for devices. For IOT, Vely can be deployed both on servers and devices.
 
 .LP
 .B INSTALLING FROM SOURCE
@@ -90,6 +90,7 @@ Each application owner (i.e. the user used in application creation with -u flag,
  
 .B - General
 
+\fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  
 \fBquality_control\fP  
@@ -99,7 +100,6 @@ Each application owner (i.e. the user used in application creation with -u flag,
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  
-\fBvv\fP  
-\fBwhy_C_and_Vely\fP    
+\fBvv\fP    
 See all 
 \fBdocumentation\fP

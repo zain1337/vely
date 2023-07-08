@@ -4,7 +4,7 @@ example_json \- Vely documentation (examples)
 .SH DESCRIPTION
 This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
 
-In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
+In a nutshell:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -631,6 +631,7 @@ void json_process() {
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

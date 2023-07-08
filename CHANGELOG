@@ -1,15 +1,12 @@
-Vely release notes for 17.0.0
+Vely release notes for 17.1.0
 
-- Notes: This Vely release adds a major new feature: support for distributed computing (see call-server). It allows for server-2-server calls over FastCGI protocol, a fast and capable binary protocol; many calls can be made in parallel, running in separate threads in MT-safe fashion. Further improvements have been made to FastCGI API, a client API for FastCGI, including a completion hook and additional information pertinent to multi-threaded runs, such as done/return_code. Several statements that had limitations on resources are now unlimited (i.e. limited only by OS/machine resources), namely for call-web, exec-program, out-header, send-file; and those improvements have actually reduced the amount of memory used.
-- Minor: added new-server, call-server, read-server and delete-server statements for server-to-server calls (distributed computing).
-- Minor: added completion hook for FastCGI API.
-- Major: added a request pointer to output/error hooks in FastCGI API.
-- Minor: added "done" and "return_code" members to FastCGI API request structure ("vv_fc").
-- Major: payload-length clause has moved to request-headers and is now content-length in call-web; payload clause is renamed to content. content-type is now mandatory unless files or fields clauses are used. This is to be in accordance with RFC 9110, HTTP Semantics to avoid confusion with frame payloads in HTTP2/3.
-- Release: improved error reporting when parsing statements to detect missing parameter in a clause.
-- Release: SIGUSR1, SIGUSR2 signals are now ignored as they have no meaning in Vely.
-- Minor: the maximum number of input parameter in exec-program is now unlimited.
-- Minor: the maximum number of fields and files in call-web is now unlimited.
-- Minor: the maximum number of custom headers in HTTP for call-web is now unlimited.
-- Release: reduced memory footprint by generating the code for the exact memory usage of internal arrays.
+- Notes: Major addition in this release is the semantic and self-documenting implementation of tasks and subtasks within requests, which allows for more readable and cleaner application architecture. In addition, C/C++ comments are now properly parsed. Another notable improvement is the color-highlighting of diagnostic messages, which also includes both Vely and C code text (generated or otherwise), with exact placement of error; this makes developing with Vely easier.
+- Minor: added semantic support for tasks under requests; see if-task and task-param.
+- Minor: added support for C and C++ comments.
+- Minor: added max-errors for the number of diagnostic messages.
+- Release: added Application Architecture documentation article.
+- Release: removed metadata expiration default for Fedora packages.
+- Release: added color highlighting for Vely diagnostics, as well as the text of Vely source code and C code lines in the output. More precise diagnostic messages. Also added --plain-diag to use old diagnostic style.
+- Release: maximum URL path is now 2500 bytes.
+- Release: fixed bug where set-input would crash with unmanaged memory.
 

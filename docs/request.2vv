@@ -56,7 +56,14 @@ http://<your website>/stocks/get-stock?some_param=some_value...
 .EE
 .RE
 
-A request can have any number of input parameters, and based on them, perform any number of actions. A "request" generally refers to a combination of input parameters. Those requests that share the same request name but have different set of parameter names are its subrequests.
+
+.LP
+.B TASKS
+.LP
+
+A request can have any number of input parameters, and based on them, perform any number of tasks. A "request" generally refers to a combination of input parameters. Those requests that share the same request name but have different \fBtask-param\fPeters are its tasks.
+
+In general, selecting what exactly will be done within a request is determined by a request name and \fBtask-param\fPeter values within the request. See \fBapplication_architecture\fP.
 .SH SEE ALSO
  
 .B - Requests

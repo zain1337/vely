@@ -11,19 +11,16 @@ void server() {
     get-app process-data to h
 
     // Get input parameters
-    input-param op
+    task-param op
     input-param key
     input-param data
 
-    if (!strcmp (op, "add")) {
-        // Add data to hash, make a copy as input params are request-scoped
+    if-task "add" // Add data to hash, make a copy as input params are request-scoped
         copy-string key to define c_key
         copy-string data to define c_data
         write-hash h key c_key value c_data
         @Added [<<p-out key>>]
-    }
-    else if (!strcmp (op, "delete")) {
-        // Delete data and obtain the value deleted
+    else-task "delete" // Delete data and obtain the value deleted
         read-hash h key (key) value define val old-key define okey delete status define st
         if (st == VV_ERR_EXIST) {
             @Not found [<<p-out key>>]
@@ -33,14 +30,12 @@ void server() {
             delete-mem val
             delete-mem okey
         }
-    }
-    else if (!strcmp (op, "query")) {
-        // Query hash based on key value
+    else-task "query" // Query hash based on key value
         read-hash h key (key) value define val status define st
         if (st == VV_ERR_EXIST) {
             @Not found, queried [<<p-out key>>]
         } else {
             @Value [<<p-out val>>]
         }
-    }
+    end-task
 }

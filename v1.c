@@ -35,6 +35,8 @@
 #define VV_TOT_COLNAMES_LEN (VV_MAX_COLNAME_LEN * VV_MAX_QUERY_OUTPUTS)
 // maximym length of query name, which is the name in run-query...=
 #define VV_MAX_QUERYNAME_LEN 200
+// keep track up to 10 levels if else-task other is repeated more than once
+#define VV_MAX_OTHER_TASK 31 
 // maximum length of any error this utility may produce
 #define VV_MAX_ERR_LEN 12000
 // various keywords used. What's recognized is a keyword. Only keywords that have something following them
@@ -45,6 +47,7 @@
 #define VV_KEYWITHVALUE "with-value "
 #define VV_KEYREPLACE "replace"
 #define VV_KEYTOERROR "to-error"
+#define VV_KEYTASKID "task-id"
 #define VV_KEYPARAM "param "
 #define VV_KEYEXIT "exit"
 #define VV_KEYFROMREQUEST "from-request"
@@ -76,6 +79,7 @@
 #define VV_KEYHTML "html "
 #define VV_KEYPOSITION "position "
 #define VV_KEYUSE "use "
+#define VV_KEYOTHER "other"
 #define VV_KEYWITH "with "
 #define VV_KEYDELIMITER "delimiter "
 #define VV_KEYDELETE0 "delete"
@@ -357,6 +361,8 @@ typedef struct s_vely_db_parse {
 //
 //
 
+bool other_task_done[VV_MAX_OTHER_TASK+1] = {false};
+num vv_plain_diag = 0; // use color diagnostics
 num vnone = 0; // used in detecting if () vely_statement
 char line[VV_FILE_LINE_LEN + 1]; // buffer for each line from HTML file
 num open_queries = 0; // number of queries currently open
@@ -376,8 +382,10 @@ num usedVELY = 0; // 1 if vely statement is used on the line
 num vely_is_inline = 0; // if 1, the last statement just processed was inline
 num within_inline = 0; // if statement is within <<...>>
 num last_line_readline_closed = 0; // line number of the last read-line that has closed
+num last_line_if_closed = 0; // line number of the last IF that has closed
 // setup variables to be able to report the location of unclosed readline
 #define check_next_readline {if (open_readline==0) last_line_readline_closed = lnum; open_readline++;}
+// setup variables to be able to report the location of unclosed IF
 num last_line_query_closed = 0; // line number of where the last query closed
 // setup variables to report the location of unclosed query
 #define check_next_query {if (open_queries==0) last_line_query_closed = lnum; open_queries++;}
@@ -421,7 +429,8 @@ void out_verbose(num vely_line, char *format, ...);
 void add_input_param (vely_gen_ctx *gen_ctx, char *inp_par);
 void carve_statement (char **statement, char *statement_name, char *keyword, num is_mandatory, num has_data);
 num define_statement (char **statement, num type);
-// true if to emit line number in source file, do not do it if vely -x used
+// true if to emit line number in source file, do not do it if vely -x used, lnum>1 is so that the very first line
+// isn't emitting #line twice
 #define VV_EMIT_LINE (no_vely_line == 0 && lnum>1)
 #define  VV_VERBOSE(lnum,...) out_verbose(lnum,  __VA_ARGS__)
 void parse_param_list (char *parse_list, vely_fifo **params, num *tot);
@@ -1992,7 +2001,13 @@ void oprintf (char *format, ...)
     // for example a single code line may be output by several oprintfs (this is oline_prev_line)
     if (oline_prev_line == 1 && VV_EMIT_LINE)
     {
-        num tot_written = snprintf (oline + oline_len, oline_size - oline_len - 1, "#line %lld \"%s\"\n", lnum, src_file_name);
+        // make reported line as line*10000+generated_line, so each generated line is tied to original
+        // line (final_line/10000), but it also has information about which generated line the diagnostic is about
+        // this is used in error reporting
+        static num old_lnum = -1;
+        static num in_lnum = 0;
+        if (old_lnum != lnum) { old_lnum = lnum; in_lnum = 0; } else in_lnum++;
+        num tot_written = snprintf (oline + oline_len, oline_size - oline_len - 1, "#line %lld \"%s\"\n", vv_plain_diag == 1 ? lnum : lnum*10000+in_lnum, src_file_name);
         if (tot_written >= oline_size - 1)
         {
             _vely_report_error ("Source code line too long, exiting");
@@ -2020,7 +2035,9 @@ void oprintf (char *format, ...)
     va_end (args);
 }
 
-
+#define VV_COLOR_BLUE "\033[34m"
+#define VV_COLOR_NORMAL "\033[0;39m"
+#define VV_COLOR_BOLD "\033[0;1m"
 // 
 // Output error to stderr. The error means error during the preprocessing with VELY.
 // There's a maximum length for it, and if it's more than that, ignore the rest.
@@ -2037,13 +2054,13 @@ void _vely_report_error (char *format, ...)
     va_start (args, format);
     vsnprintf (errtext, sizeof(errtext) - 1, format, args);
     va_end (args);
-    fprintf (stderr, "%s", errtext);
+    fprintf (stderr, "%s%s%s", VV_COLOR_BOLD, VV_COLOR_BLUE, errtext);
     if (src_file_name != NULL)
     {
         fprintf (stderr, ", reading file [%s], line [%lld]", src_file_name, lnum);
     }
     if (errtext[0] != 0 && errtext[strlen (errtext) - 1] != '.')  fprintf(stderr, ".");
-    fprintf (stderr, "\n");
+    fprintf (stderr, "%s\n",VV_COLOR_NORMAL);
     exit (1);
 }
 
@@ -2222,6 +2239,7 @@ num recog_statement (char *cinp, num pos, char *opt, char **mtext, num *msize, n
     assert (opt);
     assert(msize);
 
+
     *is_inline = 0; // by default this isn't closed by >>
 
     // do not assign mtext in case of not-found, because it could override the found one when
@@ -2257,6 +2275,8 @@ num recog_statement (char *cinp, num pos, char *opt, char **mtext, num *msize, n
                 *msize = (cinp+pos)-*mtext;
                 (*mtext)[*msize] = 0; // zero the >>
                 VV_VERBOSE(lnum,"Markup [%s] found", opt);
+                // vely line never has new line in it, so this should be fine
+                oprintf("\n//%s\n", cinp+orig_position);
                 return pos + 1; // cinp[pos+1] must be '>' in the last '>>', i.e. the last char
             }
             else
@@ -2321,6 +2341,7 @@ num recog_statement (char *cinp, num pos, char *opt, char **mtext, num *msize, n
             }
             usedVELY = 0;
             VV_VERBOSE(lnum,"Markup [%s] found", opt);
+            oprintf("//%s\n", cinp+orig_position);
             return pos + 1;
         }
     }
@@ -2386,6 +2407,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
     num json_id = 0;
     num open_readline = 0;
+    num open_ifs = 0;
     num line_len = 0; // unlike 'len' below, used only for concatenation of lines
 
     num http_header_count = 0; // used for _vely_tmp_header_%lld 
@@ -2395,6 +2417,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
     num code_json = 0; // counter for status/errt vars
     num regex_cache = 0; // used to cache regex compilation
 
+
+    bool ccomm_open = false; // true if C comment opened in some line prior
+    num ccomm_line = -1; // line where /* C comment opened
 
     // 
     // Main loop in which lines are read from the source file
@@ -2421,7 +2446,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
         //
         if (VV_EMIT_LINE)
         {
-            oprintf("\n#line %lld \"%s\"\n", lnum, file_name);
+            oprintf("\n#line %lld \"%s\"\n", vv_plain_diag == 1 ? lnum : lnum*10000, file_name);
         }
 
         // 
@@ -2471,6 +2496,123 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
         within_inline = 0; // if statement is within <<...>>
         usedVELY = 0;
         print_mode = 0; // if in @ or !
+
+        // 
+        //
+        // Comments: both // and /**/ are handled here
+        // Not trivial. Matches gcc behavior as best as possible. Generally /**/
+        // takes precedence over //, unless /* is after //
+        //
+        //
+        // Check for // comment, if found (and not in quotes), anything after that is ignored
+        //
+        // // comment: if not quoted, everyting after it is blanked out
+        num op_i = 0;
+        num ccomm_pos = -1; // position of /* that starts multiline comment
+        while (isspace (line[op_i])) op_i++; // find beginning of line (ignore whitespace)
+        // if this is @ or !, all comments are ignore, this is whole-line output statement
+        if (memcmp(line+op_i, "@",1) && memcmp(line+op_i, "!",1)) 
+        {
+            // Check for /**/ comment
+            // There can be multiple /**/ comments on a line, so this must be a loop
+            bool skip_line=false;
+            num lcheck = 0;
+            bool closing_ccomm_found = false;// true if */ potentially found without matching /* on the same line
+                                             // may be a false alarm if */ is after //
+            num closing_ccomm_pos = -1;// position of closing */ per above bool
+            while (1)
+            {
+                char *cl_comment = vely_find_keyword0 (line+lcheck, "/*", 0, 0);
+                char *cr_comment = vely_find_keyword0 (line+lcheck, "*/", 0, 0);
+                // calculate where /* and */ are, meaning the first ones found
+                num l_pos = -1;
+                num r_pos = -1;
+                if (cl_comment != NULL) l_pos = cl_comment - line;
+                if (cr_comment != NULL) r_pos = cr_comment - line;
+                // If /* started at some point and not */ here, then ignore line
+                if (ccomm_open)
+                {
+                    if (cr_comment == NULL) 
+                    {
+                        skip_line = true;
+                        break; // this is under multiline /* */ comment
+                    }
+                    else
+                    {
+                        // this is ...*/... which must be closure of multiline /**/ comment
+                        // So ccomm_open must be true. We don't care if there was /* before */, that's part of the comment
+                        memmove (line, cr_comment + 2, len-r_pos-2+1); //+1 at the end is to include null byte
+                        len = len - r_pos - 2; // length is smaller
+                                             // we ignore all up to */ and continue afterwards
+                        lcheck = 0; // continue from the beginning of code after /*
+                        ccomm_open = false; // no longer multiline /**/ comment
+                        continue;
+                    }
+                }
+                if (l_pos == -1 && r_pos == -1) break; // no comments on line that's to be processed
+                                                                     // since it's not in multiline /**/ comment
+                if (l_pos != -1 && r_pos == -1) 
+                {
+                    // has /* but no closing */
+                    len = cl_comment - line; // length is smaller once you cut out the rest of the line
+                    line[len] = 0; // /* is not ending in this line, so cut it out
+                    ccomm_open = true; // we're now in open-ended /* which will stretch more than one line
+                    ccomm_line = lnum; // line where open-ended /* started
+                    ccomm_pos = len; // where /* is
+                    break; // because after /* without */, anything after that is a comment, so we got line
+                } 
+                else if (l_pos != -1 && r_pos != -1) 
+                {
+                    // we have left /* and right */ comment on the same line, so blank it out
+                    // but which one comes first?
+                    if (l_pos < r_pos) 
+                    {
+                        char *ci;
+                        for (ci = cl_comment; ci != cr_comment+2; ci++) *ci=' ';
+                        lcheck = r_pos + 2; // start looking again after this comment blanked out
+                    } 
+                    else
+                    {
+                        // we have already handled closure of multiline comment */ above, so this is an error
+                        // to have */ to lead the line - this will be handled further out of this loop under cpp_comment!=NULL
+                        // because if there's // prior to it, then it's a comment and not an error - in which case the rest of the 
+                        // line doesn't matter, so break
+                        closing_ccomm_found = true;
+                        closing_ccomm_pos = r_pos;
+                        break;
+                    }
+                } 
+                else if (l_pos == -1 && r_pos != -1) 
+                {
+                    // this is ...*/... which must be closure of multiline /**/ comment
+                    // But we already handled that, so this is an error,
+                    // to have */ to lead the line - this will be handled further out of this loop under cpp_comment!=NULL
+                    // because if there's // prior to it, then it's a comment and not an error - in which case the rest of the
+                    // line doesn't matter, so break
+                    closing_ccomm_found = true;
+                    closing_ccomm_pos = r_pos;
+                    break;
+                }
+                // cannot happen l_pos == -1 && r_pos == -1, as we checked for that above
+            }
+            // Look for // only after all /**/ have been processed. If // still here, then the only
+            // case where it affect the outcome is if there's /* after //, which should be ignored
+            char *cpp_comment = vely_find_keyword0 (line, "//", 0, 0);
+            if (cpp_comment != NULL)
+            {
+                *cpp_comment = 0;
+                len = cpp_comment - line; // after removing the comment, length is smaller
+                // if /* for multiline is after //, then ignore it
+                if (ccomm_pos !=-1 && ccomm_pos > len) ccomm_open = false;
+                // if */ is found after //, then ignore it, unless it closes a multi-line /**/. If it doesn't
+                // then it's ignored 
+                if (closing_ccomm_found && closing_ccomm_pos < len) _vely_report_error( "Closing */ C comment found, but there was no opening /* comment");
+            }
+            if (skip_line) continue; // this line is a line where /* started before it, but no */ found yet, so ignore
+        }
+        //
+        // END comment handling
+        //
 
         // If in @, this is if >> was just processed (end of inline), so start printing again
         // as we have temporarily suspended printing when << was found (by doing vely_puts(<end of string>...)
@@ -2806,6 +2948,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             _vely_report_error("Cannot use output statements (such as @ or !) within an inline statement (<< ... >>)");
                         }
+                        oprintf("//%s\n", line+i); // there can never be \n in line, so this should work
                         // @, !  is a synonym for an output line.  ! is verbatim, @ respects << ... >>
                         usedVELY = 0; // reset usedVELY because "@/!" isn't actual directive, it only
                                     // says what follows is just printed out
@@ -4007,10 +4150,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *count = find_keyword (mtext, VV_KEYARRAYCOUNT, 1);
                         char *started = find_keyword (mtext, VV_KEYSTARTED, 1);
 
-                        carve_statement (&st, "new-server", VV_KEYSTATUS, 0, 1);
-                        carve_statement (&finok, "new-server", VV_KEYFINISHEDOKAY, 0, 1);
-                        carve_statement (&count, "new-server", VV_KEYARRAYCOUNT, 0, 1);
-                        carve_statement (&started, "new-server", VV_KEYSTARTED, 0, 1);
+                        carve_statement (&st, "call-server", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&finok, "call-server", VV_KEYFINISHEDOKAY, 0, 1);
+                        carve_statement (&count, "call-server", VV_KEYARRAYCOUNT, 0, 1);
+                        carve_statement (&started, "call-server", VV_KEYSTARTED, 0, 1);
 
                         define_statement (&st, VV_DEFNUM);
                         define_statement (&finok, VV_DEFNUM);
@@ -4662,10 +4805,75 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         continue;
                     }
-                    else if ((newI=recog_statement(line, i, "input-param", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    else if (((newI=recog_statement (line, i, "if-task", &mtext, &msize, 0, &vely_is_inline)) != 0)
+                        || ((newI1=recog_statement (line, i, "else-task", &mtext, &msize, 0, &vely_is_inline)) != 0))
+                    {
+                        VV_GUARD
+                        i = newI+newI1;
+                        bool else_if = false;
+                        bool is_if = false;
+                        if (newI1 != 0 ) else_if = true; else is_if = true;
+
+                        // if if-task, then open_ifs is a +1 from previous if-task (or 0 if the first), so open_ifs is correct
+                        if (is_if) other_task_done[open_ifs] = false; 
+
+                        char *other = find_keyword (mtext, VV_KEYOTHER, 0);
+                        carve_statement (&other, "if-task", VV_KEYOTHER, 0, 0);
+                        if (other != NULL && !else_if)  _vely_report_error( "'other' clause can only be used with else-task");
+
+                        if (else_if)
+                        {
+                            // if else-task, then open_ifs is +1 from when if-task was done, so open_ifs-1 is correct
+                            if (open_ifs <= 0) _vely_report_error( "else-task found without an open if-task");
+                            open_ifs--;
+                            open_ifs++;
+                            if (other_task_done[open_ifs-1] && other == NULL) _vely_report_error( "else-task with 'other' must be the last one in if-task statement");
+                        }
+                        else
+                        {
+                            if (open_ifs==0) last_line_if_closed = lnum; 
+                            open_ifs++; // this is the only place where open_ifs increases
+                            if (open_ifs >= VV_MAX_OTHER_TASK) _vely_report_error( "too many subtasks nested with if-task");
+                        }
+
+                        // At this point, open_ifs is 1 greater than the level, so on level 0 (original if-task), open_ifs is 1,
+                        // on level 1 (one-nested if-task), open_ifs is 2 etc. That's because if-task will do +1, and for else-task
+                        // it remains so. By the time code reaches here, it's +1
+                        if (other != NULL) 
+                        {
+                            oprintf("} else {\n");
+                            // here checking is done with open_ifs-1, because open_ifs is now +1 of what the level really is
+                            if (other_task_done[open_ifs-1]) _vely_report_error( "'other' clause can only be used once with else-task");
+                            other_task_done[open_ifs-1] = true;
+                        }
+                        else 
+                        {
+                            oprintf("%sif (", else_if == 1 ? "} else ":"");
+                            char *curr = mtext;
+                            oprintf("!strcmp ((%s), vely_get_config()->ctx.req->task == -1 ? \"\":vely_get_config()->ctx.req->ip.values[vely_get_config()->ctx.req->task])", curr);
+                            oprintf(") {\n");
+                        }
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement (line, i, "end-task", &mtext, &msize, 1, &vely_is_inline)) != 0)
                     {
                         VV_GUARD
                         i = newI;
+                        oprintf("}\n");
+                        if (open_ifs <= 0) _vely_report_error( "end-task found without an open if-task");
+                        open_ifs--; // this is the only place where open_ifs decreases
+                        // check done on real open_ifs, after --
+                        other_task_done[open_ifs] = false;
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "input-param", &mtext, &msize, 0, &vely_is_inline)) != 0 ||
+                        (newI1=recog_statement(line, i, "task-param", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI + newI1;
+                        bool task = (newI1 != 0);
+
                         char *var = NULL;
                         VV_STRDUP (var, mtext); // must have a copy because vely_trim could ruin further parsing, 
                                         // since we have 'i' up above already set to point in line
@@ -4675,7 +4883,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             _vely_report_error(VV_NAME_INVALID, var);
                         }
-                        oprintf("char *%.*s = vely_get_input_param (vely_get_config()->ctx.req, \"%.*s\");\n", (int)var_len, var, (int)var_len, var); 
+                        oprintf("char *%.*s = vely_get_input_param (vely_get_config()->ctx.req, \"%.*s\", %s);\n", (int)var_len, var, (int)var_len, var, task?"true":"false"); 
+                        if (task) oprintf("VV_UNUSED(%s);\n",  var); // task input param can be unused (the var)
 
                         continue;
                     }
@@ -4804,6 +5013,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         define_statement (&status, VV_DEFNUM);
 
                         char *appendc = opt_clause(append, "1", "0");
+
+                        // can trim mtext here because all is already carved, and it's just a ptr trim
+                        num lm = strlen (mtext);
+                        mtext = vely_trim_ptr(mtext,  &lm);
+                        if (mtext[0] != 0 && fileid!=NULL) _vely_report_error( "you can specify either file name or file-id but not both in write-file statement");
 
                         if (append != NULL && pos!=NULL) _vely_report_error( "'append' and 'position' cannot both be in write-file statement");
 
@@ -5350,6 +5564,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
         if (feof (f)) break; // something read in, then EOF
     }
 
+    if (ccomm_open)
+    {
+        _vely_report_error( "Opening C comment /* found on line [%lld], but it was never closed", ccomm_line);
+    }
+
     if (gen_ctx->total_write_string != 0)
     {
         _vely_report_error( "Imbalance in write-string/end-write-string statements, too many open or not closed");
@@ -5362,6 +5581,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
     if (open_readline != 0)
     {
         _vely_report_error( "'read-line' code block imbalance at line check line %lld, %lld %s open than closed", last_line_readline_closed, llabs(open_readline), open_readline > 0 ? "more" : "less");
+    }
+     if (open_ifs != 0)
+    {
+        _vely_report_error( "'if-task' code block imbalance at line %lld, %lld %s open than closed", last_line_if_closed, llabs(open_ifs), open_ifs > 0 ? "more" : "less" );
     }
     if (gen_ctx->curr_qry_ptr !=0)
     {
@@ -5462,7 +5685,18 @@ int main (int argc, char* argv[])
             }
 
             app_path = vely_strdup (argv[i+1]);
-            i++; // skip db location now
+            i++; // skip app path
+            continue;
+        }
+        else if (!strcmp (argv[i], "-plain-diag"))
+        {
+            if (i + 1 >= argc)
+            {
+                _vely_report_error ( "Type of diagnostics not specified after -plain-diag option");
+                exit (1);
+            }
+            if (!strcmp (argv[i+1], "1")) vv_plain_diag = 1;
+            i++; // skip diag option
             continue;
         }
         else if (!strcmp (argv[i], "-max-upload"))
@@ -5524,7 +5758,6 @@ int main (int argc, char* argv[])
                 exit (1);
             }
             src_file_name = _item;
-
         }
     }
 
@@ -5837,7 +6070,5 @@ int main (int argc, char* argv[])
     // vely_done();
     return 0;
 }
-
-
 
 

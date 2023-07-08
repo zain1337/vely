@@ -2,20 +2,20 @@
 .SH NAME
 input-param \-  (request_information)
 .SH PURPOSE
-Get input parameter.
+Get input parameter for a request.
 
 .SH SYNTAX
 
 .RS 4
 .EX
 
-input-param <name>
+input-param <name> 
 
 .EE
 .RE
 
 .SH DESCRIPTION
-To obtain input parameters from an incoming \fBrequest\fP, use input-param. Whether it's a web or command-line application, input parameters are specified as name/value pairs (see \fBrequest_URL\fP). The value of input parameter <name> will be in the string variable with the same name. Input parameter values are trimmed for whitespace (both on left and right). 
+To obtain input parameters from an incoming \fBrequest\fP, use input-param and/or \fBtask-param\fP. Whether it's a web or command-line application, input parameters are specified as name/value pairs (see \fBrequest_URL\fP). The value of input parameter <name> will be in the string variable with the same name. Input parameter values are trimmed for whitespace (both on left and right). 
 
 Input parameter name can be made up of alphanumeric characters, hyphen or underscore only and cannot start with a digit. Note that a hyphen is automatically converted to underscore, so an input parameter "some-parameter" in the HTTP request will be known in your code as "some_parameter". For example in URL:
 
@@ -115,9 +115,11 @@ the value of input parameter "par" is undefined. Do not specify multiple input p
 .B - Request information
 
 \fBget-req\fP  
+\fBif-task\fP  
 \fBinput-param\fP  
 \fBrequest-body\fP  
 \fBset-input\fP  
-\fBset-req\fP    
+\fBset-req\fP  
+\fBtask-param\fP    
 See all 
 \fBdocumentation\fP

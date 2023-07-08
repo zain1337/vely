@@ -263,6 +263,12 @@ void buy_item() {
 
 
 .LP
+.B MAXIMUM LENGTH
+.LP
+
+Maximum length of a request URL is 2500 bytes.
+
+.LP
 .B NORMALIZED URL
 .LP
 

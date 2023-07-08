@@ -200,6 +200,7 @@ vf -f -w3 -p2300 velydemo > demout
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

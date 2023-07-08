@@ -4,7 +4,7 @@ example_cookies \- Vely documentation (examples)
 .SH DESCRIPTION
 A value is entered in the browser and saved as a cookie, then read back later. This example displays a web form. When it is submitted, the input is used to set a cookie in response. Then in a separate page, the cookie value is obtained and displayed. This is the basic mechanism often used in saving web application states and session information.
 
-In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
+In a nutshell:  web browser; Apache; Unix sockets; \fB1 source files, 49 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -308,9 +308,9 @@ Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter 
 void cookies()
 {
 
-    input-param action
+    task-param action
 
-    if (!strcmp (action, "enter_cookie")) {
+    if-task "enter_cookie"
 
         // Display a form to get cookie value
         out-header default
@@ -323,7 +323,7 @@ void cookies()
         @    <input type="submit" value="Submit">
         @</form>
 
-    } else if (!strcmp (action, "save_cookie")) {
+    else-task "save_cookie"
         
         // Submittal of form: save the cookie through response to the browser
         input-param cookie_value
@@ -333,7 +333,7 @@ void cookies()
         @Cookie sent to browser!
         @<hr/>
 
-    } else if (!strcmp (action, "query_cookie")) {
+    else-task "query_cookie"
 
         // Web request that delivers cookie value back here (to server); display it.
         get-cookie define name="customer_name"  
@@ -341,10 +341,10 @@ void cookies()
         @Customer name is <<p-web name>>
         @<hr/>
 
-    } else {
+    else-task other
         out-header default
         @Unrecognized action<hr/>
-    }
+    end-task
 
 }
 
@@ -359,6 +359,7 @@ void cookies()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

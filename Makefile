@@ -149,6 +149,7 @@ install:
 	install -D -m 0644 CHANGELOG -t $(DESTDIR)$(V_LIB)/
 	install -m 0755 -d $(DESTDIR)$(V_BIN)
 	install -D -m 0755 v1 -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 vdiag -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 vv  -t $(DESTDIR)$(V_BIN)/
 	install -D -m 0755 vf  -t $(DESTDIR)$(V_BIN)/
 	install -m 0755 -d $(DESTDIR)$(V_MAN)

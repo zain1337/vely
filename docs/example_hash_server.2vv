@@ -4,7 +4,7 @@ example_hash_server \- Vely documentation (examples)
 .SH DESCRIPTION
 You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form. This is an extremely fast, single-process hash server.
 
-In a nutshell:  web browser; Apache; REST API; Unix sockets; 3 source files, 59 lines of code.
+In a nutshell:  web browser; Apache; REST API; Unix sockets; \fB3 source files, 54 lines of code\fP.
 
 .LP
 .B SETUP PREREQUISITES
@@ -304,7 +304,7 @@ Here is the REST API for your application.
 
 Substitute the loopback "localhost" with the IP or web address of your server.
 
-Note that in these REST calls, the application path is "/hash", and the request name is "/server", followed by URL payload (see \fBrequest_URL\fP).
+Note that in these REST calls, the application path is "/hash_server", and the request name is "/server", followed by URL payload (see \fBrequest_URL\fP).
 
 The request method used is based on REST methodology, i.e. POST to create resource, GET to obtain, DELETE to delete it, etc. This is how you can use the API:
 
@@ -315,7 +315,7 @@ Here is an URL payload to add a key/data pair; use the "add" operation (i.e. "ad
 .RS 4
 .EX
 
-curl -X POST  "http://localhost/hash/server/op/add/key/key_1/data/data_1"
+curl -X POST  "http://localhost/hash_server/server/op/add/key/key_1/data/data_1"
 
 .EE
 .RE
@@ -340,7 +340,7 @@ To query the hash server, use the "query" operation (i.e. "query" is the value f
 .RS 4
 .EX
 
-curl -X GET "http://localhost/hash/server/op/query/key/key_1"
+curl -X GET "http://localhost/hash_server/server/op/query/key/key_1"
 
 .EE
 .RE
@@ -365,7 +365,7 @@ To delete a key/data pair, use the "delete" operation (i.e. "delete" is the valu
 .RS 4
 .EX
 
-curl -X DELETE "http://localhost/hash/server/op/delete/key/key_1"
+curl -X DELETE "http://localhost/hash_server/server/op/delete/key/key_1"
 
 .EE
 .RE
@@ -440,19 +440,16 @@ void server() {
     get-app process-data to h
 
     // Get input parameters
-    input-param op
+    task-param op
     input-param key
     input-param data
 
-    if (!strcmp (op, "add")) {
-        // Add data to hash, make a copy as input params are request-scoped
+    if-task "add" // Add data to hash, make a copy as input params are request-scoped
         copy-string key to define c_key
         copy-string data to define c_data
         write-hash h key c_key value c_data
         @Added [<<p-out key>>]
-    }
-    else if (!strcmp (op, "delete")) {
-        // Delete data and obtain the value deleted
+    else-task "delete" // Delete data and obtain the value deleted
         read-hash h key (key) value define val old-key define okey delete status define st
         if (st == VV_ERR_EXIST) {
             @Not found [<<p-out key>>]
@@ -462,16 +459,14 @@ void server() {
             delete-mem val
             delete-mem okey
         }
-    }
-    else if (!strcmp (op, "query")) {
-        // Query hash based on key value
+    else-task "query" // Query hash based on key value
         read-hash h key (key) value define val status define st
         if (st == VV_ERR_EXIST) {
             @Not found, queried [<<p-out key>>]
         } else {
             @Value [<<p-out val>>]
         }
-    }
+    end-task
 }
 
 .EE
@@ -487,12 +482,12 @@ Test hash server by adding 1000 key/data pairs, querying to make sure the data i
 .RS 4
 .EX
 
-\[char35]Restart hash server for this test
-vf -m restart hash
+\[char35]Restart hash_server server for this test
+vf -m restart hash_server
 
 \[char35]Add 1000 key/data pairs. Key value is 0,1,2... and data values are "data_0", "data_1", "data_2" etc.
 for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash/server/op/add/key/$i/data/data_$i")" != "Added [$i]" ]; then
+    if [ "$(curl -s "http://localhost/hash_server/server/op/add/key/$i/data/data_$i")" != "Added [$i]" ]; then
         echo "Error adding key [$i]"
         exit -1
     fi
@@ -502,7 +497,7 @@ echo "Keys added"
 
 \[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
 for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash/server/op/query/key/$i")" != "Value [data_$i]" ]; then
+    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Value [data_$i]" ]; then
         echo "Error querying key [$i]"
         exit -1
     fi
@@ -513,7 +508,7 @@ echo "Keys queried"
 \[char35]Delete all 1000 keys
 ERR="0"
 for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash/server/op/delete/key/$i")" != "Deleted [data_$i]" ]; then
+    if [ "$(curl -s "http://localhost/hash_server/server/op/delete/key/$i")" != "Deleted [data_$i]" ]; then
         echo "Error deleting key [$i]"
         exit -1
     fi
@@ -523,7 +518,7 @@ echo "Keys deleted"
 
 \[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
 for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash/server/op/query/key/$i")" != "Not found, queried [$i]" ]; then
+    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Not found, queried [$i]" ]; then
         echo "Error querying key [$i] after deletion."
         exit -1
     fi
@@ -546,6 +541,7 @@ echo "Hash server test successful"
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

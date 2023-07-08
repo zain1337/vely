@@ -47,15 +47,19 @@ else
     VV_FCGI_INCLUDE=
 endif
 
-_CFLAGS=-fpic -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_FCGI_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
 
-
-
+#If c-lines is used, then show all diagnostics
+VV_DIAG_OUT=
 ifeq ($(strip $(VV_C_SKIPLINES)),1)
     VV_X_FLAG=-x
 else
     VV_X_FLAG=
 endif
+
+#even though VV_DIAG_OUT is set to "", at run time it will have value from make_source macro. This is because of how makefile assignments work with = (and not :=)
+_CFLAGS=-fpic -fmax-errors=$(VV_C_MAXERRORS) $(VV_DIAG_OUT) -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_FCGI_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
+
+
 
 
 #
@@ -79,9 +83,11 @@ VV_HEADER_FILES:=$(VV_HEADER_FILES)
 #string subst: short for $(patsubst %.vely,%.o,$(VV_SOURCE_FILES)) which finds whitespace-separated word in $(VV_SOURCE_FILES) that match %.vely and replaces them with %.o
 _OBJ_FILES=$(VV_SOURCE_FILES:%.vely=$(VV_BLD)/%.o) 
 
+#when making source, start with compiling; then if error, check if plain diagnostic; if not, recompile with error processed by vdiag script to produce highlights (in which
+#case we don't use caret, we produce one ourselves instead of gcc)
 define make_source
-	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -name "$(VV_C_NAME)" $< -out   $(VV_BLD)/__$(shell basename $@).c 
-	$(_CC) -c $(VV_BLD)/__$(shell basename $@).c  $(_CFLAGS) -o $@ -I`pwd` 
+	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -plain-diag "1" -name "$(VV_C_NAME)" $< -out   $(VV_BLD)/__$(shell basename $@).c 
+	VV_DIAG_OUT="" ; $(_CC) -c $(VV_BLD)/__$(shell basename $@).c  $(_CFLAGS) -o $@ -I`pwd` 2>$(VV_BLD)/.comperr ; if [ "$$?" != "0" ]; then if [ "$$VV_C_PLAINDIAG" == "1" ]; then cat $(VV_BLD)/.comperr; exit -1; else VV_DIAG_OUT="-fno-diagnostics-show-caret"; $(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -plain-diag "$(VV_C_PLAINDIAG)" -name "$(VV_C_NAME)" $< -out   $(VV_BLD)/__$(shell basename $@).c; $(_CC) -c $(VV_BLD)/__$(shell basename $@).c  $(_CFLAGS) -o $@ -I`pwd` 2>$(VV_BLD)/.comperr; cat $(VV_BLD)/.comperr | $(VV_LIBRARY_PATH)/vdiag "$(VV_C_NAME)" $(VV_C_PLAINDIAG) ; fi ; fi
 endef
 
 #the rest if compilation of source files and producing object files and libraries needed for apache,
@@ -94,7 +100,7 @@ $(VV_BLD)/%.o: %.vely $(VV_INCLUDE_PATH)/vely.h $(VV_HEADER_FILES) $(VV_BLD)/vel
 
 #does not need to depend on velyfcgiapp.c because it makes it
 $(VV_BLD)/velyfcgiapp.o: $(VV_BLD)/blds
-	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -main -name "$(VV_C_NAME)" -max-upload "$(VV_C_MAXUPLOAD)" -app-path "$(VV_C_RESTPATH)" -trace "$(VV_C_TRACE)" -out $(VV_BLD)/velyfcgiapp.c
+	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -plain-diag "$(VV_C_PLAINDIAG)" -main -name "$(VV_C_NAME)" -max-upload "$(VV_C_MAXUPLOAD)" -app-path "$(VV_C_RESTPATH)" -trace "$(VV_C_TRACE)" -out $(VV_BLD)/velyfcgiapp.c
 	$(_CC) -c $(VV_BLD)/velyfcgiapp.c  $(_CFLAGS) -DCMOD -o $@ -I`pwd` 
 
 _LDFLAGS=-Wl,--no-undefined -Wl,--rpath=$(VV_LIBRARY_PATH) $(VV_C_LFLAGS)  -L$(VV_LIBRARY_PATH) $(_OPTIM_LINK) $(_ASAN)

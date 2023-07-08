@@ -90,6 +90,7 @@ void vely_init_input_req (vely_input_req *req)
     req->name = VV_EMPTY_STRING;
     req->body_len = 0;
     req->method = VV_OKAY;
+    req->task = -1; // meaning task not set
     finished_output = 0; // reset finish-output indicator
     vely_mem_os = false; // new request means memory garbage collector is on again, regardless
                          // of what it was at the end of the previous one
@@ -1648,10 +1649,10 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
 // 
 // In URL list of inputs, set value for input name to val.
 // req is the request structure.
-// Returns true if set, false if not found in which case a new input parameter with this value is created.
+// Returns >=0 index where it is in ip.values[] array 
 // Value is set, and no copy of it is made. Use copy-string to make a copy if needed.
 //
-bool vely_set_input (vely_input_req *req, char *name, char *val)
+num vely_set_input (vely_input_req *req, char *name, char *val)
 {
     VV_TRACE("");
 
@@ -1663,18 +1664,20 @@ bool vely_set_input (vely_input_req *req, char *name, char *val)
         {
             VV_TRACE ("Found input [%s] at [%lld]", req->ip.values[i], i);
             req->ip.values[i] = val;
-            return true;
+            return i;
         }
     }
     VV_TRACE ("Did not find input, create new one");
     // increase storage for input-params
     req->ip.num_of_input_params++;
+    vely_managed(); // needs to be used when managed memory from startup is changed, save current memory mode (managed or unmanaged)
     req->ip.names = (char**)vely_realloc (req->ip.names, req->ip.num_of_input_params*sizeof (char*));
     req->ip.values = (char**)vely_realloc (req->ip.values, req->ip.num_of_input_params*sizeof (char*));
+    vely_mrestore(); // needs to be used when managed memory from startup is changed, restore current memory mode
     // add new input param
     req->ip.names[req->ip.num_of_input_params-1] = name;
     req->ip.values[req->ip.num_of_input_params-1] = val;
-    return false;
+    return req->ip.num_of_input_params-1;
 }
 
 
@@ -1682,9 +1685,14 @@ bool vely_set_input (vely_input_req *req, char *name, char *val)
 // In URL list of inputs, find an index for an input with a given name
 // req is input request. 'name' is the name of input parameters. Search is
 // case sensitive.
+// is_task is true if this input-param is declared task - if input param not present, if-task
+// will match ""
+// if input-param not found, then task could be another one, i.e. if not found, it's not
+// enforced to be that one. Even if set-input is used, that parameter is still task if it was 
+// before, i.e. changing the value of input parameter doesn't affect it as a task.
 // Returns value of parameters, or "" if not found.
 //
-char *vely_get_input_param (const vely_input_req *req, char *name)
+char *vely_get_input_param (vely_input_req *req, char *name, bool is_task)
 {
     VV_TRACE("");
 
@@ -1695,10 +1703,14 @@ char *vely_get_input_param (const vely_input_req *req, char *name)
         if (!strcmp (req->ip.names[i], name))
         {
             VV_TRACE ("Found input [%s] at [%lld]", req->ip.values[i], i);
+            if (is_task) req->task = i; // we can set index because input-params are never deleted, rather
+                                      // they may be updated with set-param or added as well, but the index
+                                      // to input-param is always the same.
             return req->ip.values[i];
         }
     }
     VV_TRACE ("Did not find input");
+    if (is_task) req->task = -1; // task param not set, if-task will match ""
     return VV_EMPTY_STRING;
 }
 

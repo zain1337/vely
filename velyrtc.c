@@ -1026,12 +1026,12 @@ char * vely_os_version() {return VV_OS_VERSION;}
 // Returns the pointer to keyword in str, or NULL if not there
 // Note: since each keyword has a space before it in the original Vely statement
 // we look for either 1) the space or 2) 0 character that may have been put there - that
-// must be the case, unless has_spaces is 0, for example a=b - keyword = does not need space before.
+// must be the case, unless has_spaces is 0, for example a=b - keyword = does not need space before or after.
 // If find is "", then we're looking for end-of-line (i.e. null character). The purpose of this is for
 // recog_statement to scan through the rest of line and find unterminated string and unbalanced ()
 // If paren is 0, then () is not looked at, only quoting matters for finding keyword (this is for break-string)
 // Since a keyword may be contained in another (such as url and url-path in get-req), we also check that keyword
-// is followed by a space or a null.
+// is followed by a space or a null (unless has_spaces is 0).
 //
 char *vely_find_keyword0(char *str, char *find, num has_spaces, num paren)
 {

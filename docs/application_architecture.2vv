@@ -1,0 +1,197 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+application_architecture \- Vely documentation (general)
+.SH DESCRIPTION
+
+.LP
+.B PROGRAM, REQUEST, SOURCE CODE
+.LP
+
+A "program" is created by \fBvv\fP utility. It is an executable that can process \fBrequest\fPs. This executable can either run as:
+
+.RS 4
+\[bu]    
+a server (or "daemon"), which means as any number of processes staying resident in memory, either permanently or based on a workload (see \fBFastCGI\fP),
+
+.RE
+
+.RS 4
+\[bu]    
+as a program that runs from a command line, a script etc. (see \fBcommand_line\fP).
+.RE
+
+A program consists of a number of request handlers, ranging from one to many. The source code for a program is contained in a flat directory. Each request handler is represented by a namesake .vely file. For example, a request "customer" is always entirely contained in file "customer.vely". Typically, requests handled in a program are connected in some way that makes it advantageous to group them together, be it logically, via common dependencies in code, because of reliance on common infrastructure (such as a database for instance), based on performance etc. 
+
+.LP
+.B APPLICATION
+.LP
+
+An "application" is one or more programs that are related in some way; the relationship between programs may be purely logical, i.e. only in terms of some kind of business, functional or other commonality. If an application consists of multiple programs, you can think of each program as a sub-application of a larger one. 
+
+Your application can start being a single program. It may stay that way forever, or it may be split into multiple programs. A split is made much easier by the fact that each request is a single .vely file. 
+
+.LP
+.B SPLITTING AN APPLICATION
+.LP
+
+Separation of a single program into multiples may be as simple as placing its .vely files into separate directories, creating new applications with \fBvf\fP and building with \fBvv\fP. Note that you may have \fBnon_request\fP source files implementing code that is used in more than one place, i.e. shared among \fBrequest\fP handlers. Such files can stay in one program's source directory, and other programs may simply use those files as soft-linked (using Linux's ln). Access to basic services, such as databases, files or a network, does not change with such a separation, assuming shared infrastructure.
+
+Thus, whether your application is \fBmicro, mini or a macro service\fP (macro service being a "monolith"), or a combination thereof, it isn't immutable, and can change over time. 
+
+.LP
+.B MODE OF EXECUTION
+.LP
+
+The request's input and output are the same regardless of the program's mode of execution, i.e. whether a program runs as an application server or from command line (or both); a request is always served as an HTTP \fBrequest\fP; in addition, a \fBcommand_line\fP program can suppress HTTP header output.  An application may need both modes of execution for different aspects of its functioning. For example, much of the web interface would run as application server(s), and perhaps data conversion and periodic cron jobs would be better served by command-line programs. In many cases, the same code may serve both, such as when the same tasks are performed as a batch job and as a web request.
+
+.LP
+.B TESTABILITY
+.LP
+
+Requests are always valid HTTP requests, and operate as such. This makes testing/mocking easier regardless of the mode of execution (i.e. application server or command line). Testing can be performed via:
+
+.RS 4
+\[bu]    
+executing a program on a \fBcommand_line\fP,
+
+.RE
+
+.RS 4
+\[bu]    
+or to test server execution, by using \fBFastCGI_command_line_client\fP, \fBcURL\fP utility, or with a \fBFastCGI_API\fP for any programming language that has C linkage (virtually all do).
+.RE
+
+For example, REST interface can be easily tested by using a command-line program, without the need for a web interface.
+
+.LP
+.B DATABASES
+.LP
+
+Access to databases is provided via statements like \fBrun-query\fP, which are independent of the data source; different databases can be swapped without changing the code, even between different vendors (save for any differences in SQL dialects). A separate data model (i.e. data abstraction over actual queries) may or may not be needed; here are some reasons why you can go without it for simpler design/development and and better maintainability:
+
+.RS 4
+\[bu]    
+\fBrun-query\fP is designed to provide a readable interface (i.e. with input and output data) in single statement, thus playing a role of a data-accessor. Query text may be used directly, or from a another source (i.e. an array of queries, defined elsewhere, obtained from a function etc.).
+
+.RE
+
+.RS 4
+\[bu]    
+Too much data abstraction may result in a disconnect between application logic and data when it comes to readability of the design and the code, while the abstraction itself may present a significant overhead. 
+
+.RE
+
+.RS 4
+\[bu]    
+It may be beneficial for queries to convey application logic and be close to their functional place of use in order to maximize performance and maintainability.
+.RE
+
+
+.RE
+
+.RS 4
+\[bu]    
+Using the same database structure directly in development and testing reduces side effects that affect performance and functionality often seen with substitute data sources.
+.RE
+
+
+.LP
+.B SERVICES (LOCAL AND REMOTE) IN A FUNCTIONAL AND DECLARATIVE MODEL
+.LP
+
+Vely is functional and declarative, with basic services provided to you via \fBstatements\fP; that's their major purpose. For example, data sanitation and database access including connection handling, input, output, distributed computing, files, encryption, pattern matching and other such basic components are built-in - these are provided by Vely statements. You can write \fBnon_request\fP code to create higher-value components of your own that can be shared between requests in the same program.
+
+A request can be viewed as an HTTP function, where input is provided and output is made available via HTTP protocol to the caller, though this is decoupled from the web (and network in general): it can function as a web service or a command-line program execution. When running on a server, a request is suitable for both REST-like or generic Remote-Call type of processing by calling it with:
+
+.RS 4
+\[bu]    
+\fBcall-server\fP, for accessing remote services via fast and direct binary protocol on secure networks, or
+
+.RE
+
+.RS 4
+\[bu]    
+\fBcall-web\fP, for using remote services on the web with secure SSL/TSL connection.
+.RE
+
+
+.LP
+.B TASKS
+.LP
+
+A request may service either a singular purpose (such as with a microservice) or be divided into tasks (and then subtasks). Tasks (or subtasks) do not have to be exlusively separated in terms of functionality, i.e. differents tasks may perform overlapping functions via shared code. Any input parameter (see \fBtask-param\fP) can indicate which task a request should perform. Whatever services your application provides, each such service can be identified with:
+
+.RS 4
+\[bu]    
+a request and
+
+.RE
+
+.RS 4
+\[bu]    
+a task within a request.
+
+.RE
+
+.RS 4
+\[bu]    
+a subtask within a task, etc.
+.RE
+
+For an example of tasks and subtasks, see \fBif-task\fP.
+
+Interpreting and handling task(s) in as little code as close together as possible is preferrable. This means if determining which task to execute and actually executing its functionality is possible without any additional layers of abstruction, it is likely to be more readable and easier to maintain.
+
+Note that if a request serves a singular purpose, there is no need to use task-param, since there's only a single task to do. In general, the execution flow of a program is:
+(Image arch6.png not available in man page, see web page documentation)
+Within a request, the support for tasks is semantic and self-documenting:
+(Image arch7.png not available in man page, see web page documentation)
+
+.LP
+.B APPLICATION DESIGN
+.LP
+
+To begin with, the application design should start with a question: what are the requests my application will process? The answer to this question may be known in advance for small applications. For medium-sized or large applications, the answer is a process in itself, typically revealed during the prototyping and the lifecycle of application's design and use.  
+
+There are a few important considerations to take into account when deciding what a request is, i.e. what is its purpose and its input and output, and how to write it:
+
+.RS 4
+\[bu]    
+Its purpose: understanding any application is easier to design and implement if its components are chosen to logically represent the way end-users consume it, such as roles and tasks. "End-users" doesn't necessarily mean humans; many applications's end-users are other machines, be it servers in a multi-layered design, API endpoints in user-interfacing devices (such as browsers), end-point consumer electronics (such as thermostats or cars), etc.
+
+.RE
+
+.RS 4
+\[bu]    
+Performance: creating too many layers of an "onion" or too many layers of abstraction may lower performance to unacceptable levels.
+
+.RE
+
+.RS 4
+\[bu]    
+Ease of understanding: future maintainers of your applications may not appreciate too many layers of abstraction either.
+
+.RE
+
+.RS 4
+\[bu]    
+Sharing and extensibility: is a request standalone, without shared code or data source dependencies (meaning shared with other requests)? Sharing of code can be local via \fBnon_request\fPs, or remote via \fBcall-server\fP; it may be better to start with local sharing (i.e. non-request code) and use remote services when necessary, especially if horizontal scaling is needed (i.e. adding more computer instances to handle the load).
+.RE
+
+.SH SEE ALSO
+ 
+.B - General
+
+\fBapplication_architecture\fP  
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP    
+See all 
+\fBdocumentation\fP

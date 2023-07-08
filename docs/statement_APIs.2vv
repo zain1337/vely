@@ -205,13 +205,11 @@ if (some condition) {
 .B INTEGRATION WITH C
 .LP
 
-Vely is loosely integrated with C, with the integration points chosen for maximum practical benefit. It does not parse C to work, mostly because that does not present significant benefits and it would slow down code generation. 
+Vely is integrated with C to a certain point, with the integration points chosen for maximum practical benefit. For the most part, it does not need to parse C to work, mostly because that does not present significant benefits and it would slow down code generation. 
 
-Vely does, however, process certain C elements. It processes strings in C expressions used in Vely statements, as well as parenthesis to make sure that statement clauses are parsed properly. 
+Vely does, however, process certain C elements. It processes strings in C expressions used in Vely statements, as well as parenthesis to make sure that statement clauses are parsed properly. Comments (both C and C++ style) are processed as well.
 
-Probably the most important aspect of integrating with gcc is line number reporting. Line numbers and error messages reported by gcc and gdb are referring to source Vely files, making it easy to find the exact source code line of any issue.
-
-Note that at the same time, if you use --c-lines option (see \fBvv\fP), it forces generated C code line reporting. That is rarely necessary because gcc messages are typically detailed and sufficient.
+Probably the most important aspect of integrating with C is diagnostics. Line numbers and error messages reported by gcc and gdb are referring to source Vely files, making it easy to find the exact source code line of any issue. Also, diagnostic messages are additionaly processed to provide better reporting, including displaying and highlighting both Vely and generated C code; see \fBdiagnostic_messages\fP.
 
 .LP
 .B SPLITTING STATEMENT INTO MULTIPLE LINES
@@ -232,6 +230,23 @@ encrypt-data orig_data input-length 6 \\
 .RE
 
 Note that all statements are always left-trimmed for whitespace. Thus the resulting string literal in the above example is "mypass", and not "my   pass", as the whitespaces prior to line starting with "pass" are trimmed first. Also, all statements are right-trimmed for white space, except if backslash is used at the end, in which case any spaces prior to backslash are conserved. For that reason, in the above example there is a space prior to a backslash where clauses need to be separated.
+
+.LP
+.B COMMENTS
+.LP
+
+You can use both C style (i.e. /* ... */) and C++ style (i.e. //) comments with Vely statements, including within statements, for example:
+
+.RS 4
+.EX
+
+run-query @db = \\
+    "select firstName, lastName from employee where yearOfHire>='%s'" \\
+    output /* comment within */ firstName, lastName : "2015" // other comment
+
+.EE
+.RE
+
 
 .LP
 .B ERROR HANDLING

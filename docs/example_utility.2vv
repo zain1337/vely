@@ -4,7 +4,7 @@ example_utility \- Vely documentation (examples)
 .SH DESCRIPTION
 In this example, a temperature measuring device will periodically insert temperatures into a database table, along with a timestamp. The purpose is to read this history and output the result from time to time, which can then be piped or sent elsewhere.
 
-In a nutshell: SQLite; command line; Unix sockets; 2 source files, 26 lines of code.
+In a nutshell: SQLite; command line; Unix sockets; \fB2 source files, 25 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -195,24 +195,23 @@ This application will record temperatures, as well as list them. The source code
 void temphist() {
     out-header default
 
-    input-param action
+    task-param action
 
-    if (!strcmp (action, "record")) {
+    if-task "record"
         input-param temp
-        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp affected-rows define rc error-text define er no-loop
+        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp \\
+            affected-rows define rc error-text define er no-loop
         if (rc != 1) {
             @Could not insert temperature reading, error <<p-out er>>.
         } else {
             @Temperature reading stored.
         }
-    }
-
-    else if (!strcmp (action, "list")) {
+    else-task "list"
         run-query @db_utility = "select temp, timest from temps order by timest" output temp, timest
             @Date: <<query-result  timest>>
             @Temperature: <<query-result  temp>>
         end-query
-    }
+    end-task
 }
 
 .EE
@@ -225,6 +224,7 @@ void temphist() {
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

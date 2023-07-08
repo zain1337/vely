@@ -117,7 +117,27 @@ Optional <started> (in "started" clause) will be the number of server calls that
 call-server is faster than \fBcall-web\fP because it does not use HTTP protocol in addition to FastCGI; rather it only uses small and binary FastCGI protocol, which is extremenly fast, especially when using Unix sockets on the same machine (see \fBnew-server\fP). Note that FastCGI protocol does not have any inherent security built-in; that is part of the reason why it is fast. As such, it is very well suited for remote server calls on the same machine or between networked machines on a secure network. 
 
 .SH EXAMPLES
-See \fBnew-server\fP.
+This example will connect to local Unix socket file "/var/lib/vv/app_name/sock/sock" (a Vely application named "app_name"), and make a request named "server" (i.e. it will be processed by source code file "server.vely") with URL path of "/op/add/key/2" (meaning with input parameters "op=add" and "key=2"). Then, server reply is read and displayed.
+
+.RS 4
+.EX
+
+out-header default
+// Create single call
+new-server define srv location "/var/lib/vv/app_name/sock/sock" \\
+    method "GET" app-path "/app_name" request-path "/server" \\
+    url-payload "/op/add/key/2" 
+// Call single server call
+call-server srv finished-okay define sfok
+// Get results of a remote server call
+read-server srv data define rdata 
+// Display results
+@Data from server is <<p-out rdata>>
+
+.EE
+.RE
+
+See also \fBnew-server\fP.
 .SH SEE ALSO
  
 .B - Distributed computing

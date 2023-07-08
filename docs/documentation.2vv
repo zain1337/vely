@@ -69,6 +69,13 @@ ldx
 
 
 ldx
+.B - Diagnostics
+
+\fBdiagnostic_messages\fP   
+.RE
+
+
+ldx
 .B - Distributed computing
 
 \fBcall-server\fP  
@@ -102,6 +109,7 @@ ldx
 
 \fBerror_code\fP  
 \fBerror_handling\fP  
+\fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP   
 .RE
@@ -113,6 +121,7 @@ ldx
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
@@ -164,6 +173,7 @@ ldx
 ldx
 .B - General
 
+\fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  
 \fBquality_control\fP  
@@ -173,8 +183,7 @@ ldx
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  
-\fBvv\fP  
-\fBwhy_C_and_Vely\fP   
+\fBvv\fP   
 .RE
 
 
@@ -294,10 +303,12 @@ ldx
 .B - Request information
 
 \fBget-req\fP  
+\fBif-task\fP  
 \fBinput-param\fP  
 \fBrequest-body\fP  
 \fBset-input\fP  
-\fBset-req\fP   
+\fBset-req\fP  
+\fBtask-param\fP   
 .RE
 
 

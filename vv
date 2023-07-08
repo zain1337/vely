@@ -29,7 +29,7 @@ shopt -s extglob
 
 #display error context if vely has a shell error, source file bash only
 set -eE -o functrace
-trap 'echo "Error: status $?, $(caller), line line ${BASH_SOURCE[0]}/${LINENO}"' ERR
+trap 'echo "Error: status $?, $(caller), line ${BASH_SOURCE[0]}/${LINENO}"' ERR
 
 #do not change these values, they are changed here by Makefile per platform when make install is done
 export VV_LIBRARY_PATH=/usr/lib/vely
@@ -44,6 +44,9 @@ export VV_DATA="/var/lib/vv"
 
 export VV_C_RESTPATH=""
 export VV_C_MAXUPLOAD="25000000"
+export VV_C_MAXERRORS="5"
+#plain diagnostics must have value, as it's passed in a script (vdiag) in vmakefile
+export VV_C_PLAINDIAG="0"
 
 #defaults for quick install
 _PROXYPORT="80"
@@ -77,6 +80,8 @@ OPTIONS:
             --debug 
             --maxupload=<max upload size>
             --path=\"/some/path\"
+            --max-errors=<max errors>
+            --plain-diag
 -i      display build flags for Vely FastCGI client
             --include
                 displays C compile flags
@@ -96,7 +101,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,include,link -- "$@") || _OPT_STATUS=$?
+_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -117,6 +122,11 @@ _DO_QUICK=0
             ;;
         --c-lines  )
             export VV_C_SKIPLINES="1"
+            _DEVOPT=1
+            shift 
+            ;;
+        --plain-diag  )
+            export VV_C_PLAINDIAG="1"
             _DEVOPT=1
             shift 
             ;;
@@ -141,6 +151,11 @@ _DO_QUICK=0
             ;;
         --maxupload  )
             export VV_C_MAXUPLOAD="$2"
+            _DEVOPT=1
+            shift 2
+            ;;
+        --max-errors  )
+            export VV_C_MAXERRORS="$2"
             _DEVOPT=1
             shift 2
             ;;
@@ -522,6 +537,8 @@ function getdbs() {
 #File $VV_BLD/blds is used in vmakefile as a signal to recompile all (if changed)
 #Sole purpose is to know when to recompile, nothing is cached as far as command-line params go.
 #
+#VV_C_MAXERRORS and VV_C_PLAINDIAG do not affect compilation, only the output of errors, so not
+#part of mkset.
 #
 #
 function mkset() {

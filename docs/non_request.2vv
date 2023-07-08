@@ -2,9 +2,11 @@
 .SH NAME
 non_request \- Vely documentation (requests)
 .SH DESCRIPTION
-Non-request source files implement common code used in \fBrequest\fP-handling .vely files. Their names always start with an underscore ('_').
+Non-request source files implement common code used in \fBrequest\fP-handling .vely files, meaning they are used to implement functionality that is used in more than one place in a program. Their names always start with an underscore ('_').
 
-So for instance, file '_display.vely' would never handle any requests directly - such file may be (for example) implementing common code that displays various HTML statements. 
+So for instance, file '_display.vely' would never handle any requests directly - such file may be (for example) implementing common functions that display various HTML statements; those function's prototypes should be declared in both request-handling and non-request files, typically in a header file included (see Examples).
+
+When Vely code is compiled, both request and non-request source code is automatically picked up - all files with .vely extensions are used.
 
 A non-request source file can implement any number of functions which can be named in any fashion. However, Vely will declare a prototype for a function with the same name, saving you to the effort to do that, should you decide to implement it. For example, if you have function "void _display_table()" in file "_display.table.vely":
 
@@ -20,17 +22,16 @@ void _display_table() {
 .EE
 .RE
 
-then the prototype for function "void _display_table()" will be automatically generated and you do not have to do it manually. You would implement any other functions related to it in the same source file.
-
-When Vely code is compiled, both request and non-request source code is automatically picked up - all files with .vely extensions are used.
+then the prototype for function "void _display_table()" will be automatically generated and you do not have to do it manually. 
 
 .SH EXAMPLES
-In the following example, a list on customer names is shown (note functions header() and footer()), and the code is implemented in \fBrequest\fP source file show.vely:
+In the following example, a list of customer names is shown (note functions "header()" and "footer()" that display a header and a footer), and the code is implemented in \fBrequest\fP source file "show.vely". Note that header file ("common.h") with prototypes for "header()" and "footer()" is included in "show.vely":
 
 .RS 4
 .EX
 
 \[char35]include "vely.h"
+\[char35]include "common.h"
 
 void show() {
     run-query @db="select name from cust" output name
@@ -43,17 +44,17 @@ void show() {
 .EE
 .RE
 
-Functions header() and footer() are implemented in non-request source file _display.vely:
+Function _display() is  implemented in non-request source file "_display.vely". Note that header file ("common.h") with prototypes for "header()" and "footer()" is included here too:
 
 .RS 4
 .EX
 
 \[char35]include "vely.h"
+\[char35]include "common.h"
 
-void header() {
+void header () {
     @Name:<br/>
 }
-
 void footer() {
     @<hr/>
 }
@@ -61,7 +62,20 @@ void footer() {
 .EE
 .RE
 
-Both files (show.vely and _display.vely) will be automatically picked up, compiled and linked.
+Finally, in order for functions "header()" and "footer()" to be properly declared, you'd add header the above header file "common.h" (you can name it anything, but don't forget to change it elsewhere):
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void header ();
+void footer();
+
+.EE
+.RE
+
+Both files ("show.vely" and "_display.vely") will be automatically picked up, compiled and linked.
 .SH SEE ALSO
  
 .B - Requests

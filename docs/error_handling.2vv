@@ -1,6 +1,7 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-error_handling \- Vely documentation (error_handling)
+error_handling \- Vely documentation (error_handling
+error_handling)
 .SH DESCRIPTION
 
 .LP
@@ -54,6 +55,7 @@ vv -e 3
 .B - Error handling
 
 \fBerror_code\fP  
+\fBerror_handling\fP  
 \fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP    

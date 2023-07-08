@@ -4,7 +4,7 @@ example_create_table \- Vely documentation (examples)
 .SH DESCRIPTION
 Example of manipulating tables via SQL. Table is dropped, created, data inserted, then queried, and finally it is dropped.
 
-In a nutshell: PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 source files, 44 lines of code.
+In a nutshell: PostgreSQL; command line; web browser; Nginx; Unix sockets; \fB2 source files, 44 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -383,6 +383,7 @@ void create_table()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

@@ -13,6 +13,7 @@ A Vely \fBrequest\fP file can be renamed as well, and whatever it's name is, it 
  
 .B - General
 
+\fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  
 \fBquality_control\fP  
@@ -22,7 +23,6 @@ A Vely \fBrequest\fP file can be renamed as well, and whatever it's name is, it 
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  
-\fBvv\fP  
-\fBwhy_C_and_Vely\fP    
+\fBvv\fP    
 See all 
 \fBdocumentation\fP

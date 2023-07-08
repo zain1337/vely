@@ -2,7 +2,7 @@
 .SH NAME
 examples \- Vely documentation (examples)
 .SH DESCRIPTION
-Click on each example for instructions. For a condensed Hello World that you can run from command line in just minutes, try \fB123_hello_world\fP.
+Click on each example for instructions.
 
 .RS 4
 \[bu]    
@@ -14,7 +14,7 @@ This is a simple Hello World example. It explains basics of making applications 
 
 .RS 4
 \[bu]    
-What's in it:  command line; web browser; Nginx; Unix sockets; 2 source files, 7 lines of code.
+What's in it:  command line; web browser; Nginx; Unix sockets; \fB2 source files, 7 lines of code\fP.
 .RE
 
 .RE
@@ -30,7 +30,7 @@ A value is entered in the browser and saved as a cookie, then read back later. T
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
+What's in it:  web browser; Apache; Unix sockets; \fB1 source files, 49 lines of code\fP.
 .RE
 
 .RE
@@ -46,7 +46,7 @@ Example of manipulating tables via SQL. Table is dropped, created, data inserted
 
 .RS 4
 \[bu]    
-What's in it: PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 source files, 44 lines of code.
+What's in it: PostgreSQL; command line; web browser; Nginx; Unix sockets; \fB2 source files, 44 lines of code\fP.
 .RE
 
 .RE
@@ -62,7 +62,7 @@ This is a file manager application. Files such as JPG, PDF or other can be uploa
 
 .RS 4
 \[bu]    
-What's in it: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
+What's in it: PostgreSQL; web browser; Apache; TCP sockets; \fB6 source files, 169 lines of code\fP.
 .RE
 
 .RE
@@ -78,7 +78,7 @@ This application is a guest tracking database. The user can input first and last
 
 .RS 4
 \[bu]    
-What's in it: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
+What's in it: PostgreSQL; web browser; Apache; Unix sockets; \fB4 source files, 86 lines of code\fP.
 .RE
 
 .RE
@@ -94,7 +94,7 @@ You will create your own hash server in this example. A REST API will enable end
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Apache; REST API; Unix sockets; 3 source files, 59 lines of code.
+What's in it:  web browser; Apache; REST API; Unix sockets; \fB3 source files, 54 lines of code\fP.
 .RE
 
 .RE
@@ -110,7 +110,7 @@ This example demonstrates parsing JSON text. The text parsed contains informatio
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
+What's in it:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines of code\fP.
 .RE
 
 .RE
@@ -126,7 +126,7 @@ This is a multi-tenant web application that you can run on the Internet as Softw
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 312 lines of code.
+What's in it: MariaDB; web browser; Apache; Application path; Unix sockets; \fB7 source files, 315 lines of code\fP.
 .RE
 
 .RE
@@ -142,7 +142,7 @@ Sending email through web interface demonstrates web input of From, To, Subject 
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
+What's in it:  web browser; Apache; Unix sockets; \fB1 source files, 79 lines of code\fP.
 .RE
 
 .RE
@@ -158,7 +158,7 @@ This is a shopping web service REST API with basic functions: add customer, add 
 
 .RS 4
 \[bu]    
-What's in it: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 11 source files, 212 lines of code.
+What's in it: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; \fB11 source files, 212 lines of code\fP.
 .RE
 
 .RE
@@ -174,7 +174,7 @@ Stock ticker example will create a new ticker (stock name and its price) or upda
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
+What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; \fB3 source files, 55 lines of code\fP.
 .RE
 
 .RE
@@ -190,7 +190,7 @@ In this example, a temperature measuring device will periodically insert tempera
 
 .RS 4
 \[bu]    
-What's in it: SQLite; command line; Unix sockets; 2 source files, 26 lines of code.
+What's in it: SQLite; command line; Unix sockets; \fB2 source files, 25 lines of code\fP.
 .RE
 
 .RE
@@ -206,7 +206,7 @@ Builds a report of employees from a database. Creates a "reports" directory and 
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
+What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; \fB2 source files, 69 lines of code\fP.
 .RE
 
 .RE
@@ -228,6 +228,38 @@ What's in it: Docker, MariaDB, web browser, Apache.
 .RE
 
 
+.RS 4
+\[bu]    
+\fBEncryption and decryption\fP :
+.RS 4
+\[bu]    
+Here you will learn how to encrypt and decrypt data using a password, also known as symmetrical encryption. This password must be known to both parties exchanging information.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: encryption, decryption, OpenSSL.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBSimple Hello World\fP :
+.RS 4
+\[bu]    
+This is a very simple Hello World, designed to get you going in minutes. Demonstrates running Hello World as a standalone program, or an application server. All it does is outputs Hello World.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: Hello World, command line, application server.
+.RE
+
+.RE
+
+
 .SH SEE ALSO
  
 .B - Examples
@@ -235,6 +267,7 @@ What's in it: Docker, MariaDB, web browser, Apache.
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

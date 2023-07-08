@@ -12,9 +12,9 @@ void mail()
 
     out-header default
 
-    input-param action
+    task-param action
 
-    if (!strcmp (action, "show_form")) {
+    if-task "show_form"
 
         // Display HTML form to input email details. Here we will set the 'action' parameter
         // to 'submit_form'. This way, when the user submits the form, such a request would
@@ -44,7 +44,7 @@ void mail()
         @    <input type="submit" value="Send">
         @</form>
         
-    } else if (!strcmp (action, "submit_form")) {
+    else-task "submit_form"
 
         // Send email using data from the form. This code is called from the form above.
         // Effectively, in this file we have the code to display the form and the code
@@ -71,9 +71,9 @@ void mail()
         }
         @<hr/>
 
-    } else {
+    else-task other
         @Unrecognized action!<hr/>
-    }
+    end-task
 
 }
 

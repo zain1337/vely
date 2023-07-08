@@ -54,9 +54,11 @@ p-out description
 .B - Request information
 
 \fBget-req\fP  
+\fBif-task\fP  
 \fBinput-param\fP  
 \fBrequest-body\fP  
 \fBset-input\fP  
-\fBset-req\fP    
+\fBset-req\fP  
+\fBtask-param\fP    
 See all 
 \fBdocumentation\fP

@@ -340,6 +340,7 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
  
 .B - General
 
+\fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  
 \fBquality_control\fP  
@@ -349,7 +350,6 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  
-\fBvv\fP  
-\fBwhy_C_and_Vely\fP    
+\fBvv\fP    
 See all 
 \fBdocumentation\fP

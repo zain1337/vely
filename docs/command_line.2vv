@@ -66,6 +66,16 @@ export QUERY_STRING="price=300"
 .EE
 .RE
 
+You can generate the shell code like the above by using "-r" option of \fBvv\fP utility, for example here you'd specify the request path and URL payload (see \fBrequest_URL\fP):
+
+.RS 4
+.EX
+
+vv -r --req="/add-stock/name/ABC"
+
+.EE
+.RE
+
 
 .LP
 .B INCLUDING A REQUEST BODY

@@ -59,6 +59,8 @@ static vml *vm = NULL;
 static num vm_curr = 0;
 static num vm_tot = 0;
 static num vm_first_free = -1; // first free memory block
+static bool vm_mem_type = false; // used to save managed/unmanaged and restore                               
+
 
 // determines the size of the block allocated (and the size of consequent expansions) for the memory
 // block that keeps all pointers to allocated blocks.
@@ -390,7 +392,9 @@ void vely_done ()
     }
 }
 
-
+void vely_unmanaged() {vm_mem_type = vely_mem_os; vely_mem_os = true;}
+void vely_managed() {vm_mem_type = vely_mem_os; vely_mem_os = false;}
+void vely_mrestore() {vely_mem_os = vm_mem_type;}
 
 
 

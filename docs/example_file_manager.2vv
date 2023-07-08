@@ -4,7 +4,7 @@ example_file_manager \- Vely documentation (examples)
 .SH DESCRIPTION
 This is a file manager application. Files such as JPG, PDF or other can be uploaded, and each file can have a description tag. A list of uploaded files can be displayed. Each file can be viewed or downloaded, and each file can be deleted. Files metadata is kept in the database (name, path, description, size, extension), while the files themselves are kept in Vely \fBfile_storage\fP.
 
-In a nutshell: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
+In a nutshell: PostgreSQL; web browser; Apache; TCP sockets; \fB6 source files, 169 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -577,7 +577,7 @@ void delete ()
 {
    out-header default
    @<h2>Delete a file</h2>
-   input-param action
+   task-param action
    input-param file_id
    char *file_name = NULL;
    char *desc = NULL;
@@ -590,10 +590,10 @@ void delete ()
        query-result localPath to local_path
    end-query
 
-   if (!strcmp (action, "confirm")) { // get file information to confirm what will be deleted
+   if-task "confirm" // get file information to confirm what will be deleted
        @Are you sure you want to delete file <<p-web file_name>> (<<p-web desc>>)? Click <a href="<<p-path>>?req=delete&amp;action=delete&amp;file_id=<<p-url file_id>>">Delete</a> or click the browser's Back button to go back.<br/>
 
-   } else if (!strcmp (action, "delete")) { // actual delete file, once confirmed
+   else-task "delete"  // actual delete file, once confirmed
        begin-transaction @db_file_manager
        run-query @db_file_manager= "delete from files where fileID='%s'" : file_id error define err no-loop
        if (atol(err) != 0) {
@@ -609,9 +609,9 @@ void delete ()
                @File could not be deleted, error <<pf-web "%lld", st>>
            }
        }
-   } else {
+   else-task other
        @Unrecognized action <<p-web action>>
-   }
+   end-task
 }
 
 .EE
@@ -624,6 +624,7 @@ void delete ()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

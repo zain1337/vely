@@ -5,7 +5,7 @@
 // for any multitenant Cloud application
 void login () {
     // Get URL input parameter "actions"
-    input-param actions
+    task-param actions
 
     // Get global request data, we record session information in it, so it's handy
     reqdata *rd;
@@ -22,13 +22,13 @@ void login () {
 
     // Application screen to get started. Show links to login or signup and show
     // home screen appropriate for this
-    if (!strcmp (actions, "begin")) {
+    if-task "begin" 
         _show_home();
         exit-request
 
     // Start creating new user. Ask for email and password, then proceed to create user
     // when this form is submitted.
-    } else if (!strcmp (actions, "newuser")) {
+    else-task "newuser"
         @Create New User<hr/>
         @<form action="<<p-path>>/login/actions/createuser" method="POST">
         @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
@@ -37,7 +37,7 @@ void login () {
         @</form>
 
     // Verify code sent to email by user. The code must match, thus verifying email address    
-    } else if (!strcmp (actions, "verify")) {
+    else-task "verify"
         input-param code
         input-param email
         // Get verify token based on email
@@ -55,7 +55,7 @@ void login () {
         exit-request
 
     // Create user - this runs when user submits form with email and password to create a user     
-    } else if (!strcmp (actions, "createuser")) {
+    else-task "createuser"
         input-param email
         input-param pwd
         // create hashed (one-way) password
@@ -96,7 +96,7 @@ void login () {
         }
 
     // This runs when logged-in user logs out.    
-    } else if (!strcmp (actions, "logout")) {
+    else-task "logout"
         // Update user table to wipe out session, meaning no such user is logged in
         if (rd->is_logged_in) {
             run-query @db_multitenant_SaaS = "update users set session='' where userId='%s'" : rd->sess_userId no-loop affected-rows define arows
@@ -108,7 +108,7 @@ void login () {
         _show_home();
 
     // Login: this runs when user enters user name and password
-    } else if (!strcmp (actions, "login")) {
+    else-task "login"
         input-param pwd
         input-param email
         // create one-way hash with the intention of comparing with user table - password is NEVER recorded
@@ -135,7 +135,7 @@ void login () {
         @Email or password are not correct. <<.login_or_signup();>><hr/>
 
     // Login screen, asks user to enter user name and password    
-    } else if (!strcmp (actions, "")) {
+    else-task ""
         login_or_signup();
         @Please Login:<hr/>
         @<form action="<<p-path>>/login/actions/login" method="POST">
@@ -143,7 +143,9 @@ void login () {
         @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
         @<button type="submit">Go</button>
         @</form>
-    }
+    else-task other
+        // do not display anything
+    end-task
 }
 
 // Display Login or Sign Up links

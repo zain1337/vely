@@ -17,7 +17,7 @@ sudo vf -i -u $(whoami) <app name>
 .EE
 .RE
 
-This will create directory structure described here. Vely application can be used as a \fBFastCGI\fP server, a \fBcommand_line\fP program or a \fBCGI\fP program. Note that vf is the only Vely utility requiring sudo privileges, and only for application creation.
+This will create directory structure described here. Vely application can be used as a server (see \fBFastCGI\fP), a \fBcommand_line\fP program or a \fBCGI\fP program. Note that vf is the only Vely utility requiring sudo privileges, and only for application creation.
 
 If you will build an application from source code, the above vf command must run in the directory that contains the application source code. Each application must be in its own separate directory which contains all of its source code.
 
@@ -25,9 +25,9 @@ If you will build an application from source code, the above vf command must run
 .B HOW VELY WORKS: CODE, REQUESTS AND PROCESSES
 .LP
 
-In a single step, Vely code (.vely files) is precompiled entirely into C, linked, and ready to run as a command-line program or as an application server, or both. Error reporting is based on Vely source code (.vely files), though you can specify generated code lines to be used. 
+In a single step, Vely code (.vely files) is precompiled entirely into C, linked, and ready to run as a command-line program or as an application server, or both. Error reporting is based on Vely source code (.vely files), though you can specify generated code lines to be used (see \fBdiagnostic_messages\fP). 
 
-\fBvv\fP will preprocess .vely source files and generate C code for supported \fBstatement_APIs\fP (database, file, strings etc.). Then, vv builds both a command-line program and a FastCGI application server executable for application <app name> (the name <app name> is specified when running \fBvf\fP with "-i" flag to create the application). Executables created are located in directory:
+\fBvv\fP will preprocess .vely source files and generate C code for supported \fBstatements\fP (database, file, strings etc.). Then, vv builds both a command-line program and an application server executable for application <app name> (the name <app name> is specified when running \fBvf\fP with "-i" flag to create the application). Executables created are located in directory:
 
 .RS 4
 .EX
@@ -37,22 +37,22 @@ In a single step, Vely code (.vely files) is precompiled entirely into C, linked
 .EE
 .RE
 
-A FastCGI application runs as a daemon, i.e. it runs in the background and does not exit, serving incoming requests. Typically, a number of FastCGI processes are started to serve incoming processes in parallel; each process serves a single request at a time and thus can serve great many requests during its lifetime; in adaptive mode, the number of processes running may vary according to the load - including zero running processes for near-zero memory usage.
+A server runs as a daemon, i.e. it runs in the background and does not exit, serving incoming requests. Typically, a number of server processes are started to serve incoming requests in parallel; each process serves a single request at a time and thus can serve great many requests during its lifetime; in adaptive mode, the number of processes running may vary according to the load - including zero running processes for near-zero memory usage.
 
-A command-line program works exactly the same way as a FastCGI application; it takes the same input and produces the same output. A command-line program runs as a single process and processes a single request.
+A command-line program works exactly the same way as a server; it takes the same input and produces the same output. A command-line program runs as a single process and processes a single request. 
 
 .LP
 .B .VELY FILES AND REQUESTS
 .LP
 
-Files with the .vely extension are Vely source files. You must have at least one Vely source file (.vely file). If a Vely source file starts with an underscore, it is a \fBnon_request\fP file, which can implement anything; otherwise it is a \fBrequest\fP file. A request file implements a request handler, which handles a \fBrequest_URL\fP sent by the client (such as reverse proxies like Apache or Nginx) or provided to \fBcommand_line\fP program via environment variables. 
+Files with the .vely extension are Vely source files. You must have at least one Vely source file (.vely file). If a Vely source file starts with an underscore, it is a \fBnon_request\fP file, which typically implements shared code used by more than one request; otherwise it is a \fBrequest\fP file. A request file implements a request handler, which handles a \fBrequest_URL\fP sent by the client (such as reverse proxies like Apache or Nginx or a \fBFastCGI_API\fP application written in any programming language) or provided to \fBcommand_line\fP program via environment variables. 
 
 
 .LP
 .B REQUESTS AND REQUEST HANDLERS
 .LP
 
-To specify the request handler, specify its name in the URL after the application path (see \fBrequest_URL\fP). A request handler must implement a function named after the base name of .vely file. For example, in a URL such as:
+To specify the request handler, state its name in the URL after the application path (see \fBrequest_URL\fP). A request handler must implement a function named after the base name of .vely file. For example, in a URL such as:
 
 .RS 4
 .EX
@@ -72,7 +72,7 @@ void add_stock() {...}
 .EE
 .RE
  
-in file add_stock.vely. 
+in file "add_stock.vely". 
 
 This correlation between requests and file names makes it easy to find the code you want and to maintain it. Vely will generate the code that will automatically route input requests to the appropriate code based on the request name, so in the above example Vely will automatically invoke function add_stock() implemented in file "add_stock.vely" with input parameters "ticker" and "price" (and their values) available via \fBinput-param\fP statement:
 
@@ -90,10 +90,20 @@ void add_stock() {
 
 
 .LP
+.B TASKS
+.LP
+
+Each request handler can perform a number of tasks. A single invocation of a request may perform one or more tasks out of some number of choices. Tasks' functionality may or may not overlap, and they may have subtasks.
+
+To designate an input parameter as a task selector (i.e. as information that tells your code what task it's expected to do), use \fBtask-param\fP. To use the task parameter as a selector and execute the appropriate code, see \fBif-task\fP. 
+
+A request and its tasks determine what kind of service your request should perform. task-param and if-task statements provide semantic support for this, so that your code effectively self-documents its interface. 
+
+.LP
 .B NON-REQUEST SOURCE CODE
 .LP
 
-Not every source code file was meant to handle a request. You might have a number of \fBnon_request\fP files that implement other code, such as commonly used functions. Such files are non-request source code and their names must start with underscore ("_"). 
+Not every source code file was meant to handle a request. You might have a number of \fBnon_request\fP files that implement shared code, such as commonly used functions. Such files are non-request source code and their names must start with underscore ("_"). 
 
 For example, file "_display_table.vely" might implement a common HTML table displaying code, which is used in various request handlers.
 
@@ -140,7 +150,7 @@ While you can keep and compile Vely source files in any directory, the directori
 .RS 4
 \[bu]    
 /var/lib/vv/bld/<app name>
-Build directory is where your FastCGI application executable is built, with name <app name>.fcgi. The command-line executable is named <app name>. This is a scratch-pad directory, so do not alter files in it, or use for anything else.
+Build directory is where your server application executable is built, with name <app name>.fcgi. The command-line executable is named <app name>. This is a scratch-pad directory, so do not alter files in it, or use for anything else.
 
 .RE
 
@@ -175,7 +185,7 @@ Process tracing is written in per-process files if "--trace" option is used (see
 .RS 4
 \[bu]    
 /var/lib/vv/<app name>/app/db
-Database configuration directory contains the \fBdatabase_config_file\fPs used by Vely to connect to databases. 
+Database configuration directory contains the \fBdatabase_config_file\fPs used by Vely to connect to databases; this directory is maintained by Vely and you should not use it.
 
 .RE
 
@@ -194,9 +204,11 @@ ln -s /home/disk0/file /var/lib/vv/<app name>/app/file
 .B REMOTE CALLS
 .LP
 
-You can make remote requests, i.e. requests to other \fBFastCGI\fP servers by using \fBcall-server\fP statement, including unlimited number of parallel remote requests, meaning executing in separate threads at the same time without any thread programming on developer's part. 
+You can make remote requests, i.e. requests to other servers by using \fBcall-server\fP statement, including unlimited number of parallel remote requests, meaning executing in separate threads at the same time without any thread programming on developer's part. 
 
 Because Vely processes that execute remote requests are kept alive, the cost of starting and terminating requests is zero. That's why this method of parallel distributed computing is very fast; it is also easier and safer because each request executed in parallel does not need to be MT-safe, since such requests execute in separate single-threaded processes. The cost of these processes vs threads is generally small on Linux and because Vely creates lightweight native executables.
+
+To make remote calls across the Web, use \fBcall-web\fP.
 
 .LP
 .B MEMORY ALLOCATION
@@ -221,10 +233,30 @@ Do not use object names (such as variables, functions, types) that start with "_
 .LP
 
 You can use any external libraries with Vely (see "--lflag", "--cflag" with \fBvv\fP). For the implementation of its own functionality, Vely uses standard libraries wherever possible (such as cURL, OpenSSL, PostgreSQL, MariaDB, SQLite etc.). Those libraries are loaded when needed automatically; thus the run-time memory usage is minimized based on your program needs.
+
+.LP
+.B CONTAINERS (DOCKER ETC)
+.LP
+
+You can easily \fBcontainerize_application\fP.
+
+.LP
+.B CONNECT FROM OTHER APPLICATIONS
+.LP
+
+Use \fBFastCGI_API\fP to connect to a Vely application server from any program, C or otherwise - as long as it has C linkage capability, which most languages do. This works with both single and multi-threaded applications. 
+
+.LP
+.B BETTER ERROR REPORTING AND DIAGNOSTICS
+.LP
+
+Vely provides enhanced \fBdiagnostic_messages\fP; here is an example:
+(Image diag_small.png not available in man page, see web page documentation)
 .SH SEE ALSO
  
 .B - General
 
+\fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  
 \fBquality_control\fP  
@@ -234,7 +266,6 @@ You can use any external libraries with Vely (see "--lflag", "--cflag" with \fBv
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  
-\fBvv\fP  
-\fBwhy_C_and_Vely\fP    
+\fBvv\fP    
 See all 
 \fBdocumentation\fP

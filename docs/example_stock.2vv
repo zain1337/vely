@@ -4,7 +4,7 @@ example_stock \- Vely documentation (examples)
 .SH DESCRIPTION
 Stock ticker example will create a new ticker (stock name and its price) or update an existing one, and display the stock ticker database.
 
-In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
+In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; \fB3 source files, 55 lines of code\fP.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -422,6 +422,7 @@ void show_stock()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  

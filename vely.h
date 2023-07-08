@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.0.0"
+#define VV_VERSION "17.1.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -176,7 +176,7 @@ typedef double dbl;
 #define VV_MAX_COOKIES 256
 #define VV_MAX_COOKIE_SIZE 2048
 // Max length of URL path (between web address and query string) 
-#define VV_MAX_PATH 512
+#define VV_MAX_PATH 2512
 #define VV_TIME_LEN 200 // max length of time strings
 // maximum number of bytes needed to encode either URL or WEB encoded string
 #define VV_MAX_ENC_BLOWUP(x) ((x)*6+1)
@@ -427,6 +427,7 @@ typedef struct vely_input_req_s
     num body_len; // if POST/PUT/PATCH.. this is body length (for no multipart)
     num method; // VV_GET/POST/PATCH/PUT/DELETE
     char *name; // request name, value of "req" param
+    num task; // index into name/values in ip (vely_input_params)
 } vely_input_req;
 // 
 // Context of execution. Contains input request, flags
@@ -650,7 +651,7 @@ void vely_output_http_header(vely_input_req *iu);
 void _vely_report_error (char *format, ...) __attribute__ ((format (printf, 1, 2)));
 num vely_encode (num enc_type, char *v, num vlen, char **res);
 num vely_get_input(vely_input_req *req, char *method, char *input);
-char *vely_get_input_param (const vely_input_req *iu, char *name);
+char *vely_get_input_param (vely_input_req *iu, char *name, bool is_task);
 num vely_is_positive_num (char *s);
 num vely_exec_program (char *prg, char *argv[], num num_args, FILE *fin, FILE **fout, FILE **ferr, char *inp, num inp_len, char **out_buf, num *out_len, char **err_buf);
 void vely_get_debug_options();
@@ -815,12 +816,15 @@ char *vely_json_to_utf8 (char *val, char quoted, char **o_errm, char dec);
 num vely_utf8_to_json (char *val, num len, char **res, char **err);
 char *vely_getheader(char *h);
 void vely_bad_request ();
-bool vely_set_input (vely_input_req *req, char *name, char *val);
+num vely_set_input (vely_input_req *req, char *name, char *val);
 char *vely_getpath ();
 int vely_fcgi_client_request (char *fcgi_server, char *req_method, char *path_info, char *script_name, char *content_type, int content_len, char *payload);
 void vely_flush_out(void);
 void vely_end_all_db();
 void vely_exit (void);
+void vely_unmanaged();
+void vely_managed();
+void vely_mrestore();
 
 #ifdef VV_INC_FCGI
 void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env);
