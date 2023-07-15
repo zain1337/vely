@@ -14,79 +14,6 @@ Vely is not object-oriented, rather it's declarative and functional. It's simple
 
 Vely applications are 100% native, high-performance and low-footprint without interpreters or byte-code schemes. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .LP
 .B STATEMENTS
 .LP
@@ -106,28 +33,28 @@ The scope of Vely statements is typically narrow and the generated code is shall
 Vely is about productivity, safety and performance. The idea is to not sacrifice performance at all, and to improve productivity and safety significantly.
 
 .LP
-.B MEMORY
+.B MEMORY SAFETY
 .LP
 
-When you use Vely statements, you do not need to allocate/free memory, or worry about buffer overruns or memory violations; you also get automatic memory freeing and automatic file closing.
+When you use Vely statements, you do not need to allocate/free memory, or worry about buffer overruns or memory violations; you also get automatic memory freeing and automatic file closing. Vely is safer than pure C.
 
 .LP
-.B C
+.B WHY GENERATE C
 .LP
 
-Vely generates C underneath for several reasons. It is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
+Vely generates C code underneath for several reasons. It is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
+
+The reason why you wouldn't have used C in the past may have been buffer overwrites, memory management and low-level coding. Vely changes that by turning C into a rapid software development platform that's safer and easier.
 
 Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means the important and difficult parts are done by single-line Vely statements.
 
-Writing programs in C generally results in fastests and smallest programs, which is the reason why it's widely used in system programming and infrastructure software. On the other hand, the reason why you wouldn't have picked up C in the past may have been buffer overwrites, memory management and low-level coding. Vely changes that by turning C into a rapid software development platform that's safer and easier.
+C is the \fBfastest and most energy-efficient\fP programming language, which is the reason why it's widely used in system programming and infrastructure software. Performance is important everywhere, and especially in the Cloud, where smaller and faster means less CPU seconds, less RAM, less money spent, less energy used and less emissions. And \fBMoore's law\fP may or may not be failing, but it will take significantly more funding, time and expenditure of all kinds to keep it going, and at some point it may no longer. 
 
-C is the \fBfastest and most energy-efficient\fP programming language, which means if all programs were in C, there would be considerably less emissions, water use and pollution, not to mention we would all enjoy faster software that requires less hardware and consequently less use of resources. 
+.LP
+.B QUALITY
+.LP
 
-In addition, \fBMoore's Law\fP is slowing down, spelling trouble for the bloated languages and frameworks based on layers upon layers of abstractions and inefficient software systems. Consider this, from the \fBMIT Technology review\fP: "Thompson and his colleagues showed that they could get a computationally intensive calculation to run some 47 times faster just by switching from ... a popular general-purpose programming language, to the more efficient C".
-
-As a founding layer, C is a great choice: rapid and easy development on top of a simple programming base with improved safety and the best performance. This is especially true in the Cloud, where smaller and faster means less CPU seconds, less RAM, less money spent, less energy used and less emissions. And \fBMoore's law\fP may or may not be failing, but it will take significantly more funding, time and expenditure of all kinds to keep it going, and at some point it may no longer. 
-
-In short, the goal of Vely is to be intuitive and easy, while lending the superior performance of C to general-purpose application development, and especially web applications. Regardless of what kind of hardware you run, or whatever kind of software you're designing, ultimately, performance matters.
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1763 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
 
 .LP
 .B REPORT BUGS, REQUEST FEATURES, CONTACT

@@ -3382,6 +3382,7 @@ void vely_exit (void)
 #endif
 
 #ifdef DEBUG
+    vely_end_all_db (); // end any db connections
     vely_close_trace(); // shut off tracing if it was enabled
 
     if (pc != NULL && pc->ctx.db->conn != NULL) free (pc->ctx.db->conn); // free database list of descriptors

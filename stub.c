@@ -238,7 +238,7 @@ int vely_lite_store(char is_prep)
 }
 num vely_lite_nfield() {return 0;}
 char *vely_lite_fieldname() { return NULL; }
-void vely_lite_free() {}
+void vely_lite_free(char is_prep) {VV_UNUSED(is_prep);}
 num vely_lite_nrows()
 {
     return 0;

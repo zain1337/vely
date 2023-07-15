@@ -96,6 +96,93 @@ Using the same database structure directly in development and testing reduces si
 
 
 .LP
+.B SESSION MANAGEMENT, STICKYNESS
+.LP
+
+A "session" is any data connected to a particular end-user who is communicating with application(s). An end-user would login to your application(s) and during such a session any data exchanged would be:
+
+.RS 4
+\[bu]    
+secure, i.e. no other end-user could eavesdrop or alter the data exchanged, and
+
+.RE
+
+.RS 4
+\[bu]    
+relevant, i.e. separate from other end-users.
+.RE
+
+Vely application servers run as a separate layer, i.e separately from web server(s) for performance, safety, scalability and usability; they can be accessed in a number of ways, with web servers being just one. Session information should never be kept in any particular web server instance or application process; rather it resides in a database layer, which can be:
+
+.RS 4
+\[bu]    
+a database like MariaDB or PostgreSQL,
+
+.RE
+
+.RS 4
+\[bu]    
+a caching solution (like Redis),
+
+.RE
+
+.RS 4
+\[bu]    
+Vely process using a database (persistent, in-memory such as SQLite, etc.),
+
+.RE
+
+.RS 4
+\[bu]    
+or other high performance data stores
+.RE
+
+This makes application design easier and more robust from the start, because it allows for proper session store that scales without having to worry about "sticking" to a particular end-point web server or process. Rather, stickyness is achieved by keeping the session information in a data layer; such session information can then be accessed from any process of any application by simply querying it.
+
+For performance considerations, typically there are three components to a database design in regards to session management:
+
+.RS 4
+\[bu]    
+Credentials data,
+
+.RE
+
+.RS 4
+\[bu]    
+Session data, and
+
+.RE
+
+.RS 4
+\[bu]    
+User data
+.RE
+
+The minimal information you'd need for any kind of session management scenario to work is:
+
+.RS 4
+\[bu]    
+User ID - a unique identifier assigned to each end-user.
+
+.RE
+
+.RS 4
+\[bu]    
+Session ID - a unique session identifier assigned to each session of each end-user.
+.RE
+
+User ID would be obtained during login (based on credentials such as user name and password for instance), in order to grant access to application(s); this is what Credentials data is for, and during such login a Session ID is created. 
+
+The subsequent requests from a logged-on user would be based on both User ID and Session ID, which would be used to verify that end-user has the right to access data, and which is initially provided to the end-user and then passed back to application(s) via secure cookies. After that, User ID is used to perform the actual requests, while Session ID is used to update the Session data with whatever information application(s) require. All such data manipulations are performed via queries (not necessarily SQL queries, though it may be the most common kind).
+
+With this architecture, the stickyness of an end-user's session is achieved regardless of which web server(s), application(s) or application's processes are handling the request; any architecture should always prioritize this independence from the underlying infrastructure and physical implementation. In addition, for better performance and scaling up, the Credentials, Session and User data can be separated. In most cases, all three of those are contained in a single database (see \fBmultitenant SaaS example\fP of this). When you need to scale up, you can separate Credentials and Session data, as well as User data (i.e. transactional database that contains the actual useful end-user's data) in their own physical databases. 
+
+Note that this kind of separation can be across different CPUs on a same server, or on different servers connected to a high-speed local network, or some other form of separation. You may also choose to have session data in-memory only to speed up updates and queries - this decision is about business requirements and allowable risks in case such database needs to be restarted for whatever reason. If better reliability is needed (in case database(s) go down), a high-availability database solution may be used, like clustering/mirroring/failover etc. The strategy used should generally avoid process synchronization on an application or caching level, as it tends to eventually slow down the application and grow in complexity. 
+
+These concepts are shown here:
+(Image arch8.png not available in man page, see web page documentation)
+
+.LP
 .B SERVICES (LOCAL AND REMOTE) IN A FUNCTIONAL AND DECLARATIVE MODEL
 .LP
 

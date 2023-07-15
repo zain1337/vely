@@ -2,7 +2,7 @@
 #Copyright 2017 DaSoftver LLC.
 
 Name:   vely    
-Version:    17.1.0
+Version:    17.1.3
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC

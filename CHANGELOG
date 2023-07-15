@@ -1,12 +1,6 @@
-Vely release notes for 17.1.0
+Vely release notes for 17.1.3
 
-- Notes: Major addition in this release is the semantic and self-documenting implementation of tasks and subtasks within requests, which allows for more readable and cleaner application architecture. In addition, C/C++ comments are now properly parsed. Another notable improvement is the color-highlighting of diagnostic messages, which also includes both Vely and C code text (generated or otherwise), with exact placement of error; this makes developing with Vely easier.
-- Minor: added semantic support for tasks under requests; see if-task and task-param.
-- Minor: added support for C and C++ comments.
-- Minor: added max-errors for the number of diagnostic messages.
-- Release: added Application Architecture documentation article.
-- Release: removed metadata expiration default for Fedora packages.
-- Release: added color highlighting for Vely diagnostics, as well as the text of Vely source code and C code lines in the output. More precise diagnostic messages. Also added --plain-diag to use old diagnostic style.
-- Release: maximum URL path is now 2500 bytes.
-- Release: fixed bug where set-input would crash with unmanaged memory.
+- Notes: This is a bug/documentation release.
+- Release: fixed a bug with SQLite database access where a statement would execute multiple times in non-prepared mode.
+- Release: added documentation about sessions in Application architecture, as well as other minor improvements.
 

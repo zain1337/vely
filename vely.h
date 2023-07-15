@@ -16,7 +16,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.1.0"
+#define VV_VERSION "17.1.3"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -787,7 +787,7 @@ char *vely_db_prep_text(char *t);
 int vely_db_escape(char *from, char *to, num *len);
 void vely_hex2bin(char *src, char **dst, num ilen, num *olen);
 void vely_bin2hex(char *src, char **dst, num ilen, num *olen, char *pref);
-void vely_db_free_result ();
+void vely_db_free_result (char is_prep);
 num vely_json_new (char *val, num *curr, num len, char dec);
 void vely_set_json (vely_json **j, num maxhash);
 num vely_topower(num b,num p);
@@ -867,7 +867,7 @@ int vely_lite_store(char is_prep);
 int vely_lite_use(char is_prep);
 num vely_lite_nfield();
 char *vely_lite_fieldname();
-void vely_lite_free();
+void vely_lite_free(char is_prep);
 num vely_lite_nrows();
 int vely_lite_rows (char ***row, unsigned long **lens);
 char *vely_lite_errm(char *errm, num errmsize, char *s, char *sname, num lnum, char *er, char is_prep);

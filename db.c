@@ -42,11 +42,15 @@ void vely_end_connection(num close_db) {
         {
             if (VV_CURR_DB.db_type == VV_DB_POSTGRES)
             {
-                vely_pg_close(VV_CURR_DB.dbc);
+                vely_pg_close();
             }
             if (VV_CURR_DB.db_type == VV_DB_MARIADB)
             {
-                vely_maria_close (VV_CURR_DB.dbc);
+                vely_maria_close ();
+            } 
+            if (VV_CURR_DB.db_type == VV_DB_SQLITE)
+            {
+                vely_lite_close ();
             } 
         }
 
@@ -1198,8 +1202,9 @@ void vely_make_SQL (char **dest, num num_of_args, char *format, ...)
 
 //
 // Frees result of the query that just executed
+// is_prep is 1 if this was prepared statement
 //
-void vely_db_free_result ()
+void vely_db_free_result (char is_prep)
 {
     VV_TRACE("");
     if (VV_CURR_DB.db_type == VV_DB_POSTGRES)
@@ -1212,7 +1217,7 @@ void vely_db_free_result ()
     }
     else if (VV_CURR_DB.db_type == VV_DB_SQLITE)
     {
-        vely_lite_free();
+        vely_lite_free(is_prep);
     }
     else
     {

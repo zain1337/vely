@@ -2,6 +2,21 @@
 .SH NAME
 vely_dispatch_request \- Vely documentation (requests)
 .SH DESCRIPTION
+An incoming request is handled by a first available process:
+
+.RS 4
+\[bu]    
+For a \fBcommand_line\fP application, there is only a single process, and it handles a single requests before it exits. 
+
+.RE
+
+.RS 4
+\[bu]    
+For server application (see \fBFastCGI\fP), there can be any number of processes running. A process is chosen to service a request if it is currently not serving other requests; this way there are no processes waiting idle unnecessarily.
+.RE
+
+Each process is identical and can serve any request, i.e. it has all request handlers available to it. Thus, when a process is chosen to serve a request, then this process will simply execute a function that handles a request. To do that, each process first calls "vely_dispatch_request()" function.
+
 "void vely_dispatch_request()" is an automatically generated \fBrequest\fP-dispatching function in Vely. It uses request name (see \fBrequest_URL\fP) to call the appropriate request handler. 
 
 For example, if the request name is "myreq", then function with signature "void myreq()" will be called - such function must be implemented in "myreq.vely" source code file.

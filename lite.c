@@ -11,7 +11,7 @@
 #include "vely.h"
 static int vely_lite_stmt_rows (char ***row, unsigned long **lens);
 static int vely_lite_add_input(num i, char *arg);
-static int vely_lite_prep_stmt(void **prep, char *stmt, num num_of_args);
+static int vely_lite_prep_stmt(char is_prep, void **prep, char *stmt, num num_of_args);
 
 static char *cerror = NULL;
 static num qnumrows = 0;
@@ -89,7 +89,11 @@ int vely_lite_get_data ()
 
     num i;
 
-
+    // set qrows, qlens to NULL as vely_lite_get_data() is called only once for a query
+    // below is freeing of these, and if not NULL, it would free bad data if no rows selected and there's an error (like
+    // for example if inserting data and duplicate violation)
+    qrows = NULL;
+    qlens = NULL;
     num cdata = 0; // index of fields within a row
     qnumrows = 0;
     int r;
@@ -153,10 +157,10 @@ int vely_lite_get_data ()
                 num i;
                 for (i = 0; i < cdata; i ++) 
                 {
-                    vely_free ((qrows)[cdata]);
+                    vely_free ((qrows)[i]);
                 }
-                vely_free (qrows);
-                vely_free (qlens);
+                if (qrows != NULL) vely_free (qrows);
+                if (qlens != NULL) vely_free (qlens);
                 return 1;
             } 
         }
@@ -174,9 +178,10 @@ num vely_lite_nrows()
     return qnumrows;
 }
 
-void vely_lite_free()
+void vely_lite_free(char is_prep)
 {
     VV_TRACE("");
+    if (is_prep == 0) vely_lite_close_stmt (VV_CURR_DB.dbc->sqlite.stmt);
     return;
 }
 
@@ -270,14 +275,15 @@ vely_dbc *vely_lite_connect (num abort_if_bad)
 num vely_lite_exec(char *s, char is_prep, void **prep, num paramcount, char **params)
 {   
     VV_TRACE("");
-    VV_UNUSED(is_prep);
-    if (vely_lite_prep_stmt (prep, s, paramcount)) return 1;
+    if (vely_lite_prep_stmt (is_prep, prep, s, paramcount)) return 1;
     num i;
     for (i = 0; i < paramcount; i++)
     {
         if (vely_lite_add_input(i, params[i]) != 0) return 1;
     }
-    if (vely_lite_get_data () != 0) return 1;
+    if (vely_lite_get_data () != 0) {
+        return 1;
+    }
     qrownow = 0; // row number currently served
     // sqlite must be reset to be able to reuse statement
     sqlite3_reset(VV_CURR_DB.dbc->sqlite.stmt);
@@ -307,8 +313,10 @@ void vely_lite_close_stmt (void *st)
 // void *, which survives requests (otherwise prepared statements wouldn't be very useful,
 // actually would decrease performance), however prep is set to NULL when connection is 
 // reestablished (typically if db server recycles), which is generally rare.
+// is_prep is 0 if not prepare, 1 if it is. We need this because prep is !=NULL even when prepared
+// is not used, resulting in the same SQL executed over and over
 //
-int vely_lite_prep_stmt(void **prep, char *stmt, num num_of_args)
+int vely_lite_prep_stmt(char is_prep, void **prep, char *stmt, num num_of_args)
 {
     VV_TRACE("");
     char *sname = "";
@@ -318,7 +326,7 @@ int vely_lite_prep_stmt(void **prep, char *stmt, num num_of_args)
     // reuse prepared statement from prep
     // some statements (begin transaction, exec-query <dynamic query> and such) must be re-prepared
     // because they are *always* purely dynamic statements
-    if (prep != NULL && *prep != NULL) 
+    if (is_prep ==1 && prep != NULL && *prep != NULL) 
     {
         vely_stmt_cached = 1;
         VV_TRACE ("reusing prepared statement");

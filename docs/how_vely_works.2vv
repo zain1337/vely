@@ -47,6 +47,7 @@ A command-line program works exactly the same way as a server; it takes the same
 
 Files with the .vely extension are Vely source files. You must have at least one Vely source file (.vely file). If a Vely source file starts with an underscore, it is a \fBnon_request\fP file, which typically implements shared code used by more than one request; otherwise it is a \fBrequest\fP file. A request file implements a request handler, which handles a \fBrequest_URL\fP sent by the client (such as reverse proxies like Apache or Nginx or a \fBFastCGI_API\fP application written in any programming language) or provided to \fBcommand_line\fP program via environment variables. 
 
+\[char46]vely files for a program are always contained in a flat directory, meaning source code in any subdirectories is not used to make a program. This is by design for better readability and maintainability, as it allows for "at-a-glance" look at requests handled by the program and its overall functionality. Each request handler can have a deep hierarchy of tasks within it (see below), for example for implementing a REST API. 
 
 .LP
 .B REQUESTS AND REQUEST HANDLERS

@@ -1271,7 +1271,7 @@ void generate_sql_code (vely_gen_ctx *gen_ctx, char is_prep)
         gen_ctx->qry[query_id].unknown_output == 1 ? "&_vv_col_names_": "NULL", 
         gen_ctx->qry[query_id].unknown_output == 1 ? gen_ctx->qry[query_id].name:"",
         gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, is_prep, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
-        oprintf("vely_db_free_result ();\n");
+        oprintf("vely_db_free_result (%d);\n", (int)is_prep);
 
 
     }
@@ -1283,7 +1283,7 @@ void generate_sql_code (vely_gen_ctx *gen_ctx, char is_prep)
             gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].returns_tuple, (int)is_prep, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name, gen_ctx->qry[query_id].name);
         // set nrow to 0
         oprintf("_vv_nrow_%s=0;\n", gen_ctx->qry[query_id].name);
-        oprintf("vely_db_free_result ();\n");
+        oprintf("vely_db_free_result (%d);\n", (int)is_prep);
     }
 
     // deallocate _vv_sql_buf_<query name> if not prepared and no input params (which is the condition for it to be allocated)
