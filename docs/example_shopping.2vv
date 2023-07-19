@@ -885,6 +885,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
  
 .B - Examples
 
+\fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  

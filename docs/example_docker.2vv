@@ -197,6 +197,7 @@ vf -f -w3 -p2300 velydemo > demout
  
 .B - Examples
 
+\fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  

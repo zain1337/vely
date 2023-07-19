@@ -458,6 +458,7 @@ In addition to this, learn more about \fBdebugging\fP Vely applications.
  
 .B - Examples
 
+\fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  

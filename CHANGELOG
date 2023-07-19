@@ -1,6 +1,7 @@
-Vely release notes for 17.1.3
+Vely release notes for 17.1.7
 
-- Notes: This is a bug/documentation release.
-- Release: fixed a bug with SQLite database access where a statement would execute multiple times in non-prepared mode.
-- Release: added documentation about sessions in Application architecture, as well as other minor improvements.
+- Notes: remove unneeded headers for FastCGI API and clarify license when used standalone.
+- Release: remove unneded fcgi lib headers when using standalone FastCGI API (without Vely installation), since it does not use fcgi library at all.
+- Release: updated license info to clarify Vely framework; license is unchanged.
+- Release: updated client API example and FastCGI API documentation on how to use without installing Vely.
 

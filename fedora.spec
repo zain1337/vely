@@ -1,8 +1,10 @@
 #SPDX-License-Identifier: EPL-2.0
 #Copyright 2017 DaSoftver LLC.
+#Licensed under Eclipse Public License - v 2.0. See LICENSE file.
+#On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    17.1.3
+Version:    17.1.7
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC

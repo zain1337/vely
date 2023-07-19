@@ -419,6 +419,7 @@ void show_stock()
  
 .B - Examples
 
+\fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  

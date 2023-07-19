@@ -1,0 +1,725 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_client_API \- Vely documentation (examples)
+.SH DESCRIPTION
+How to connect to PHP FPM with API: multi-threaded and single-threaded calls
+(Image phpclient.png not available in man page, see web page documentation)
+
+.LP
+.B PHP AND FASTCGI
+.LP
+
+The way PHP FPM receives client requests is via \fBFastCGI\fP, which is a high-performance binary protocol for communication between servers, clients, and in general programs of all kinds. Originally it was created to rectify shortcomings of CGI (Common Gateway Interface) protocol, in order to dramatically increase its performance. Over time, FastCGI emerged as a great protocol for high performance server applications. 
+
+The reason for this is that it allows client requests to be handled without starting up and shutting down server threads or processes; the inter-process communication is especially fast with Unix sockets. In addition, the protocol is binary and very lean, meaning it provides high performance. Typically it's used on secure networks as it doesn't have any security built-in (which is one of the reasons for high performance), such as behind front-facing web server(s), on secure intranets etc.
+
+Here you will learn how to connect to any FastCGI server (in this case PHP FPM and Vely) from virtually any programming language (that has C linkage, which is most of them), using \fBFastCGI_API\fP; that's the reason examples are written in C.
+
+.LP
+.B PREREQUISITES
+.LP
+
+This example uses API that comes with \fBVely\fP framework (at least 17.1.3 or later should be installed to run these examples). The examples are for Ubuntu 22, so you can install \fBVely with apt packager\fP or \fBfrom source\fP. You can also \fBinstall\fP it for other Linux distros.
+
+.LP
+.B WHAT WILL YOU DO HERE
+.LP
+
+You will connect to a PHP FPM and a Vely server using API, and run code on those servers on behalf of a client, meaning send data and receive a reply. Both single- and multi-threaded examples are included.
+
+.LP
+.B SETUP PHP FPM SERVER
+.LP
+
+The PHP example is for Ubuntu with Apache, however you can adapt it to your particular distribution. The PHP FPM version used is 8.1; if you're using a different version, replace "8.1" with your own.
+
+First, if you don't already have Apache web server server installed:
+
+.RS 4
+.EX
+
+sudo apt install apache2
+
+.EE
+.RE
+
+Then, if you don't already have PHP FPM server installed:
+
+.RS 4
+.EX
+
+sudo apt install php-fpm
+
+.EE
+.RE
+
+In order for your client program to be able to write PHP FPM's Unix socket, you can change the configuration for it - in this case you'd make the group be the same as yours, thus giving you permission to write to the socket. To do this, edit file:
+
+.RS 4
+.EX
+
+sudo vi /etc/php/8.1/fpm/pool.d/www.conf
+
+.EE
+.RE
+
+and change line with "listen.group" to your group name (which is normally the same as your OS user name):
+
+.RS 4
+.EX
+
+listen.group = <your login user>
+
+.EE
+.RE
+
+Then restart PHP FPM service:
+
+.RS 4
+.EX
+
+sudo service php8.1-fpm restart
+
+.EE
+.RE
+
+First create a simple PHP program to just output what the input parameter was. Create file:
+
+.RS 4
+.EX
+
+sudo vi /var/www/html/example.php
+
+.EE
+.RE
+
+and copy this:
+
+.RS 4
+.EX
+
+<?php
+echo "Input is " . $_GET['par'] . "\en";
+?>
+
+.EE
+.RE
+
+Make sure PHP file is accessible to PHP FPM (which runs in the same ownership context as the web server, meaning "www-data" user):
+
+.RS 4
+.EX
+
+sudo chown www-data:root /var/www/html/example.php
+
+.EE
+.RE
+
+
+.LP
+.B SIMPLE EXAMPLE WITH PHP FPM
+.LP
+
+The C program to connect and call the above PHP file is simple. Note that the version of PHP used is "8.1", so if you're using a different one, replace "php8.1" with your own. You're also using a Unix socket to connect, the request method is "GET", and the rest is setup for a very simple invocation of a PHP script. "url_payload" is in the form of a query string, and PHP also expects SCRIPT_FILENAME to be set to where you saved the "example.php" file; this demonstrates usage of environment variables. Overall, you can take this simple example and adjust it to serve your needs.
+
+Create client C file:
+
+.RS 4
+.EX
+
+vi php_api.c
+
+.EE
+.RE
+
+and copy this:
+
+.RS 4
+.EX
+
+\[char35]include "vfcgi.h"
+
+void main ()
+{
+    // Request type vv_fc - create a request variable and zero it out
+    vv_fc req = {0};
+
+    req.fcgi_server = "/run/php/php8.1-fpm.sock"; // Unix socket
+    req.req_method = "GET"; // GET HTTP method
+    req.app_path = "/"; // application path
+    req.req = "/example.php"; // request name
+    req.url_payload = "par=99";
+
+    char *env[3];
+    env[0]="SCRIPT_FILENAME";
+    env[1]="/var/www/html/example.php";
+    env[2]=NULL;
+    req.env = env;
+
+    // Make a request
+    int res = vv_fc_request (&req);
+
+    // Check return status, and if there's an error, display error code and the
+    // corresponding error message. Otherwise, print out server response.
+    if (res != VV_OKAY) printf ("Request failed [%d] [%s]\en", res, vv_fc_error(&req));
+    else printf ("%s", vv_fc_data(&req));
+
+    // Free up resources so there are no memory leaks
+    vv_fc_delete(&req);
+}
+
+.EE
+.RE
+
+The example is very simple and fairly self-explanatory. A few things you must always have (see \fBFastCGI_API\fP):
+
+.RS 4
+\[bu]    
+"fcgi_server" member of "req" variable (of "vv_fc" type) says how you plan to connect to a FastCGI server. In the example, you'd use a local Unix socket for simplicity and performance; use TCP socket only when connecting to another computer or if you have a good reason otherwise.
+
+.RE
+
+.RS 4
+\[bu]    
+"req_method" is the HTTP method, which in this case is "GET", but it could be "POST", "PUT", "DELETE", or anything you want.
+
+.RE
+
+.RS 4
+\[bu]    
+"app_path" is the SCRIPT_NAME.
+
+.RE
+
+.RS 4
+\[bu]    
+"req" is the request name, or in HTTP talk it's the leading path segment of PATH_INFO.
+Also provided is "url_payload", which in terms of HTTP environment variables is really the rest of PATH_INFO (divided by forward slashes "/", or up to "?" if there's one), plus QUERY_STRING (in the form of "name=value" pairs, or after "?", if there's one). Finally "vv_fc_request()" calls the server and you can use "vv_fc_error()" to get any error response and "vv_fc_data()" to get the data reply. Note that error and data may be interwoven; not to worry, the API will separate the two as proper streams. To delete memory used by this call, use "vv_fc_delete()". That's all for a simple example!
+To build the client, execute:
+
+.RS 4
+.EX
+
+gcc -o php_api php_api.c $(vv -i)
+
+.EE
+.RE
+
+Run it:
+
+.RS 4
+.EX
+
+\[char46]/php_api
+
+.EE
+.RE
+
+The result is, as expected:
+
+.RS 4
+.EX
+
+Content-type: text/html; charset=UTF-8
+
+Input is 99
+
+.EE
+.RE
+
+
+.LP
+.B MULTITHREADED EXAMPLE WITH PHP FPM
+.LP
+
+The next example is a MT (multi-threaded) client connecting to PHP FPM. You will make 100 simultaneous calls to PHP FPM server. The code that does this is very similar to the simple example, with the exception that the "url_payload" is dynamically constructed, so that you can display input from "0" through "99".
+
+In the "main()" function, you will create 100 threads and call "call_server()" function that many times in parallel, then wait for all of them to finish. The result of each thread (i.e. if a call to the server was successful) is passed to "main()" as a return value of "call_server()".
+
+Create client C file:
+
+.RS 4
+.EX
+
+vi php_api_mt.c
+
+.EE
+.RE
+
+Copy the following:
+
+.RS 4
+.EX
+
+\[char35]include "pthread.h"
+\[char35]include "assert.h"
+\[char35]include "vfcgi.h"
+\[char35]define REQ_LEN 200
+\[char35]define MT_RUNS 100
+
+void *call_server (void *inp)
+{
+    // Request type vv_fc - create a request variable and zero it out
+    vv_fc req = {0};
+
+    req.fcgi_server = "/run/php/php8.1-fpm.sock"; // Unix socket
+    req.req_method = "GET"; // GET HTTP method
+    req.app_path = "/"; // application path
+    req.req = "/example.php"; // request name
+
+    char *env[3];
+    env[0]="SCRIPT_FILENAME";
+    env[1]="/var/www/html/example.php";
+    env[2]=NULL;
+    req.env = env;
+
+    req.url_payload = (char*)malloc (REQ_LEN); assert(req.url_payload);
+    snprintf (req.url_payload, REQ_LEN, "par=%ld", (off_t)inp);
+
+    int res = vv_fc_request (&req);
+
+    // Check return status, and if there's an error, display error code and the
+    // corresponding error message. Otherwise, print out server response.
+    if (res != VV_OKAY) {
+        fprintf (stderr, "Request failed [%d] [%s]\en", res, vv_fc_error(&req));
+    }
+    else {
+        printf ( "%s", vv_fc_data(&req));
+    }
+
+    // Free up resources so there are no memory leaks
+    vv_fc_delete(&req);
+    return (void*)(off_t)res;
+}
+
+int main ()
+{
+    // Make a request
+    pthread_t thread_id[MT_RUNS+1];
+    int i;
+    for (i = 0; i < MT_RUNS; i++){
+        pthread_create(&(thread_id[i]), NULL, call_server, (void*)(off_t)i);
+    }
+    int bad = 0;
+    void *thread_res[MT_RUNS+1];
+    for (i = 0; i < MT_RUNS; i++){
+        pthread_join(thread_id[i], &(thread_res[i]));
+        int r = (int)(off_t)(thread_res[i]);
+        if (r != VV_OKAY) bad++;
+    }
+    if (bad!=0) {
+        fprintf (stderr, "Total [%d] bad\en", bad);
+        return -1;
+    } else {
+        printf ("All okay return value\en");
+        return 0;
+    }
+}
+
+.EE
+.RE
+
+To build the client, execute:
+
+.RS 4
+.EX
+
+gcc -o php_api_mt php_api_mt.c $(vv -i) -lpthread
+
+.EE
+.RE
+
+Run it:
+
+.RS 4
+.EX
+
+\[char46]/php_api_mt
+
+.EE
+.RE
+
+The result is, as expected (note that since clients work truly in parallel, the numbers are somewhat randomly dispersed):
+
+.RS 4
+.EX
+
+Content-type: text/html; charset=UTF-8
+
+Input is 0
+Content-type: text/html; charset=UTF-8
+
+Input is 3
+Content-type: text/html; charset=UTF-8
+
+Input is 5
+Content-type: text/html; charset=UTF-8
+
+Input is 4
+Content-type: text/html; charset=UTF-8
+
+Input is 1
+Content-type: text/html; charset=UTF-8
+
+Input is 2
+Content-type: text/html; charset=UTF-8
+
+Input is 6
+Content-type: text/html; charset=UTF-8
+
+\[char46]..
+
+Input is 93
+Content-type: text/html; charset=UTF-8
+
+Input is 80
+Content-type: text/html; charset=UTF-8
+
+Input is 95
+Content-type: text/html; charset=UTF-8
+
+Input is 97
+Content-type: text/html; charset=UTF-8
+
+Input is 99
+Content-type: text/html; charset=UTF-8
+
+Input is 98
+Content-type: text/html; charset=UTF-8
+
+Input is 96
+Content-type: text/html; charset=UTF-8
+
+Input is 94
+All okay return value
+
+.EE
+.RE
+
+
+.LP
+.B SETUP A VELY SERVER
+.LP
+
+In order to run a client example with a Vely server, you need to setup and run a server first. First, create Vely application named "example":
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) example
+
+.EE
+.RE
+
+To see highlighting for Vely code in vim, run this just one time:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+Then create source Vely file:
+
+.RS 4
+.EX
+
+vi echo.vely
+
+.EE
+.RE
+
+and copy this:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void echo() {
+    out-header default
+    input-param par
+    @Input is <<p-out par>>
+}
+
+.EE
+.RE
+
+Build the application:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+And start a server, in this case with 5 worker processes:
+
+.RS 4
+.EX
+
+vf -w 5 example
+
+.EE
+.RE
+
+Once you've done this, you can proceed to build a client and call the server.
+
+.LP
+.B SIMPLE EXAMPLE WITH VELY
+.LP
+
+Create a file:
+
+.RS 4
+.EX
+
+vi api.c
+
+.EE
+.RE
+
+and copy this:
+
+.RS 4
+.EX
+
+\[char35]include "vfcgi.h"
+
+void main ()
+{
+    // Request type vv_fc - create a request variable and zero it out
+    vv_fc req = {0};
+
+    req.fcgi_server = "/var/lib/vv/example/sock/sock"; // Unix socket
+    req.req_method = "GET"; // GET HTTP method
+    req.app_path = "/example"; // application path
+    req.req = "/echo"; // request name
+    req.url_payload = "par=99";
+
+    // Make a request
+    int res = vv_fc_request (&req);
+
+    // Check return status, and if there's an error, display error code and the
+    // corresponding error message. Otherwise, print out server response.
+    if (res != VV_OKAY) printf ("Request failed [%d] [%s]\en", res, vv_fc_error(&req));
+    else printf ("%s", vv_fc_data(&req));
+
+    // Free up resources so there are no memory leaks
+    vv_fc_delete(&req);
+}
+
+.EE
+.RE
+
+The example is very similar to PHP FPM one. For Vely, see \fBrequest_URL\fP for more on application path (i.e. "app_path"), request path (i.e. "req"), and URL payload (i.e. "url_payload"); Vely's nomenclature is more geared toward how's data used in a logical sense, but the underlying usage (including environment variables) is exactly the same.
+To build the client, execute:
+
+.RS 4
+.EX
+
+gcc -o api api.c $(vv -i)
+
+.EE
+.RE
+
+Run it:
+
+.RS 4
+.EX
+
+\[char46]/api
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+Content-type: text/html;charset=utf-8
+Cache-Control: max-age=0, no-cache
+Pragma: no-cache
+Status: 200 OK
+
+Input is 99
+
+.EE
+.RE
+
+This is the expected result.
+
+.LP
+.B MULTI-THREADED EXAMPLE WITH VELY
+.LP
+
+The next example is a MT (multi-threaded) client. You will make 100 simultaneous calls to a Vely server. The code that does this is very similar to the simple example, with one addition: you'll pass along an extra environment variable, in this case "VV_SILENT_HEADER" with value "yes", which will suppress HTTP header output from the server. Otherwise, the "url_payload" is dynamically constructed, so that you can display input "0" through "99".
+
+In the "main()" function, you will create 100 threads and call "call_server()" function that many times in parallel, then wait for all of them to finish. The result of each thread (i.e. if a call to the server was successful) is passed to "main()" as a return value of "call_server()".
+
+Create client C file:
+
+.RS 4
+.EX
+
+vi api_mt.c
+
+.EE
+.RE
+
+Copy the following:
+
+.RS 4
+.EX
+
+\[char35]include "pthread.h"
+\[char35]include "assert.h"
+\[char35]include "vfcgi.h"
+\[char35]define REQ_LEN 200
+\[char35]define MT_RUNS 100
+
+void *call_server (void *inp)
+{
+    // Request type vv_fc - create a request variable and zero it out
+    vv_fc req = {0};
+
+    req.fcgi_server = "/var/lib/vv/example/sock/sock"; // Unix socket
+    req.req_method = "GET"; // GET HTTP method
+    req.app_path = "/example"; // application path
+    req.req = "/echo"; // request name
+    char *env[3];
+    env[0]="VV_SILENT_HEADER";
+    env[1]="yes";
+    env[2]=NULL;
+    req.env = env;
+
+    req.url_payload = (char*)malloc (REQ_LEN); assert(req.url_payload);
+    snprintf (req.url_payload, REQ_LEN, "par=%ld", (off_t)inp);
+
+    int res = vv_fc_request (&req);
+
+    // Check return status, and if there's an error, display error code and the
+    // corresponding error message. Otherwise, print out server response.
+    if (res != VV_OKAY) {
+        fprintf (stderr, "Request failed [%d] [%s]\en", res, vv_fc_error(&req));
+    }
+    else {
+        printf ( "%s", vv_fc_data(&req));
+    }
+
+    // Free up resources so there are no memory leaks
+    vv_fc_delete(&req);
+    return (void*)(off_t)res;
+}
+
+int main ()
+{
+    // Make a request
+    pthread_t thread_id[MT_RUNS+1];
+    int i;
+    for (i = 0; i < MT_RUNS; i++){
+        pthread_create(&(thread_id[i]), NULL, call_server, (void*)(off_t)i);
+    }
+    int bad = 0;
+    void *thread_res[MT_RUNS+1];
+    for (i = 0; i < MT_RUNS; i++){
+        pthread_join(thread_id[i], &(thread_res[i]));
+        int r = (int)(off_t)(thread_res[i]);
+        if (r != VV_OKAY) bad++;
+    }
+    if (bad!=0) {
+        fprintf (stderr, "Total [%d] bad\en", bad);
+        return -1;
+    } else {
+        printf ("All okay return value\en");
+        return 0;
+    }
+}
+
+.EE
+.RE
+
+To build the client, execute:
+
+.RS 4
+.EX
+
+gcc -o api_mt api_mt.c $(vv -i) -lpthread
+
+.EE
+.RE
+
+Run it:
+
+.RS 4
+.EX
+
+\[char46]/api_mt
+
+.EE
+.RE
+
+The result is, as expected (the input numbers are somewhat randomly dispersed since all clients work truly in parallel):
+
+.RS 4
+.EX
+
+Input is 0
+Input is 3
+Input is 4
+Input is 6
+Input is 5
+Input is 2
+Input is 1
+Input is 7
+Input is 8
+\[char46]..
+Input is 71
+Input is 74
+Input is 75
+Input is 78
+Input is 77
+Input is 70
+Input is 65
+Input is 76
+Input is 67
+All okay return value
+
+.EE
+.RE
+
+
+
+.LP
+.B CONCLUSION
+.LP
+
+You have learned how to connect to any FastCGI server (in this case PHP FPM and Vely) from a program with C linkage (which can be used with any programming language that has it), using \fBFastCGI_API\fP. You have also learned how to make many parallel API calls using Linux threads. You can use this knowledge to call server code from any other application and receive results. 
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample_client_API\fP  
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_docker\fP  
+\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

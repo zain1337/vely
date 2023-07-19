@@ -20,7 +20,9 @@ a server (or "daemon"), which means as any number of processes staying resident 
 as a program that runs from a command line, a script etc. (see \fBcommand_line\fP).
 .RE
 
-A program consists of a number of request handlers, ranging from one to many. The source code for a program is contained in a flat directory. Each request handler is represented by a namesake .vely file. For example, a request "customer" is always entirely contained in file "customer.vely". Typically, requests handled in a program are connected in some way that makes it advantageous to group them together, be it logically, via common dependencies in code, because of reliance on common infrastructure (such as a database for instance), based on performance etc. 
+The source code for a program is contained in a flat directory. Each request handler is represented by a namesake .vely file. For example, a request "customer" is always entirely contained in file "customer.vely". Typically, requests handled in a program are connected in some way that makes it advantageous to group them together, be it logically, via common dependencies in code, because of reliance on common infrastructure (such as a database for instance), based on performance etc. 
+
+A program contains all request handlers in it, and so can handle any request. Thus, when a program runs as a server, any of its processes can handle any request that a program serves. See \fBvely_dispatch_request\fP on how a request is served within a program.
 
 .LP
 .B APPLICATION

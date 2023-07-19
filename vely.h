@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
 // Copyright 2017 DaSoftver LLC.
+// Licensed under Eclipse Public License - v 2.0. See LICENSE file.
+// On the web https://vely.dev/ - this file is part of Vely framework.
 
 // 
 // Include file for VELY run time development and apps
@@ -16,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.1.3"
+#define VV_VERSION "17.1.7"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME

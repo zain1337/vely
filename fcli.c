@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
 // Copyright 2017 DaSoftver LLC.
+// Licensed under Eclipse Public License - v 2.0. See LICENSE file.
+// On the web https://vely.dev/ - this file is part of Vely framework.
 
 // FastCGI client library. It's part of Vely for the corresponding call* statements
 // and it is also a standalone library API for writing FastCGI clients in C.
@@ -29,11 +31,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/time.h>
-// FastCGI includes
-#include "fcgi_config.h"
-#include "fcgiapp.h"
-#include "fastcgi.h"
-#include "fcgios.h"
 // Public API prototypes
 #include "vfcgi.h"
 

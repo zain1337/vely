@@ -230,6 +230,22 @@ What's in it: Docker, MariaDB, web browser, Apache.
 
 .RS 4
 \[bu]    
+\fBClient API\fP :
+.RS 4
+\[bu]    
+Connect to FastCGI servers such as Vely or PHP FPM.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: FastCGI, client, server, API.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
 \fBEncryption and decryption\fP :
 .RS 4
 \[bu]    
@@ -264,6 +280,7 @@ What's in it: Hello World, command line, application server.
  
 .B - Examples
 
+\fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  

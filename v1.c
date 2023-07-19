@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: EPL-2.0
 // If format is NULL, flush the output.
-// Copyright 2017 DaSoftver LLC. 
+// Copyright 2017 DaSoftver LLC.
+// Licensed under Eclipse Public License - v 2.0. See LICENSE file.
+// On the web https://vely.dev/ - this file is part of Vely framework. 
 
 // 
 // Main VELY processor. Takes input and output parameters from the command line

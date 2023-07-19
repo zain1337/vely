@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2017 DaSoftver LLC. 
+// Copyright 2017 DaSoftver LLC.
+// Licensed under Eclipse Public License - v 2.0. See LICENSE file.
+// On the web https://vely.dev/ - this file is part of Vely framework. 
 
 //
 // Library used both by VELY utility and VELY run-time 
