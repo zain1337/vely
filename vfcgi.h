@@ -19,7 +19,7 @@
 
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.1.7"
+#define VV_VERSION "17.1.11"
 
 // Client error codes
 #define VV_OKAY 0 // success

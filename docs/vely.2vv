@@ -54,7 +54,7 @@ C is the \fBfastest and most energy-efficient\fP programming language, which is 
 .B QUALITY
 .LP
 
-Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1763 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1765 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
 
 .LP
 .B REPORT BUGS, REQUEST FEATURES, CONTACT

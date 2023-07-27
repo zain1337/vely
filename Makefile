@@ -120,6 +120,7 @@ CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -
 LDFLAGS=-Wl,-rpath=$(DESTDIR)$(V_LIB) -L$(DESTDIR)$(V_LIB) $(OPTIM_LINK) $(ASAN)
 
 #Libraries and executables must be 0755 or the packager (RPM) will say they are not satisfied
+.PHONY: install
 install:
 	install -m 0755 -d $(DESTDIR)/var/lib/vv/bld
 	install -m 0755 -d $(DESTDIR)$(V_INC)
@@ -185,14 +186,27 @@ install:
 #it does NOT run during rpm installation, there is post scriptlet that calls vely.sel to do that (VV_NO_SEL)
 	if [[ "$(SYSTEMTYPE)" == "fedora" && "$(SYSTEMID)" != "opensuse" ]]; then install -D -m 0644 vv.te -t $(DESTDIR)$(V_LIB)/selinux ; install -D -m 0644 vely.te -t $(DESTDIR)$(V_LIB)/selinux ; install -D -m 0644 vv.fc -t $(DESTDIR)$(V_LIB)/selinux ; install -D -m 0755 vely.sel -t $(DESTDIR)$(V_LIB)/selinux ; if [ "$(VV_NO_SEL)" != "1" ]; then ./vely.sel "$(DESTDIR)$(V_LIB)/selinux" "$(DESTDIR)$(V_VV_DATADIR)" "$(DESTDIR)$(V_BIN)"; fi ; fi
 
+.PHONY: uninstall
+uninstall:
+	@if [ ! -f "$(DESTDIR)$(V_LIB)/sys" ]; then echo "Vely not installed, cannot uninstall."; exit -1; else echo "Uninstalling Vely..."; fi
+	. $(DESTDIR)$(V_LIB)/sys
+	rm -rf $(DESTDIR)$(V_INC)
+	rm -f $(DESTDIR)$(V_BIN)/vv
+	rm -f $(DESTDIR)$(V_BIN)/vf
+	rm -f $(DESTDIR)$(V_MAN)/*.2vv
+	rm -rf $(DESTDIR)$(V_VV_DOCS)
+	rm -rf $(DESTDIR)$(V_LIB)
 
+.PHONY: binary
 binary:build
 	@;
 
+.PHONY: build
 build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
 	@echo "Building version $(BUILDVER).$(BUILDREL)"
 	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o $(LDFLAGS) 
 
+.PHONY: clean
 clean:
 	touch *.c
 	touch *.h

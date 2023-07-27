@@ -1,7 +1,5 @@
-Vely release notes for 17.1.7
+Vely release notes for 17.1.11
 
-- Notes: remove unneeded headers for FastCGI API and clarify license when used standalone.
-- Release: remove unneded fcgi lib headers when using standalone FastCGI API (without Vely installation), since it does not use fcgi library at all.
-- Release: updated license info to clarify Vely framework; license is unchanged.
-- Release: updated client API example and FastCGI API documentation on how to use without installing Vely.
+- Notes: added uninstall target to Makefile. This allows to uninstall Vely when installed from source. If you need to upgrade or otherwise manage Vely installation, you can install Vely from pre-built apt/dnf/zypper/pacman packages from the Install page.
+- Release: added uninstall to Makefile for source code install; added documentation for it.
 

@@ -21,6 +21,8 @@ Here you will learn how to connect to any FastCGI server (in this case PHP FPM a
 
 This example uses API that comes with \fBVely\fP framework (at least 17.1.3 or later should be installed to run these examples). The examples are for Ubuntu 22, so you can install \fBVely with apt packager\fP or \fBfrom source\fP. You can also \fBinstall\fP it for other Linux distros.
 
+Alternatively, if you are using API to connect to a non-Vely server (i.e. PHP or some other), you can do so without installing Vely - see "Using API without Vely" in \fBFastCGI_API\fP; in this case you cannot run the Vely server example below. Note that in this case you also must install gcc beforehand.
+
 .LP
 .B WHAT WILL YOU DO HERE
 .LP
