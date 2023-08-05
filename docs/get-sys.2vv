@@ -80,6 +80,7 @@ get-sys os-name to define os_name
  
 .B - System information
 
-\fBget-sys\fP    
+\fBget-sys\fP  
+\fBOS_conditional_compilation\fP    
 See all 
 \fBdocumentation\fP

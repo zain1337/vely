@@ -1,0 +1,102 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+OS_conditional_compilation \- Vely documentation (system_information)
+.SH DESCRIPTION
+If you need to compile code based on which distribution of Operating System you are running, you can use predefined "VV_OSNAME_ID" constant, with the following values:
+
+.RS 4
+\[bu]    
+0 for Archlinux
+
+.RE
+
+.RS 4
+\[bu]    
+1 for Ubuntu 22
+
+.RE
+
+.RS 4
+\[bu]    
+2 for Ubuntu 20
+
+.RE
+
+.RS 4
+\[bu]    
+3 for Ubuntu 18
+
+.RE
+
+.RS 4
+\[bu]    
+4 for Debian 10
+
+.RE
+
+.RS 4
+\[bu]    
+5 for Debian 11
+
+.RE
+
+.RS 4
+\[bu]    
+6 for Fedora 37
+
+.RE
+
+.RS 4
+\[bu]    
+7 for Fedora 38
+
+.RE
+
+.RS 4
+\[bu]    
+8 for Redhat 8
+
+.RE
+
+.RS 4
+\[bu]    
+9 for Redhat 9
+
+.RE
+
+.RS 4
+\[bu]    
+10 for Opensuse
+
+.RE
+
+.RS 4
+\[bu]    
+11 for Mageia 8
+.RE
+
+
+.SH EXAMPLES
+Compile guarded code if running Ubuntu 22 only:
+
+.RS 4
+.EX
+
+// Compile only for Ubuntu 22
+\[char35]if VV_OSNAME_ID==1
+    ...
+    @This is Ubuntu 22 only.
+    ...
+\[char35]endif
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - System information
+
+\fBget-sys\fP  
+\fBOS_conditional_compilation\fP    
+See all 
+\fBdocumentation\fP

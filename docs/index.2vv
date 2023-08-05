@@ -3,36 +3,84 @@
 index \- Vely documentation ()
 .SH DESCRIPTION
 Vely official web page
+Many back-end languages and frameworks are running as a virtual machine, interpreter or some other form of abstraction, or indirect execution. These layers of abstraction don't have the best performance, and are energy-inefficient, costing more electricity, water and computing equipment that relies on rare metals, ultimately affecting the environment in \fBa negative way\fP. An alternative is C - \fBthe most efficient and fastest\fP programming language. 
 
-.B - Latest
+Vely is a \fBfree open source\fP framework for C programming language that makes developing in C rapid, simple, and safer - read \fBabout why C and why Vely\fP. It is well suited for web applications, plain command-line programs, cloud applications, middleware, database applications, IOT or anything else. Read about \fBVely architecture\fP. Create and manage application servers as quickly as command-line programs. Take advantage of distributed computing in just a \fBsingle line\fP of code. 
 
-Jul 17: \fBClient API example\fP added: learn how to connect to any FastCGI server, including PHP FPM and Vely .
+Vely statements are precompiled into C code and then compiled and linked with your own C code. This produces a 100% native application that's fast and small, without interpreters, virtual machines, or byte code shemes. You don't have to be a C expert because Vely writes C code for you. Read \fBhow Vely works\fP and see \fBexamples\fP. Vely supports databases, files, network, strings, encryption, JSON, REST, distributed computing, time, hash, FIFO, program execution, regex, memory management, SSL/TSL, encoding/decoding, cookies, upload/download, URL parameter parsing, error handling, web servers... Read about \fBapplication architecture\fP.
 
-.B - What is Vely?
+Vely is a great choice if you need better performance, and want simpler and safer coding. The code is functional & declarative and easy to read & write. Vely uses well-known standard libraries like cURL, OpenSSL, crypto, FastCGI, PCRE2, native database libraries from MariaDB, PostgreSQL, SQLite, for compliance, performance and reliability. Use simple \fBAPI\fP to connect to a Vely application server from elsewhere, and use existing libraries in Vely applications.
 
-Vely is a \fBfree open source\fP general-purpose framework for rapid development of high-performance software, especially well suited for web applications. Read \fBabout Vely\fP.
 
-.B - How Vely works
 
-Vely statements are precompiled into C code. This produces a 100% native application that's fast and small, without interpreters or byte code shemes. You don't have to be a C expert because Vely writes C code for you. Read \fBhow Vely works\fP.
 
-.B - Purpose
 
-Develop anything back-end: web applications, plain command-line programs, cloud applications, middleware, database applications, IOT or anything else. Read about \fBVely architecture\fP.
 
-Create and manage application servers as quickly as command-line programs. Take advantage of distributed computing in just a \fBsingle line\fP of code. 
 
-.B - Why Vely?
 
-High performance with ergonomic & safer code that's functional & declarative and easy to read & write. 
 
-Vely uses well-known standard libraries like cURL, OpenSSL, crypto, FastCGI, native database libraries from MariaDB, PostgreSQL, SQLite, for compliance, performance and reliability.
 
-.B - Features
 
-Vely supports databases, files, network, strings, encryption, JSON, REST, distributed computing, time, hash, FIFO, program execution, regex, memory management, SSL/TSL, encoding/decoding, cookies, upload/download, URL parameter parsing, error handling, web servers... Read about \fBapplication architecture\fP
 
-.B - Works with existing applications
 
-Use simple \fBAPI\fP to connect to a Vely application server from elsewhere. Use existing libraries in Vely applications.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2017 DaSoftver LLC. 
+#Copyright 2019 DaSoftver LLC. 
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -79,6 +79,7 @@ OPTIONS:
             --cflag=<c flags> 
             --trace 
             --c-lines 
+            --posix-regex
             --debug 
             --maxupload=<max upload size>
             --path=\"/some/path\"
@@ -103,7 +104,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
+_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,posix-regex,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -160,6 +161,11 @@ _DO_QUICK=0
             export VV_C_MAXERRORS="$2"
             _DEVOPT=1
             shift 2
+            ;;
+        --posix-regex  )
+            export VV_C_POSIXREGEX="1"
+            _DEVOPT=1
+            shift
             ;;
         --cflag  )
             export VV_C_CFLAGS="$2"
@@ -288,6 +294,9 @@ _DO_QUICK=0
             exit -1
         esac
     done
+
+    #check if old pcre2 lib, use glibc regex
+    if [ "$VV_PCRE2_NEW" == "0" ]; then export VV_C_POSIXREGEX="1"; fi
 
 #handle client fastcgi app building
     if [[ "$_DO_QUICK" == "1" && "$_DO_CLIENT" == "1" ]]; then
@@ -552,6 +561,7 @@ VV_C_MAXUPLOAD='$VV_C_MAXUPLOAD'
 VV_C_RESTPATH='$VV_C_RESTPATH'
 VV_C_CFLAGS='$VV_C_CFLAGS'
 VV_C_LFLAGS='$VV_C_LFLAGS'
+VV_C_POSIXREGEX='$VV_C_POSIXREGEX'
 VV_C_MODULES='$VV_C_MODULES'
 VV_C_V1_MOD='$(stat -c "%Y" $VV_LIBRARY_PATH/v1)'
 VV_C_VV_MOD='$(stat -c "%Y" $(which vv))'
@@ -658,9 +668,11 @@ function read_modules() {
 #
 
 #first look for all possible statements
-    grep -h -o "^[[:space:]]*\(call-web \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \|new-server \)" *.vely>$VV_BLD/.findmod || true
+    grep -h -o "^[[:space:]]*\(call-web \|match-regex \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \|new-server \)" *.vely>$VV_BLD/.findmod || true
 #then from occurrances, look for curl
     if [[ $(grep -m 1 -o "^[[:space:]]*call-web " $VV_BLD/.findmod) != "" ]]; then _ISMOD_CURL="1"; fi
+#then from occurrances, look for pcre2
+    if [[ $(grep -m 1 -o "^[[:space:]]*match-regex " $VV_BLD/.findmod) != "" ]]; then _ISMOD_PCRE2="1"; fi
 #then from occurrances, look for fcgi
     if [[ $(grep -m 1 -o "^[[:space:]]*new-server " $VV_BLD/.findmod) != "" ]]; then _ISMOD_FCGI="1"; fi
 #then from occurrances, look for crypto
@@ -725,6 +737,25 @@ function read_modules() {
         VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_fcgi.o"
         VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES curl"
     fi
+#pcre2 module
+    if [ "$_ISMOD_PCRE2" == "1" ]; then
+        #this is if not using plain posix regex, otherwise nothing to do
+        if [ "$VV_C_POSIXREGEX" != "1" ]; then
+            VV_PCRE2_USED="-DVV_PCRE2_INCLUDE"
+            VV_MODULES="$VV_MODULES $VV_PCRE2_LIBS"
+            VV_MOD_LIBS="$VV_MOD_LIBS -lvelypcre2 -ldl"
+            VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES pcre2"
+        else
+            #pcre is not used, but we still use glibc regex, so include regex.h and compile pcre2.c (which does both
+            #glibc and pcre2)
+            VV_PCRE2_USED="-DVV_PCRE2_INCLUDE"
+            VV_MOD_LIBS="$VV_MOD_LIBS -lvelypcre2glibc -ldl"
+            VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES pcre2"
+        fi
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_pcre2.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES pcre2"
+    fi
 #curl module
     if [ "$_ISMOD_CURL" == "1" ]; then
         VV_CURL_USED="-DVV_CURL_INCLUDE"
@@ -762,6 +793,7 @@ function read_modules() {
     export VV_MARIADB_USED
     export VV_FCGI_USED
     export VV_CURL_USED
+    export VV_PCRE2_USED
     export VV_CRYPTO_USED
 }
 
@@ -784,7 +816,7 @@ function gen_src() {
     _HDRF=$(ls *.h 2>/dev/null) || true
 
     echo "#SPDX-License-Identifier: EPL-2.0" >> $VV_BLD/$_T.new
-    echo "#Copyright 2017 DaSoftver LLC." >> $VV_BLD/$_T.new
+    echo "#Copyright 2019 DaSoftver LLC." >> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
     echo "#" >> $VV_BLD/$_T.new
     echo "#Lists source files in your application. This is an auto-generated file." >> $VV_BLD/$_T.new
@@ -813,7 +845,7 @@ function gen_src() {
     _SRCF=$(ls *.vely 2>/dev/null) || true
 
     echo "// SPDX-License-Identifier: EPL-2.0"  >> $VV_BLD/$_T.new
-    echo "// Copyright 2017 DaSoftver LLC.">> $VV_BLD/$_T.new
+    echo "// Copyright 2019 DaSoftver LLC.">> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
     echo "// This is an auto-generated file for a VELY application" >> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
@@ -847,7 +879,7 @@ function gen_src() {
     _NUMF=$(echo $_SRCF | wc -w)
 
     echo "// SPDX-License-Identifier: EPL-2.0" >>$VV_BLD/$_T.new
-    echo "// Copyright 2017 DaSoftver LLC." >>$VV_BLD/$_T.new
+    echo "// Copyright 2019 DaSoftver LLC." >>$VV_BLD/$_T.new
     echo >>$VV_BLD/$_T.new
     echo "// VELY auto-generated request dispatcher" >>$VV_BLD/$_T.new
     echo >>$VV_BLD/$_T.new
@@ -996,7 +1028,7 @@ function vely_version() {
 #in that case, change this manually to the year from the official distribution!!!! That is required under most copyright laws, in which the second year should
 #be the year of the last change by the author.
     echo "Vely $VV_VERSION$_BETA on $VV_PLATFORM_ID ($VV_PLATFORM_VERSION)"
-    echo "Copyright (c) 2017-$(date '+%Y') Dasoftver LLC"
+    echo "Copyright (c) 2019-$(date '+%Y') Dasoftver LLC"
 
 }
 
@@ -1109,5 +1141,6 @@ function vely_clean() {
 
 
 main "$@"
+
 
 

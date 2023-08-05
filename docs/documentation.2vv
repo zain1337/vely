@@ -122,13 +122,14 @@ ldx
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
-\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
+\fBexample_encryption\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
 \fBexamples\fP  
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
@@ -358,7 +359,8 @@ ldx
 ldx
 .B - System information
 
-\fBget-sys\fP   
+\fBget-sys\fP  
+\fBOS_conditional_compilation\fP   
 .RE
 
 

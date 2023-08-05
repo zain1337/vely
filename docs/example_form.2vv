@@ -363,8 +363,6 @@ This is a simple HTML web form where first and last name is collected and sent t
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 
 \[char35]include "vely.h" // must always be here
 
@@ -405,8 +403,6 @@ void form_display ()
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 
 \[char35]include "vely.h" // must always be here
 
@@ -446,8 +442,6 @@ This shows typical web output from querying a database. SELECT statement in \fBr
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 
 \[char35]include "vely.h" 
 
@@ -489,13 +483,14 @@ void display_data ()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
-\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
+\fBexample_encryption\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
 \fBexamples\fP  
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  

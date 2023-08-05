@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2017 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.1.11"
+#define VV_VERSION "17.2.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -77,14 +77,28 @@
 // param.h for min/max without side effects
 #include <sys/param.h>
 #include <stdint.h>
-// Regex
-#include <regex.h>
 // Fatal error loggin
 #include <syslog.h>
 // File ops
 #include <libgen.h>
 #include <sys/file.h>
 
+
+// PCRE2 calls
+#if VV_APPMAKE==1 
+#   if defined(VV_PCRE2_INCLUDE)
+#       define VV_INC_PCRE2
+#   endif
+#else
+#   define VV_INC_PCRE2
+#endif
+#ifdef VV_INC_PCRE2
+#   ifdef VV_C_POSIXREGEX
+#       include "regex.h"
+#   else
+#       include "pcre2posix.h"
+#   endif
+#endif
 
 // Crypto calls (encrypt, hash)
 #if VV_APPMAKE==1 
@@ -768,7 +782,10 @@ void oops(vely_input_req *iu, char *err);
 num vely_total_so(vely_so_info **sos);
 FILE *vely_fopen (char *file_name, char *mode);
 int vely_fclose (FILE *f);
-num vely_regex(char *look_here, char *find_this, char *replace, char **res, num case_insensitive, num single_match, regex_t **cached);
+#ifdef VV_INC_PCRE2
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached);
+void vely_regfree(regex_t *preg);
+#endif 
 void vely_set_env(char *arg);
 char * vely_os_name();
 char * vely_os_version();
@@ -931,6 +948,7 @@ extern bool vely_mem_os;
 #endif
 
 #endif
+
 
 
 

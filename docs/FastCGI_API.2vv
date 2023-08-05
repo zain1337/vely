@@ -483,6 +483,57 @@ The FastCGI client is MT-safe, meaning you can use it both in single-threaded an
 
 Do not use this API directly with Vely - use \fBcall-server\fP instead which is made specifically for use in .vely files. Otherwise, you can use this API with any program.
 
+.LP
+.B USING API WITHOUT VELY
+.LP
+
+You can use FastCGI API without installing Vely. To do that:
+
+.RS 4
+\[bu]    
+get the Vely \fBsource code\fP,
+
+.RE
+
+.RS 4
+\[bu]    
+copy source files "fcli.c" and "vfcgi.h" to where you need to build your program,
+
+.RE
+
+.RS 4
+\[bu]    
+add the content of Vely's "LICENSE" file to your own in order to include the license for these source files,
+
+.RE
+
+.RS 4
+\[bu]    
+then replace "$(vv -i)" in the build line with "fcli.c" to include these files, for instance instead of:
+
+.RS 4
+.EX
+
+gcc -o cli cli.c -g $(vv -i)
+
+.EE
+.RE
+
+you would write:
+
+.RS 4
+.EX
+
+gcc -o cli cli.c -g fcli.c
+
+.EE
+.RE
+
+
+.RE
+
+Note that you do not need to install any other dependencies, as FastCGI API is entirely contained in the aforementioned source files.
+
 .SH EXAMPLES
 
 .LP

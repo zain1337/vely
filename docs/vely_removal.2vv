@@ -2,6 +2,11 @@
 .SH NAME
 vely_removal \- Vely documentation (general)
 .SH DESCRIPTION
+
+.LP
+.B WHEN INSTALLED WITH A PACKAGER
+.LP
+
 To remove Vely, use the standard packager you used to install it, such as dnf, apt or zypper, typically with "remove" option, for example:
 
 .RS 4
@@ -18,6 +23,26 @@ sudo pacman -R vely
 
 .EE
 .RE
+
+
+.LP
+.B WHEN INSTALLED FROM SOURCE
+.LP
+
+Run from command line:
+
+.RS 4
+.EX
+
+sudo make uninstall
+
+.EE
+.RE
+
+
+.LP
+.B APPLICATION FILES
+.LP
 
 Note that /var/lib/vv directory is not removed, as it generally contains application files. You may move such files or delete them as you see fit.
 .SH SEE ALSO

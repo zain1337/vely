@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: EPL-2.0
 // If format is NULL, flush the output.
-// Copyright 2017 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework. 
 
@@ -202,6 +202,7 @@
 #define VV_KEYBYTESWRITTEN "bytes-written "
 #define VV_KEYNOTRIM "notrim"
 #define VV_KEYCASEINSENSITIVE "case-insensitive"
+#define VV_KEYUTF8 "utf8"
 #define VV_KEYTEMPORARY "temporary"
 #define VV_KEYSINGLEMATCH "single-match"
 #define VV_KEYENVIRONMENT "environment "
@@ -4262,6 +4263,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *result = find_keyword (mtext, VV_KEYRESULT, 1);
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
                         char *case_insensitive = find_keyword (mtext, VV_KEYCASEINSENSITIVE, 1);
+                        char *utf8 = find_keyword (mtext, VV_KEYUTF8, 1);
                         char *single_match = find_keyword (mtext, VV_KEYSINGLEMATCH, 1);
 
                         //
@@ -4275,9 +4277,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&result, "match-regex", VV_KEYRESULT, 0, 1);
                         carve_statement (&status, "match-regex", VV_KEYSTATUS, 0, 1);
                         carve_statement (&case_insensitive, "match-regex", VV_KEYCASEINSENSITIVE, 0, 2);
+                        carve_statement (&utf8, "match-regex", VV_KEYUTF8, 0, 2);
                         carve_statement (&single_match, "match-regex", VV_KEYSINGLEMATCH, 0, 2);
 
                         char *case_insensitivec = opt_clause(case_insensitive, "1", "0");
+                        char *utf8c = opt_clause(utf8, "1", "0");
                         char *single_matchc = opt_clause(single_match, "1", "0");
 
                         if (result != NULL && replace_with == NULL)
@@ -4310,13 +4314,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             // if clear-cache is true, then first check if there's existing regex context, if so, clear it
                             // then set context to NULL so it's created again.
-                            oprintf ("if ((%s)) {if (%s != NULL) regfree(%s); %s = NULL;}\n", ccache, regname, regname, regname);
+                            oprintf ("if ((%s)) {if (%s != NULL) vely_regfree(%s); %s = NULL;}\n", ccache, regname, regname, regname);
                         }
 
-                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
-                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
                         vely_free(case_insensitivec);
                         vely_free(single_matchc);
+                        vely_free(utf8c);
 
                         regex_cache++;
                         continue;

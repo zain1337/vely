@@ -137,6 +137,20 @@ read-server srv data define rdata
 .EE
 .RE
 
+If you are connecting to a server via TCP (and not with a Unix socket like in the example above), the "location" clause in \fBnew-server\fP might be:
+
+.RS 4
+.EX
+
+new-server define srv location "192.168.0.28:2400" \\
+    method "GET" app-path "/app_name" request-path "/server" \\
+    url-payload "/op/add/key/2" 
+
+.EE
+.RE
+
+In this case, you are connecting to another server (running on IP "192.168.0.28") on port 2400. See \fBvf\fP on how to start a server that listens on a TCP port. You would likely use TCP connectivity only if a server you're connecting to is on a different computer.
+
 See also \fBnew-server\fP.
 .SH SEE ALSO
  

@@ -1,5 +1,6 @@
-Vely release notes for 17.1.11
+Vely release notes for 17.2.0
 
-- Notes: added uninstall target to Makefile. This allows to uninstall Vely when installed from source. If you need to upgrade or otherwise manage Vely installation, you can install Vely from pre-built apt/dnf/zypper/pacman packages from the Install page.
-- Release: added uninstall to Makefile for source code install; added documentation for it.
+- Notes: Added support for pcre2 regex search/replace in this release. By default pcre2 is used, and you can also use the posix regex (extended syntax expressions) with --posix-regex option in vv. Some older Linux distributions will still only use posix due to older pcre2 libraries that have name conflicts; however you can upgrade those and use pcre2, see match-regex.
+- Minor: added pcre2 regex in addition to the previous posix one; either one can be used. For example, now you can use lookbehinds and lookaheads, and it's generally faster. New regex also now supports UTF8 Unicode characters. New VV_C_POSIXREGEX constant allows for conditional use of either pcre2 or posix regex; see match-regex.
+- Minor: added VV_OSNAME_ID constant available in code to conditionally compile depending on Linux distribution/version.
 

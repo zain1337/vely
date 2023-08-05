@@ -107,6 +107,13 @@ Skip generating line information when compiling .vely files. By default line inf
 
 .RS 4
 \[bu]    
+--posix-regex
+Use ERE (Extended Regular Expression) POSIX regex library built into Linux instead of default PCRE2, see \fBmatch-regex\fP. While the two are largely compatibile, you can use either one depending on your needs.
+
+.RE
+
+.RS 4
+\[bu]    
 --plain-diag
 Do not use color-coded and more detailed Vely diagnostic output. While rare, you may need this option in cases when there may be a Vely or underlying compiler bug, if you need to parse this output in format prior to Vely 17.1, or for some other reason.
 .RE

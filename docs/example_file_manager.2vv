@@ -378,8 +378,6 @@ This code displays the page where application user always goes first. One thing 
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 \[char35]include "vely.h" // must always be here
 
 // Upload and list/download files
@@ -427,8 +425,6 @@ And finally, the message will be sent back to web client (such as a browser) tha
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 \[char35]include "vely.h" // must always be here
 
 // Upload the file
@@ -470,8 +466,6 @@ For files that have been saved, this code shows them in a list. Next to each fil
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 \[char35]include "vely.h" // must always be here
 
 // List files
@@ -515,7 +509,6 @@ When a link to download a file is clicked in the list of files, the following co
 .RS 4
 .EX
 
-// Copyright 2018 DaSoftver LLC.
 \[char35]include "vely.h" // must always be here
 
 // Download a file
@@ -568,8 +561,6 @@ Note that deletion is done as a transaction, only if both the record in table "f
 .RS 4
 .EX
 
-// SPDX-License-Identifier: EPL-2.0
-// Copyright 2018 DaSoftver LLC.
 \[char35]include "vely.h" // must always be here
 
 // Delete the file
@@ -625,13 +616,14 @@ void delete ()
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
-\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
+\fBexample_encryption\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
 \fBexamples\fP  
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  

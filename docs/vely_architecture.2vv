@@ -33,7 +33,9 @@ via reverse proxies (typically web servers like Apache or Nginx),
 \fBFastCGI_command_line_client\fP, to send a request and receive a reply from command line, suitable for scripting and testing.
 .RE
 
-Any number of such Vely FCGI processes can run, including a dynamic number determined by the request load (ranging from 0 resident processes to any maximum number specified). Each Vely FCGI process handles one request at a time, and any number of such processes work in parallel, which means code and libraries used do not have to be thread-safe. A Vely program can contain some or all application layers, including 
+Any number of such Vely FCGI processes can run, including a dynamic number determined by the request load (ranging from 0 resident processes to any maximum number specified). Each Vely FCGI process handles one request at a time, and any number of such processes work in parallel, which means code and libraries used do not have to be thread-safe. 
+(Image arch9.png not available in man page, see web page documentation)
+A Vely program can contain some or all application layers, including 
 
 .RS 4
 \[bu]    

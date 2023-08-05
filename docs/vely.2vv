@@ -12,7 +12,7 @@ Vely is a general-purpose framework for rapid development of high-performance an
 
 Vely is not object-oriented, rather it's declarative and functional. It's simple to design, write and maintain applications.
 
-Vely applications are 100% native, high-performance and low-footprint without interpreters or byte-code schemes. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. 
+Vely applications are 100% native, high-performance and low-footprint without interpreters, virtual machines, or byte-code schemes. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. 
 
 .LP
 .B STATEMENTS
@@ -54,7 +54,7 @@ C is the \fBfastest and most energy-efficient\fP programming language, which is 
 .B QUALITY
 .LP
 
-Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1765 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1783 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
 
 .LP
 .B REPORT BUGS, REQUEST FEATURES, CONTACT

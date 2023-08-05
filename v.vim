@@ -655,6 +655,8 @@ syn region vv_r_construct_match_regex start="^[[:space:]]*match-regex" skip="\\[
     syn match vv_h_clause_match_regex " single-match \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " single-match$" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " status \@=" contained containedin=vv_r_construct_match_regex
+    syn match vv_h_clause_match_regex " utf8 \@=" contained containedin=vv_r_construct_match_regex
+    syn match vv_h_clause_match_regex " utf8$" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex "[=]\@<=define \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " define \@=" contained containedin=vv_r_construct_match_regex
     hi def link vv_h_clause_match_regex    velyClause

@@ -1,10 +1,10 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2017 DaSoftver LLC.
+#Copyright 2019 DaSoftver LLC.
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    17.1.11
+Version:    17.2.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC
@@ -17,11 +17,11 @@ Source0: http://nowebsite/vely/pkg/%{name}-%{version}-%{release}.tar.gz
 
 #Packages in runtime that are not in build time are tar, curl, openssl and 
 
-%define build_requires make gcc openssl-devel libcurl-devel rpm-build createrepo rpmlint 
+%define build_requires make gcc openssl-devel libcurl-devel rpm-build createrepo rpmlint pcre2-devel
 #due to a bug in building dependencies for opensuse, must have this to build a dependency statement via bash script
 #suse_build_requires *must* be identical to build_requires - do *not* change its definition
 %define suse_build_requires %build_requires
-%define run_requires tar make gcc openssl-devel curl libcurl-devel 
+%define run_requires tar make gcc openssl-devel curl libcurl-devel pcre2-devel
 
 #devel lib for mariadb
 %if 0%{?el9} 
@@ -117,8 +117,11 @@ exit 0
 %{_libdir}/vely/libvelypg.so
 %{_libdir}/vely/libvelymys.so
 %{_libdir}/vely/libvelysec.so
+%{_libdir}/vely/libvelypcre2.so
+%{_libdir}/vely/libvelypcre2glibc.so
 %{_libdir}/vely/libvelycurl.so
 %{_libdir}/vely/stub_mariadb.o
+%{_libdir}/vely/stub_pcre2.o
 %{_libdir}/vely/stub_curl.o
 %{_libdir}/vely/stub_crypto.o
 %{_libdir}/vely/stub_before.o
@@ -132,6 +135,8 @@ exit 0
 %{_libdir}/vely/vdiag
 %{_libdir}/vely/v.vim
 %{_libdir}/vely/sys
+%{_libdir}/vely/pcre2_version
+%{_libdir}/vely/pcre2_libs
 %{_libdir}/vely/v1
 %{_libdir}/vely/CHANGELOG
 %{_bindir}/vf

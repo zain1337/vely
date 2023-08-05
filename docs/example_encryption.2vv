@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-example_encryption_ciphers_digests_salt_hands_on_guide \- Vely documentation (examples)
+example_encryption \- Vely documentation (examples)
 .SH DESCRIPTION
 Encryption: ciphers, digests, salt, IV and a hands-on guide
 (Image encryption.jpg not available in man page, see web page documentation)
@@ -596,13 +596,14 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
 \fBexample_docker\fP  
-\fBexample_encryption_ciphers_digests_salt_hands_on_guide\fP  
+\fBexample_encryption\fP  
 \fBexample_file_manager\fP  
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
 \fBexamples\fP  
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  

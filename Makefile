@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2017 DaSoftver LLC. 
+#Copyright 2019 DaSoftver LLC. 
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -12,9 +12,14 @@ DEBUGINFO=$(DI)
 #short cut for Address Sanitizer, internal only
 ASAN=$(A)
 
+#get pcre2 version and libs
+PCRE2_VER=$(shell pcre2-config --version)
+PCRE2_LIBS=$(shell pcre2-config --libs-posix)
+PCRE2_LIB_DL=$(shell echo -n "$(PCRE2_LIBS)" |sed -n 's/-l\([^[:space:]]*\).*$$/\1/gp')
 #these must be the same (VV_PLATFORM_ID,VV_PLATFORM_VERSION) used in sys
 OSNAME=$(shell . ./sys; echo -n $${VV_PLATFORM_ID})
 OSVERSION=$(shell . ./sys; echo -n $${VV_PLATFORM_VERSION})
+OSNAMEID=$(shell . ./sys; echo -n $${VV_OSNAME_ID})
 SYSTEMTYPE=$(shell ./sys showtype)
 SYSTEMID=$(shell ./sys showid)
 PGCONF=$(shell ./sys pgconf)
@@ -113,7 +118,7 @@ ASAN=
 endif
 
 #C flags are as strict as we can do, in order to discover as many bugs as early on
-CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE)  -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP) $(ASAN)
+CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE) -DVV_OSNAME_ID=$(OSNAMEID) -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP) $(ASAN)
 
 #linker flags include mariadb (LGPL), crypto (OpenSSL, permissive license). This is for building object code that's part 
 #this is for installation at customer's site where we link VELY with mariadb (LGPL), crypto (OpenSSL)
@@ -133,6 +138,8 @@ install:
 	install -D -m 0755 libvelymys.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelysec.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelycurl.so -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 libvelypcre2.so -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 libvelypcre2glibc.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libfcgively.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvely.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelyfcli.so -t $(DESTDIR)$(V_LIB)/
@@ -142,6 +149,7 @@ install:
 	install -D -m 0644 stub_mariadb.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_gendb.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_fcgi.o -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0644 stub_pcre2.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_curl.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_crypto.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_before.o -t $(DESTDIR)$(V_LIB)/
@@ -181,6 +189,8 @@ install:
 	install -D -m 0644 docs/write_report.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/json.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/shopping.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	echo -n "$(PCRE2_VER)" > pcre2_version; install -D -m 0755 pcre2_version -t $(DESTDIR)$(V_LIB)/
+	echo -n "$(PCRE2_LIBS)" > pcre2_libs; install -D -m 0755 pcre2_libs -t $(DESTDIR)$(V_LIB)/
 #This must be last, in this order, as it saves and then applies SELinux policy where applicable. 
 #This runs during rpm creation or during sudo make install
 #it does NOT run during rpm installation, there is post scriptlet that calls vely.sel to do that (VV_NO_SEL)
@@ -202,7 +212,7 @@ binary:build
 	@;
 
 .PHONY: build
-build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
+build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so libvelypcre2.so libvelypcre2glibc.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_pcre2.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
 	@echo "Building version $(BUILDVER).$(BUILDREL)"
 	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o $(LDFLAGS) 
 
@@ -212,6 +222,7 @@ clean:
 	touch *.h
 	rm -rf debian/vely
 	rm -rf *.tar.gz
+	rm -f pcre2_version pcre2_libs
 
 
 
@@ -266,6 +277,16 @@ libvelycurl.so: curl.o
 	$(CC) -shared -o libvelycurl.so $^ 
 	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelycurl.so ; fi
 
+libvelypcre2.so: pcre2.o 
+	rm -f libvelypcre2.so
+	$(CC) -shared -o libvelypcre2.so $^ 
+	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelypcre2.so ; fi
+
+libvelypcre2glibc.so: pcre2glibc.o 
+	rm -f libvelypcre2glibc.so
+	$(CC) -shared -o libvelypcre2glibc.so $^ 
+	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelypcre2glibc.so ; fi
+
 utf8.o: utf8.c vely.h
 	$(CC) -c -o $@ $< $(CFLAGS) 
 
@@ -308,6 +329,9 @@ stub_crypto.o: stub.c vely.h
 stub_curl.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_CURL $< $(CFLAGS) 
 
+stub_pcre2.o: stub.c vely.h
+	$(CC) -c -o $@ -DVV_PCRE2 $< $(CFLAGS) 
+
 stub_fcgi.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_FCGI $< $(CFLAGS) 
 
@@ -325,6 +349,12 @@ stub_gendb.o: stub.c vely.h
 
 curl.o: curl.c vely.h
 	$(CC) -c -o $@ $< $(CFLAGS) 
+
+pcre2.o: pcre2.c vely.h
+	NEWPCRE2=$$(./sys greater_than_eq "$(PCRE2_VER)" "10.37"); if [ "$$NEWPCRE2" == "0" ]; then FORCE_POSIXREGEX="-DVV_C_POSIXREGEX"; else FORCE_POSIXREGEX="-DPCRE2_LIB_DL=\"$(PCRE2_LIB_DL)\""; fi ; $(CC) -c -o $@ $< $$FORCE_POSIXREGEX $(CFLAGS) 
+
+pcre2glibc.o: pcre2.c vely.h
+	$(CC) -c -o $@ $< -DVV_C_POSIXREGEX $(CFLAGS) 
 
 velyrtc.o: velyrtc.c vely.h
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -350,5 +380,6 @@ libvelyfsrv.so: fcli.c vfcgi.h
 	rm -f libvelyfsrv.so
 	$(CC) -shared -o libvelyfsrv.so $^ $(CFLAGS) -DVV_VELYSRV
 	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelyfsrv.so ; fi
+
 
 

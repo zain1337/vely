@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2017 DaSoftver LLC.
+#Copyright 2019 DaSoftver LLC.
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -58,8 +58,14 @@ else
     VV_X_FLAG=
 endif
 
+ifeq ($(strip $(VV_C_POSIXREGEX)),1)
+    VV_POSIXREGEX_FLAG=-DVV_C_POSIXREGEX
+else
+    VV_POSIXREGEX_FLAG=
+endif
+
 #even though VV_DIAG_OUT is set to "", at run time it will have value from make_source macro. This is because of how makefile assignments work with = (and not :=)
-_CFLAGS=-fpic -fmax-errors=$(VV_C_MAXERRORS) $(VV_DIAG_OUT) -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_FCGI_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
+_CFLAGS=-fpic -fmax-errors=$(VV_C_MAXERRORS) $(VV_DIAG_OUT) -Werror -Wall -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length $(VV_MARIADB_USED) $(VV_CURL_USED) $(VV_PCRE2_USED) $(VV_FCGI_USED) $(VV_CRYPTO_USED) $(VV_MODULES_INCLUDE) $(VV_FCGI_INCLUDE) -DVV_OSNAME_ID=$(VV_OSNAME_ID) $(VV_POSIXREGEX_FLAG) -I $(shell pwd) -I $(VV_INCLUDE_PATH) $(VV_C_CFLAGS) -I $(VV_BLD) $(_APPMAKE) $(_OPTIM_COMP) $(_ASAN)
 
 
 
@@ -116,4 +122,5 @@ $(VV_BLD)/$(VV_C_NAME).fcgi: $(VV_BLD)/velyfcgiapp.o $(VV_BLD)/vely_dispatch_req
 
 $(VV_BLD)/$(VV_C_NAME): $(VV_BLD)/velyfcgiapp.o $(VV_BLD)/vely_dispatch_request.o $(_OBJ_FILES) $(VV_BLD)/vely_dispatch_request.o
 	$(_CC) -o $@ $(_LDFLAGS) $^ $(VV_EVENT_STUBS) -lvely $(VV_MOD_LIBS) $(VV_MODULES) $(VV_STUBS) 
+
 
