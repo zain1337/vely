@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2019 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -12,7 +12,7 @@
 
 
 #ifdef VV_PCRE2
-num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached) {
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached, num *reslen) {
     VV_UNUSED(look_here);
     VV_UNUSED(find_this);
     VV_UNUSED(replace);
@@ -21,6 +21,7 @@ num vely_regex(char *look_here, char *find_this, char *replace, char **res, num 
     VV_UNUSED(case_insensitive);
     VV_UNUSED(single_match);
     VV_UNUSED(cached);
+    VV_UNUSED(reslen);
     return -1;
 }
 void vely_regfree(regex_t *preg) {

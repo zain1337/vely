@@ -2,9 +2,12 @@
 .SH NAME
 example_shopping \- Vely documentation (examples)
 .SH DESCRIPTION
+Shopping REST API
 This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 
-In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; \fB11 source files, 212 lines of code\fP.
+In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 12 source files, 212 lines of code.
+
+To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -28,6 +31,357 @@ In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix
 (Image shopping_list_orders.png not available in man page, see web page documentation)
  Deletes a line item (i.e. all items of the same kind) in an order. In this case "Item ID" specifies the item ("4") in an order given by "Order ID" ("5"). The result is the number of line items deleted:
 (Image shopping_delete_item_from_order.png not available in man page, see web page documentation)
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - These SQL statements will create tables for this application: customers, items, orders and orderItems: (setup.sql)
+
+
+
+.RS 4
+.EX
+
+create table if not exists customers (firstName varchar(30), lastName varchar(30), customerID bigserial primary key);
+create table if not exists items (name varchar(30), description varchar(200), itemID bigserial primary key);
+create table if not exists orders (customerID bigint, orderID bigserial primary key);
+create table if not exists orderItems (orderID bigint, itemID bigint, quantity bigint);
+
+.EE
+.RE
+
+
+.B - Customers resource (customers.vely)
+
+This implements REST API for a customer.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void customers()
+{
+    get-req method to define req_method
+
+    if (req_method == VV_POST) add_customer ();
+}
+
+.EE
+.RE
+
+
+.B - Orders resource (orders.vely)
+
+This implements REST API for an order.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void orders()
+{
+    out-header use content-type "application/json"
+
+    get-req method to define req_method
+
+    if (req_method == VV_POST) {
+        input-param item_id
+        if (item_id[0] == 0) create_order (); else add_to_order();
+    }
+    else if (req_method == VV_PUT) update_order (); 
+    else if (req_method == VV_GET) list_orders ();
+    else if (req_method == VV_DELETE) { 
+        input-param item_id
+        if (item_id[0] == 0) delete_order (); else {
+            set-input "quantity" = "0"
+            update_order (); 
+        }
+    }
+}
+
+.EE
+.RE
+
+
+.B - Items resource (items.vely)
+
+This implements REST API for an item. 
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void items()
+{
+    out-header use content-type "application/json"
+
+    get-req method to define req_method
+
+    if (req_method == VV_POST) add_item ();
+}
+
+.EE
+.RE
+
+
+.B - Add a customer (add_customer.vely)
+
+This will add a new customer. Removing a customer is not included, and it should remove all its orders.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_customer()
+{
+    out-header use content-type "application/json"
+
+    input-param first_name
+    input-param last_name
+    // Add a customer SQL
+    run-query @db_shopping ="insert into customers (firstName, lastName) \\
+            values ('%s', '%s') returning customerID" output define customerID : \\
+            first_name, last_name
+        @"<<p-out customerID>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.B - Add an item to inventory (add_item.vely)
+
+Here an item is added to invetory available for sale.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_item()
+{
+    out-header use content-type "application/json"
+
+    input-param name
+    input-param description
+    // Add an item to inventory SQL
+    run-query @db_shopping ="insert into items (name, description) \\
+        values ('%s', '%s') returning itemID" output itemID : name, description
+        query-result itemID to define item_id
+        @"<<p-out item_id>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.B - Create an order (create_order.vely)
+
+This creates a new order, ready to have items added to it.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void create_order()
+{
+    out-header use content-type "application/json"
+
+    input-param customer_id
+    // SQL to create an order
+    run-query @db_shopping ="insert into orders (customerId) \\
+        values ('%s') returning orderID" output orderID : customer_id
+        query-result orderID to define order_id
+        @"<<p-out order_id>>"
+    end-query
+}
+
+.EE
+.RE
+
+
+.B - Add item to order (add_to_order.vely)
+
+Add an item to existing order.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void add_to_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    // SQL to add an item to an order
+    run-query @db_shopping ="insert into orderItems (orderId, itemID, quantity) values  ('%s', '%s', '%s')" \\
+        : order_id, item_id, quantity no-loop affected-rows define arows
+    @"<<p-num arows>>"
+}
+
+.EE
+.RE
+
+
+.B - Update item quantity in an order (update_order.vely)
+
+If the quantity update is 0, the item is deleted from order, otherwise the quantity is updated.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void update_order()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+    input-param item_id
+    input-param quantity
+    num arows;
+    // If quantity update is 0, issue SQL to delete an item from order, otherwise update 
+    if (!strcmp (quantity, "0")) {
+        run-query @db_shopping ="delete from orderItems where orderID='%s' and itemID='%s'" \\
+            : order_id, item_id no-loop affected-rows arows
+    } else {
+        run-query @db_shopping ="update orderItems set quantity='%s' where orderID='%s' and itemID='%s'" \\
+            : quantity, order_id, item_id no-loop affected-rows arows
+    }
+    @"<<p-num arows>>"
+}
+
+.EE
+.RE
+
+
+.B - List orders as JSON (list_orders.vely)
+
+All orders are listed along with customer ID and name, and under each order are the items with their names, descriptions and quantity of items ordered.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "shopping.h"
+
+void list_orders()
+{
+    out-header use content-type "application/json"
+
+    input-param order_id
+
+    num curr_order = 0;
+
+    // Start JSON output
+    @{ "orders": [ 
+
+    if (order_id[0] != 0) {
+        // Query just a specific order
+        run-query @db_shopping = "select o.orderID, c.customerID, c.firstName, c.lastName \\
+                from orders o, customers c \\
+                where o.customerID=c.customerID and o.orderId='%s'" \\
+                output define customer_id, first_name, last_name \\
+                row-count define order_count : order_id
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    } else {
+        // Query to get all orders
+        run-query @db_shopping ="select o.orderID, c.customerID, c.firstName, c.lastName \\
+                from orders o, customers c \\
+                where o.customerID=c.customerID order by o.orderId" \\
+                output define order_id, customer_id, first_name, last_name \\
+                row-count define order_count
+            _json_from_order (order_id, curr_order, order_count, customer_id, 
+                first_name, last_name);
+        end-query
+    }
+
+    // Finish JSON output
+    @   ]
+    @}
+}
+
+
+.EE
+.RE
+
+
+.B - Represent order as JSON (_json_from_query.vely)
+
+This will take order information from the list of orders (as directed by GET REST API for either all orders or a specific one), and find all items within an order. The JSON text is output.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "shopping.h"
+
+void _json_from_order (char *order_id, num curr_order, num order_count, 
+    char *customer_id, char *first_name, char *last_name)
+{
+    @   { 
+    @       "orderID": "<<p-out order_id>>",
+    @       "customer": 
+    @       {
+    @           "customerID": "<<p-out customer_id>>",
+    @           "firstName": "<<p-out first_name>>",
+    @           "lastName": "<<p-out last_name>>"
+    @       },
+    @       "items": [
+    num curr_item = 0;
+    // Query to get all items in an order
+    run-query @db_shopping ="select i.itemID, t.name, t.description, i.quantity \\
+            from orderItems i, items t where i.orderID='%s' \\
+                and t.itemID=i.itemID" \\
+            output itemID, itemName, itemDescription, itemQuantity : order_id \\
+            row-count define item_count
+        @       {
+        @           "itemID": "<<query-result itemID>>",
+        @           "itemName": "<<query-result itemName>>",
+        @           "itemDescription": "<<query-result itemDescription>>",
+        @           "itemQuantity": "<<query-result itemQuantity>>"
+        // add a comma if there are more items after this
+        @       }<<p-out ++curr_item < item_count ? ",":"">>
+    end-query
+    @   ]
+    // add a comma if there are more orders after this
+    @   }<<p-out ++curr_order < order_count ? ",":"">>
+}
+
+.EE
+.RE
+
+
+.B - Include file (shopping.h)
+
+This file has a function declaration for _json_from_query() so it can be used in multiple .vely files.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void _json_from_order (char *order_id, num curr_order, num order_count, 
+    char *customer_id, char *first_name, char *last_name);
+
+.EE
+.RE
+
 
 .LP
 .B SETUP PREREQUISITES
@@ -527,360 +881,6 @@ curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1"
 .RE
 
 The return value is a JSON document with a number of orders and number of items deleted.
-
-.SH FILES
-You are now done with the example! What follows are the source files in this project so you can examine how it works:
-
-.LP
-.B CUSTOMERS RESOURCE (CUSTOMERS.VELY)
-.LP
-
-This implements REST API for a customer.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void customers()
-{
-    get-req method to define req_method
-
-    if (req_method == VV_POST) add_customer ();
-}
-
-.EE
-.RE
-
-
-.LP
-.B ORDERS RESOURCE (ORDERS.VELY)
-.LP
-
-This implements REST API for an order.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void orders()
-{
-    out-header use content-type "application/json"
-
-    get-req method to define req_method
-
-    if (req_method == VV_POST) {
-        input-param item_id
-        if (item_id[0] == 0) create_order (); else add_to_order();
-    }
-    else if (req_method == VV_PUT) update_order (); 
-    else if (req_method == VV_GET) list_orders ();
-    else if (req_method == VV_DELETE) { 
-        input-param item_id
-        if (item_id[0] == 0) delete_order (); else {
-            set-input "quantity" = "0"
-            update_order (); 
-        }
-    }
-}
-
-.EE
-.RE
-
-
-.LP
-.B ITEMS RESOURCE (ITEMS.VELY)
-.LP
-
-This implements REST API for an item. 
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void items()
-{
-    out-header use content-type "application/json"
-
-    get-req method to define req_method
-
-    if (req_method == VV_POST) add_item ();
-}
-
-.EE
-.RE
-
-
-.LP
-.B ADD A CUSTOMER (ADD_CUSTOMER.VELY)
-.LP
-
-This will add a new customer. Removing a customer is not included, and it should remove all its orders.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void add_customer()
-{
-    out-header use content-type "application/json"
-
-    input-param first_name
-    input-param last_name
-    // Add a customer SQL
-    run-query @db_shopping ="insert into customers (firstName, lastName) \\
-            values ('%s', '%s') returning customerID" output define customerID : \\
-            first_name, last_name
-        @"<<p-out customerID>>"
-    end-query
-}
-
-.EE
-.RE
-
-
-.LP
-.B ADD AN ITEM TO INVENTORY (ADD_ITEM.VELY)
-.LP
-
-Here an item is added to invetory available for sale.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void add_item()
-{
-    out-header use content-type "application/json"
-
-    input-param name
-    input-param description
-    // Add an item to inventory SQL
-    run-query @db_shopping ="insert into items (name, description) \\
-        values ('%s', '%s') returning itemID" output itemID : name, description
-        query-result itemID to define item_id
-        @"<<p-out item_id>>"
-    end-query
-}
-
-.EE
-.RE
-
-
-.LP
-.B CREATE AN ORDER (CREATE_ORDER.VELY)
-.LP
-
-This creates a new order, ready to have items added to it.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void create_order()
-{
-    out-header use content-type "application/json"
-
-    input-param customer_id
-    // SQL to create an order
-    run-query @db_shopping ="insert into orders (customerId) \\
-        values ('%s') returning orderID" output orderID : customer_id
-        query-result orderID to define order_id
-        @"<<p-out order_id>>"
-    end-query
-}
-
-.EE
-.RE
-
-
-.LP
-.B ADD ITEM TO ORDER (ADD_TO_ORDER.VELY)
-.LP
-
-Add an item to existing order.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void add_to_order()
-{
-    out-header use content-type "application/json"
-
-    input-param order_id
-    input-param item_id
-    input-param quantity
-    // SQL to add an item to an order
-    run-query @db_shopping ="insert into orderItems (orderId, itemID, quantity) values  ('%s', '%s', '%s')" \\
-        : order_id, item_id, quantity no-loop affected-rows define arows
-    @"<<p-num arows>>"
-}
-
-.EE
-.RE
-
-
-.LP
-.B UPDATE ITEM QUANTITY IN AN ORDER (UPDATE_ORDER.VELY)
-.LP
-
-If the quantity update is 0, the item is deleted from order, otherwise the quantity is updated.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void update_order()
-{
-    out-header use content-type "application/json"
-
-    input-param order_id
-    input-param item_id
-    input-param quantity
-    num arows;
-    // If quantity update is 0, issue SQL to delete an item from order, otherwise update 
-    if (!strcmp (quantity, "0")) {
-        run-query @db_shopping ="delete from orderItems where orderID='%s' and itemID='%s'" \\
-            : order_id, item_id no-loop affected-rows arows
-    } else {
-        run-query @db_shopping ="update orderItems set quantity='%s' where orderID='%s' and itemID='%s'" \\
-            : quantity, order_id, item_id no-loop affected-rows arows
-    }
-    @"<<p-num arows>>"
-}
-
-.EE
-.RE
-
-
-.LP
-.B LIST ORDERS AS JSON (LIST_ORDERS.VELY)
-.LP
-
-All orders are listed along with customer ID and name, and under each order are the items with their names, descriptions and quantity of items ordered.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-\[char35]include "shopping.h"
-
-void list_orders()
-{
-    out-header use content-type "application/json"
-
-    input-param order_id
-
-    num curr_order = 0;
-
-    // Start JSON output
-    @{ "orders": [ 
-
-    if (order_id[0] != 0) {
-        // Query just a specific order
-        run-query @db_shopping = "select o.orderID, c.customerID, c.firstName, c.lastName \\
-                from orders o, customers c \\
-                where o.customerID=c.customerID and o.orderId='%s'" \\
-                output define customer_id, first_name, last_name \\
-                row-count define order_count : order_id
-            _json_from_order (order_id, curr_order, order_count, customer_id, 
-                first_name, last_name);
-        end-query
-    } else {
-        // Query to get all orders
-        run-query @db_shopping ="select o.orderID, c.customerID, c.firstName, c.lastName \\
-                from orders o, customers c \\
-                where o.customerID=c.customerID order by o.orderId" \\
-                output define order_id, customer_id, first_name, last_name \\
-                row-count define order_count
-            _json_from_order (order_id, curr_order, order_count, customer_id, 
-                first_name, last_name);
-        end-query
-    }
-
-    // Finish JSON output
-    @   ]
-    @}
-}
-
-
-.EE
-.RE
-
-
-.LP
-.B REPRESENT ORDER AS JSON (_JSON_FROM_QUERY.VELY)
-.LP
-
-This will take order information from the list of orders (as directed by GET REST API for either all orders or a specific one), and find all items within an order. The JSON text is output.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-\[char35]include "shopping.h"
-
-void _json_from_order (char *order_id, num curr_order, num order_count, 
-    char *customer_id, char *first_name, char *last_name)
-{
-    @   { 
-    @       "orderID": "<<p-out order_id>>",
-    @       "customer": 
-    @       {
-    @           "customerID": "<<p-out customer_id>>",
-    @           "firstName": "<<p-out first_name>>",
-    @           "lastName": "<<p-out last_name>>"
-    @       },
-    @       "items": [
-    num curr_item = 0;
-    // Query to get all items in an order
-    run-query @db_shopping ="select i.itemID, t.name, t.description, i.quantity \\
-            from orderItems i, items t where i.orderID='%s' \\
-                and t.itemID=i.itemID" \\
-            output itemID, itemName, itemDescription, itemQuantity : order_id \\
-            row-count define item_count
-        @       {
-        @           "itemID": "<<query-result itemID>>",
-        @           "itemName": "<<query-result itemName>>",
-        @           "itemDescription": "<<query-result itemDescription>>",
-        @           "itemQuantity": "<<query-result itemQuantity>>"
-        // add a comma if there are more items after this
-        @       }<<p-out ++curr_item < item_count ? ",":"">>
-    end-query
-    @   ]
-    // add a comma if there are more orders after this
-    @   }<<p-out ++curr_order < order_count ? ",":"">>
-}
-
-.EE
-.RE
-
-
-.LP
-.B INCLUDE FILE (SHOPPING.H)
-.LP
-
-This file has a function declaration for _json_from_query() so it can be used in multiple .vely files.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void _json_from_order (char *order_id, num curr_order, num order_count, 
-    char *customer_id, char *first_name, char *last_name);
-
-.EE
-.RE
-
 .SH SEE ALSO
  
 .B - Examples
@@ -888,6 +888,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -901,6 +902,8 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

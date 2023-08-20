@@ -1,6 +1,8 @@
-Vely release notes for 17.2.0
+Vely release notes for 17.3.0
 
-- Notes: Added support for pcre2 regex search/replace in this release. By default pcre2 is used, and you can also use the posix regex (extended syntax expressions) with --posix-regex option in vv. Some older Linux distributions will still only use posix due to older pcre2 libraries that have name conflicts; however you can upgrade those and use pcre2, see match-regex.
-- Minor: added pcre2 regex in addition to the previous posix one; either one can be used. For example, now you can use lookbehinds and lookaheads, and it's generally faster. New regex also now supports UTF8 Unicode characters. New VV_C_POSIXREGEX constant allows for conditional use of either pcre2 or posix regex; see match-regex.
-- Minor: added VV_OSNAME_ID constant available in code to conditionally compile depending on Linux distribution/version.
+- Notes: Debian 12 apt installation package is now available in this release (consequently, Debian 10 package is no longer available, as only two most recent releases are generally carried). In addition, pf-out statement can now output directly into a string, which is properly allocated to hold the result - this is a very convenient method to safely build strings, in addition to write-string. In match-regex, you can now obtain the byte length of the replacement result. In run-query, input clause is now synonymous with ':' for added clarity in writing and reading code.
+- Minor: added result-length clause to match-regex statement.
+- Minor: pf-out now has 'to' clause to store its output.
+- Release: Debian 12 apt package now available.
+- Minor: added input clause to run-query statement to be used as a synonym in addition to semicolon.
 

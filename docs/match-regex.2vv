@@ -13,6 +13,7 @@ match-regex <pattern> in <target> \\
     [ \\
         ( replace-with <replace pattern> \\
             result [ define ] <result> \\
+            [ result-length [ define ] <result length> ] )  \\
             [ status [ define ] <status> ] )  \\
     | \\
         ( status [ define ] <status> \\
@@ -29,7 +30,7 @@ match-regex <pattern> in <target> \\
 .SH DESCRIPTION
 match-regex searches <target> string for regex <pattern>. If "replace-with" is specified, then instance(s) of <pattern> in <target> are replaced with <replace pattern> string, and the result is stored in <result> string, which must be different from <target>. <result> is \fBallocated memory\fP.
 
-The number of found or found/replaced patterns can be obtained in number <status> variable.
+The number of found or found/replaced patterns can be obtained in number <status> variable. In case of replacement(s), the length of <result> can be obtained in <result length> in optional "result-length" clause, which can be created with optional "define". Note that <result length> is the length in bytes.
 
 If "replace-with" is not specified, then the number of matched <pattern>s within <target> is given in <status> number variable, which in this case must be specified.
 

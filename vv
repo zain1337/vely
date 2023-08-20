@@ -1,6 +1,6 @@
 #!/bin/bash
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2019 DaSoftver LLC. 
+#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic. 
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -816,7 +816,7 @@ function gen_src() {
     _HDRF=$(ls *.h 2>/dev/null) || true
 
     echo "#SPDX-License-Identifier: EPL-2.0" >> $VV_BLD/$_T.new
-    echo "#Copyright 2019 DaSoftver LLC." >> $VV_BLD/$_T.new
+    echo "#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic." >> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
     echo "#" >> $VV_BLD/$_T.new
     echo "#Lists source files in your application. This is an auto-generated file." >> $VV_BLD/$_T.new
@@ -845,7 +845,7 @@ function gen_src() {
     _SRCF=$(ls *.vely 2>/dev/null) || true
 
     echo "// SPDX-License-Identifier: EPL-2.0"  >> $VV_BLD/$_T.new
-    echo "// Copyright 2019 DaSoftver LLC.">> $VV_BLD/$_T.new
+    echo "// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.">> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
     echo "// This is an auto-generated file for a VELY application" >> $VV_BLD/$_T.new
     echo >> $VV_BLD/$_T.new
@@ -879,7 +879,7 @@ function gen_src() {
     _NUMF=$(echo $_SRCF | wc -w)
 
     echo "// SPDX-License-Identifier: EPL-2.0" >>$VV_BLD/$_T.new
-    echo "// Copyright 2019 DaSoftver LLC." >>$VV_BLD/$_T.new
+    echo "// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic." >>$VV_BLD/$_T.new
     echo >>$VV_BLD/$_T.new
     echo "// VELY auto-generated request dispatcher" >>$VV_BLD/$_T.new
     echo >>$VV_BLD/$_T.new

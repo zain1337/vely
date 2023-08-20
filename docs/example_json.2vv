@@ -2,9 +2,12 @@
 .SH NAME
 example_json \- Vely documentation (examples)
 .SH DESCRIPTION
+JSON parsing and searching
 This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
 
-In a nutshell:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines of code\fP.
+In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
+
+To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -18,6 +21,372 @@ In a nutshell:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines o
 (Image json_list.png not available in man page, see web page documentation)
  You can call Vely code from Javascript fetch() - this is the output from post.html (see Access application... on how to run it):
 (Image json_javascript_vely.png not available in man page, see web page documentation)
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - JSON document (cities.json)
+
+This is the JSON document that you enter in the form for parsing. It contains countries, states and cities along with their population.
+
+.RS 4
+.EX
+
+{ "country": [
+    { 
+        "name": "USA",
+        "state": [
+            { 
+                "name": "Arizona",
+                "city": [
+                    {
+                        "name" : "Phoenix",
+                        "population": 5000000
+            	    } ,
+                    {
+                        "name" : "Tuscon",
+                        "population": 1000000
+            	    } 
+
+                ]
+            } ,
+            { 
+                "name": "California",
+                "city": [
+                    {
+                        "name" : "Los Angeles",
+                        "population": 19000000
+            	    },
+                    {
+                        "name" : "Irvine"
+            	    }
+                ]
+            } 
+        ] 
+    } ,
+    { 
+        "name": "Mexico",
+        "state": [
+            { 
+                "name": "Veracruz",
+                "city": [
+                    {
+                        "name" : "Xalapa-Enríquez",
+                        "population": 8000000
+            	    },
+                    {
+                        "name" : "C\eu00F3rdoba",
+                        "population": 220000
+            	    }
+                ]
+            } ,
+            { 
+                "name": "Sinaloa",
+                "city": [
+                    {
+                        "name" : "Culiac\eu00E1n Rosales",
+                        "population": 3000000
+            	    }
+                ]
+            } 
+        ] 
+    }
+    ]
+}
+
+.EE
+.RE
+
+
+.B - Call from Javascript (post.html)
+
+You can call your Vely code from Javascript via fetch(). This HTML file will do that as soon as it loads (no buttons to push), you can of course change it to fit your needs. This also demonstrates the use of POST method with Content-Type of "application/json" to talk to your server-side Vely code.
+
+.RS 4
+.EX
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</title>
+</head>
+<body>
+    <h1 class="align">Example: Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</h1>
+    <script>
+        fetch('/json/json_process',{
+            method: 'POST',
+            headers: {'content-type': 'application/json'},
+            body:  '{ "country": [ \\
+    {  \\
+        "name": "USA", \\
+        "state": [ \\
+            {  \\
+                "name": "Arizona", \\
+                "city": [ \\
+                    { \\
+                        "name" : "Phoenix", \\
+                        "population": "5000000" \\
+            	    } , \\
+                    { \\
+                        "name" : "Tuscon", \\
+                        "population": "1000000" \\
+            	    }  \\
+ \\
+                ] \\
+            } , \\
+            {  \\
+                "name": "California", \\
+                "city": [ \\
+                    { \\
+                        "name" : "Los Angeles", \\
+                        "population": "4000000" \\
+            	    }, \\
+                    { \\
+                        "name" : "Irvine" \\
+            	    } \\
+                ] \\
+            }  \\
+        ]  \\
+    } , \\
+    {  \\
+        "name": "Mexico", \\
+        "state": [ \\
+            {  \\
+                "name": "Veracruz", \\
+                "city": [ \\
+                    { \\
+                        "name" : "Xalapa-Enríquez", \\
+                        "population": "8000000" \\
+            	    }, \\
+                    { \\
+                        "name" : "C\eu00F3rdoba", \\
+                        "population": "220000" \\
+            	    } \\
+                ] \\
+            } , \\
+            {  \\
+                "name": "Sinaloa", \\
+                "city": [ \\
+                    { \\
+                        "name" : "Culiac\eu00E1n Rosales", \\
+                        "population": "3000000" \\
+            	    } \\
+                ] \\
+            }  \\
+        ]  \\
+    } \\
+    ] \\
+}'
+        })
+        .then((result) => { return result.text(); })
+        .then((content) => { document.getElementById("json_output").innerHTML = content; });
+    </script>
+    <div id='json_output'></div>
+</body>
+</html>
+
+.EE
+.RE
+
+
+.B - Enter JSON (json_form.vely)
+
+This is a simple HTML form where you can enter JSON document. Since the code in json_process.vely and json_all.vely parses a list of cities as described, the text to enter is given in cities.json file.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void json_form () {
+    
+    out-header default
+
+    @<h2>Enter JSON</h2>
+
+    @<form action="<<p-path>>/json_process" method="POST">
+
+    @    <label for="json_text">JSON text:</label><br>
+    @    <textarea name="json_text" rows="8" columns="70"></textarea><br/>
+
+    @    <button type="submit">Extract specific data</button>
+    @    <button type="submit" formaction="<<p-path>>/json_all">Extract all data</button>
+    @ </form>
+
+}
+
+.EE
+.RE
+
+
+.B - Parse all JSON data in a loop (json_all.vely)
+
+This parses the document that you may not know the structure of. Each data node is obtained you can examine it in your code.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void json_all() {
+    out-header default
+
+    input-param json_text
+
+    // Parse json text and display any error and the position of it
+    new-json define json from json_text status define st error-text define etext error-position define epos
+    if (st != VV_OKAY) {
+        @Could not parse JSON! Error [<<p-out etext>>] at position <<p-num epos>>.
+        exit-request
+    }
+
+    // Traverse JSON document, node by node, display as a table of all data nodes
+    read-json json traverse begin
+    @<table border='1'>
+    while (1)
+    {
+        read-json json traverse key define k value define v type define t status define s
+        if (s != VV_OKAY) break; 
+        // Display name, value and type (ignore boolean and type since we don't have them)
+        @<tr> 
+            @<td><<p-out k>></td> <td><<p-out v>></td> 
+            @<td><<p-out t==VV_JSON_TYPE_NUMBER?"Number":(t==VV_JSON_TYPE_STRING?"String":"Other")>></td>
+        @</tr>
+    }
+    @</table>
+
+}
+
+.EE
+.RE
+
+
+.B - Parse JSON by looking up specific elements (json_process.vely)
+
+Parse the JSON document. This shows parsing the document that you know a structure of, but does not have a fixed structure, so each element is retrieved based on its normalized name (see \fBread-json\fP).
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void json_process() {
+    out-header default
+
+    // If JSON data sent via URL-encoded GET or POST
+    input-param json_text
+    // If JSON data sent in the request body (application/json), use that JSON data 
+    request-body json_body
+    get-req content-type to define ctype
+    if (!strcmp(ctype, "application/json")) json_text=json_body;
+
+    // Parse json text and display any error and the position of it
+    new-json define json from json_text status define st error-text define etext error-position define epos
+    if (st != VV_OKAY) {
+        @Could not parse JSON! Error [<<p-out etext>>] at position <<p-num epos>>.
+        exit-request
+    }
+
+    @Cities found<hr/>
+
+    num country_count;
+    num state_count;
+    num city_count;
+
+    // Start displaying a list
+    @<ul>
+    // Look for countries, states and then cities
+    // Data is organized in hashed arrays, for example
+    // country[0].state[1].city[0]
+    // and each can have sub-nodes, such as
+    // country[0].name
+    // etc.
+    for (country_count = 0; ; country_count++) {
+
+        // First, build key prefix for a country
+        (( define json_key_country
+        @"country"[<<p-num country_count>>]
+        ))
+
+        // Search for a country name
+        (( define json_key_country_name
+        @<<p-out json_key_country>>."name"
+        ))
+
+        // Search for a country name under index [country_count]
+        read-json json key json_key_country_name value define country_name  status st
+        if (st != VV_OKAY) break;
+
+        // Country found
+        @<li>Country: <<p-out country_name>><br/>
+        @<ul>
+
+        // Look for states under this country
+        for (state_count = 0; ; state_count++) {
+
+            // Build key prefix for a state
+            (( define json_key_state
+            @<<p-out json_key_country>>."state"[<<p-num state_count>>]
+            ))
+
+            // Search for state name
+            (( define json_key_state_name
+            @<<p-out json_key_state>>."name"
+            ))
+
+            // Search for a state name as: country[countr_count].state[state_count]
+            read-json json key json_key_state_name value define state_name  status st
+            if (st != VV_OKAY) break;
+
+            // State found
+            @<li>State: <<p-out state_name>><br/>
+            @<ul>
+
+            // Look for cities under state
+            for (city_count = 0; ; city_count++) {
+
+                // Build key prefix for city
+                (( define json_key_city
+                @<<p-out json_key_state>>."city"[<<p-num city_count>>]
+                ))
+
+                // Search for city name
+                (( define json_key_city_name
+                @<<p-out json_key_city>>."name"
+                ))
+
+                // Search for a city name as: country[countr_count].state[state_count].city[city_count]
+                read-json json key json_key_city_name value define city_name  status st
+                if (st != VV_OKAY) break;
+
+                // Found city, get its population by building a key for it
+                (( define json_key_city_population
+                @<<p-out json_key_city>>."population"
+                ))
+
+                // Get city population
+                read-json json key json_key_city_population value define city_population  status st
+                if (st != VV_OKAY) city_population="unknown";
+
+                // Display city name and its population
+                @<li>City:<<p-out city_name>> (<<p-out city_population>>)</li>
+            }
+            @</ul>
+            @</li>
+        }
+        @</ul>
+        @</li>
+    }
+    @</ul>
+
+}
+
+.EE
+.RE
+
 
 .LP
 .B SETUP PREREQUISITES
@@ -184,7 +553,7 @@ Use the following URL(s) to access your application server from a client like br
 .RS 4
 .EX
 
-\[char35]Enter JSON and send for parsing 
+\[char35] Enter JSON and send for parsing 
 http://127.0.0.1/json/json_form
 
 
@@ -251,379 +620,6 @@ http://127.0.0.1/velytest/post.html
 
 .RE
 
-
-.SH FILES
-You are now done with the example! What follows are the source files in this project so you can examine how it works:
-
-.LP
-.B JSON DOCUMENT (CITIES.JSON)
-.LP
-
-This is the JSON document that you enter in the form for parsing. It contains countries, states and cities along with their population.
-
-.RS 4
-.EX
-
-{ "country": [
-    { 
-        "name": "USA",
-        "state": [
-            { 
-                "name": "Arizona",
-                "city": [
-                    {
-                        "name" : "Phoenix",
-                        "population": 5000000
-            	    } ,
-                    {
-                        "name" : "Tuscon",
-                        "population": 1000000
-            	    } 
-
-                ]
-            } ,
-            { 
-                "name": "California",
-                "city": [
-                    {
-                        "name" : "Los Angeles",
-                        "population": 19000000
-            	    },
-                    {
-                        "name" : "Irvine"
-            	    }
-                ]
-            } 
-        ] 
-    } ,
-    { 
-        "name": "Mexico",
-        "state": [
-            { 
-                "name": "Veracruz",
-                "city": [
-                    {
-                        "name" : "Xalapa-Enríquez",
-                        "population": 8000000
-            	    },
-                    {
-                        "name" : "C\eu00F3rdoba",
-                        "population": 220000
-            	    }
-                ]
-            } ,
-            { 
-                "name": "Sinaloa",
-                "city": [
-                    {
-                        "name" : "Culiac\eu00E1n Rosales",
-                        "population": 3000000
-            	    }
-                ]
-            } 
-        ] 
-    }
-    ]
-}
-
-.EE
-.RE
-
-
-.LP
-.B CALL FROM JAVASCRIPT (POST.HTML)
-.LP
-
-You can call your Vely code from Javascript via fetch(). This HTML file will do that as soon as it loads (no buttons to push), you can of course change it to fit your needs. This also demonstrates the use of POST method with Content-Type of "application/json" to talk to your server-side Vely code.
-
-.RS 4
-.EX
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</title>
-</head>
-<body>
-    <h1 class="align">Example: Vely + JavaScript/Fetch + POST/PUT/PATCH + JSON</h1>
-    <script>
-        fetch('/json/json_process',{
-            method: 'POST',
-            headers: {'content-type': 'application/json'},
-            body:  '{ "country": [ \\
-    {  \\
-        "name": "USA", \\
-        "state": [ \\
-            {  \\
-                "name": "Arizona", \\
-                "city": [ \\
-                    { \\
-                        "name" : "Phoenix", \\
-                        "population": "5000000" \\
-            	    } , \\
-                    { \\
-                        "name" : "Tuscon", \\
-                        "population": "1000000" \\
-            	    }  \\
- \\
-                ] \\
-            } , \\
-            {  \\
-                "name": "California", \\
-                "city": [ \\
-                    { \\
-                        "name" : "Los Angeles", \\
-                        "population": "4000000" \\
-            	    }, \\
-                    { \\
-                        "name" : "Irvine" \\
-            	    } \\
-                ] \\
-            }  \\
-        ]  \\
-    } , \\
-    {  \\
-        "name": "Mexico", \\
-        "state": [ \\
-            {  \\
-                "name": "Veracruz", \\
-                "city": [ \\
-                    { \\
-                        "name" : "Xalapa-Enríquez", \\
-                        "population": "8000000" \\
-            	    }, \\
-                    { \\
-                        "name" : "C\eu00F3rdoba", \\
-                        "population": "220000" \\
-            	    } \\
-                ] \\
-            } , \\
-            {  \\
-                "name": "Sinaloa", \\
-                "city": [ \\
-                    { \\
-                        "name" : "Culiac\eu00E1n Rosales", \\
-                        "population": "3000000" \\
-            	    } \\
-                ] \\
-            }  \\
-        ]  \\
-    } \\
-    ] \\
-}'
-        })
-        .then((result) => { return result.text(); })
-        .then((content) => { document.getElementById("json_output").innerHTML = content; });
-    </script>
-    <div id='json_output'></div>
-</body>
-</html>
-
-.EE
-.RE
-
-
-.LP
-.B ENTER JSON (JSON_FORM.VELY)
-.LP
-
-This is a simple HTML form where you can enter JSON document. Since the code in json_process.vely and json_all.vely parses a list of cities as described, the text to enter is given in cities.json file.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void json_form () {
-    
-    out-header default
-
-    @<h2>Enter JSON</h2>
-
-    @<form action="<<p-path>>/json_process" method="POST">
-
-    @    <label for="json_text">JSON text:</label><br>
-    @    <textarea name="json_text" rows="8" columns="70"></textarea><br/>
-
-    @    <button type="submit">Extract specific data</button>
-    @    <button type="submit" formaction="<<p-path>>/json_all">Extract all data</button>
-    @ </form>
-
-}
-
-.EE
-.RE
-
-
-.LP
-.B PARSE ALL JSON DATA IN A LOOP (JSON_ALL.VELY)
-.LP
-
-This parses the document that you may not know the structure of. Each data node is obtained you can examine it in your code.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void json_all() {
-    out-header default
-
-    input-param json_text
-
-    // Parse json text and display any error and the position of it
-    new-json define json from json_text status define st error-text define etext error-position define epos
-    if (st != VV_OKAY) {
-        @Could not parse JSON! Error [<<p-out etext>>] at position <<p-num epos>>.
-        exit-request
-    }
-
-    // Traverse JSON document, node by node, display as a table of all data nodes
-    read-json json traverse begin
-    @<table border='1'>
-    while (1)
-    {
-        read-json json traverse key define k value define v type define t status define s
-        if (s != VV_OKAY) break; 
-        // Display name, value and type (ignore boolean and type since we don't have them)
-        @<tr> 
-            @<td><<p-out k>></td> <td><<p-out v>></td> 
-            @<td><<p-out t==VV_JSON_TYPE_NUMBER?"Number":(t==VV_JSON_TYPE_STRING?"String":"Other")>></td>
-        @</tr>
-    }
-    @</table>
-
-}
-
-.EE
-.RE
-
-
-.LP
-.B PARSE JSON BY LOOKING UP SPECIFIC ELEMENTS (JSON_PROCESS.VELY)
-.LP
-
-Parse the JSON document. This shows parsing the document that you know a structure of, but does not have a fixed structure, so each element is retrieved based on its normalized name (see \fBread-json\fP).
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void json_process() {
-    out-header default
-
-    // If JSON data sent via URL-encoded GET or POST
-    input-param json_text
-    // If JSON data sent in the request body (application/json), use that JSON data 
-    request-body json_body
-    get-req content-type to define ctype
-    if (!strcmp(ctype, "application/json")) json_text=json_body;
-
-    // Parse json text and display any error and the position of it
-    new-json define json from json_text status define st error-text define etext error-position define epos
-    if (st != VV_OKAY) {
-        @Could not parse JSON! Error [<<p-out etext>>] at position <<p-num epos>>.
-        exit-request
-    }
-
-    @Cities found<hr/>
-
-    num country_count;
-    num state_count;
-    num city_count;
-
-    // Start displaying a list
-    @<ul>
-    // Look for countries, states and then cities
-    // Data is organized in hashed arrays, for example
-    // country[0].state[1].city[0]
-    // and each can have sub-nodes, such as
-    // country[0].name
-    // etc.
-    for (country_count = 0; ; country_count++) {
-
-        // First, build key prefix for a country
-        (( define json_key_country
-        @"country"[<<p-num country_count>>]
-        ))
-
-        // Search for a country name
-        (( define json_key_country_name
-        @<<p-out json_key_country>>."name"
-        ))
-
-        // Search for a country name under index [country_count]
-        read-json json key json_key_country_name value define country_name  status st
-        if (st != VV_OKAY) break;
-
-        // Country found
-        @<li>Country: <<p-out country_name>><br/>
-        @<ul>
-
-        // Look for states under this country
-        for (state_count = 0; ; state_count++) {
-
-            // Build key prefix for a state
-            (( define json_key_state
-            @<<p-out json_key_country>>."state"[<<p-num state_count>>]
-            ))
-
-            // Search for state name
-            (( define json_key_state_name
-            @<<p-out json_key_state>>."name"
-            ))
-
-            // Search for a state name as: country[countr_count].state[state_count]
-            read-json json key json_key_state_name value define state_name  status st
-            if (st != VV_OKAY) break;
-
-            // State found
-            @<li>State: <<p-out state_name>><br/>
-            @<ul>
-
-            // Look for cities under state
-            for (city_count = 0; ; city_count++) {
-
-                // Build key prefix for city
-                (( define json_key_city
-                @<<p-out json_key_state>>."city"[<<p-num city_count>>]
-                ))
-
-                // Search for city name
-                (( define json_key_city_name
-                @<<p-out json_key_city>>."name"
-                ))
-
-                // Search for a city name as: country[countr_count].state[state_count].city[city_count]
-                read-json json key json_key_city_name value define city_name  status st
-                if (st != VV_OKAY) break;
-
-                // Found city, get its population by building a key for it
-                (( define json_key_city_population
-                @<<p-out json_key_city>>."population"
-                ))
-
-                // Get city population
-                read-json json key json_key_city_population value define city_population  status st
-                if (st != VV_OKAY) city_population="unknown";
-
-                // Display city name and its population
-                @<li>City:<<p-out city_name>> (<<p-out city_population>>)</li>
-            }
-            @</ul>
-            @</li>
-        }
-        @</ul>
-        @</li>
-    }
-    @</ul>
-
-}
-
-.EE
-.RE
-
 .SH SEE ALSO
  
 .B - Examples
@@ -631,6 +627,7 @@ void json_process() {
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -644,6 +641,8 @@ void json_process() {
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

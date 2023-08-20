@@ -478,6 +478,9 @@ syn region vv_r_construct_pf_url start="^[[:space:]]*pf-url" skip="\\[[:space:]]
     syn match vv_h_clause_pf_url " bytes-written \@=" contained containedin=vv_r_construct_pf_url
     syn match vv_h_print_inline_pf_url " bytes-written \@=" contained containedin=vv_r_inline_pf_url
     syn match vv_h_print_inline_pf_url " define \@=" contained containedin=vv_r_inline_pf_url
+    syn match vv_h_clause_pf_url " to \@=" contained containedin=vv_r_construct_pf_url
+    syn match vv_h_print_inline_pf_url " to \@=" contained containedin=vv_r_inline_pf_url
+    syn match vv_h_print_inline_pf_url " define \@=" contained containedin=vv_r_inline_pf_url
     syn match vv_h_clause_pf_url " to-error \@=" contained containedin=vv_r_construct_pf_url
     syn match vv_h_clause_pf_url " to-error$" contained containedin=vv_r_construct_pf_url
     syn match vv_h_print_inline_pf_url " to-error\(>>\)\@=" contained containedin=vv_r_inline_pf_url
@@ -497,6 +500,9 @@ syn region vv_r_construct_pf_web start="^[[:space:]]*pf-web" skip="\\[[:space:]]
     syn match vv_h_construct_pf_web "^[[:space:]]*pf-web" contained containedin=vv_r_construct_pf_web
     syn match vv_h_clause_pf_web " bytes-written \@=" contained containedin=vv_r_construct_pf_web
     syn match vv_h_print_inline_pf_web " bytes-written \@=" contained containedin=vv_r_inline_pf_web
+    syn match vv_h_print_inline_pf_web " define \@=" contained containedin=vv_r_inline_pf_web
+    syn match vv_h_clause_pf_web " to \@=" contained containedin=vv_r_construct_pf_web
+    syn match vv_h_print_inline_pf_web " to \@=" contained containedin=vv_r_inline_pf_web
     syn match vv_h_print_inline_pf_web " define \@=" contained containedin=vv_r_inline_pf_web
     syn match vv_h_clause_pf_web " to-error \@=" contained containedin=vv_r_construct_pf_web
     syn match vv_h_clause_pf_web " to-error$" contained containedin=vv_r_construct_pf_web
@@ -521,6 +527,9 @@ syn region vv_r_construct_pf_out start="^[[:space:]]*pf-out" skip="\\[[:space:]]
     syn match vv_h_construct_pf_out "^[[:space:]]*pf-out" contained containedin=vv_r_construct_pf_out
     syn match vv_h_clause_pf_out " bytes-written \@=" contained containedin=vv_r_construct_pf_out
     syn match vv_h_print_inline_pf_out " bytes-written \@=" contained containedin=vv_r_inline_pf_out
+    syn match vv_h_print_inline_pf_out " define \@=" contained containedin=vv_r_inline_pf_out
+    syn match vv_h_clause_pf_out " to \@=" contained containedin=vv_r_construct_pf_out
+    syn match vv_h_print_inline_pf_out " to \@=" contained containedin=vv_r_inline_pf_out
     syn match vv_h_print_inline_pf_out " define \@=" contained containedin=vv_r_inline_pf_out
     syn match vv_h_clause_pf_out " to-error \@=" contained containedin=vv_r_construct_pf_out
     syn match vv_h_clause_pf_out " to-error$" contained containedin=vv_r_construct_pf_out
@@ -652,6 +661,7 @@ syn region vv_r_construct_match_regex start="^[[:space:]]*match-regex" skip="\\[
     syn match vv_h_clause_match_regex " in \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " replace-with \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " result \@=" contained containedin=vv_r_construct_match_regex
+    syn match vv_h_clause_match_regex " result-length \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " single-match \@=" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " single-match$" contained containedin=vv_r_construct_match_regex
     syn match vv_h_clause_match_regex " status \@=" contained containedin=vv_r_construct_match_regex
@@ -1287,6 +1297,7 @@ syn region vv_r_construct_run_query start="^[[:space:]]*run-query" skip="\\[[:sp
     syn match vv_h_clause_run_query " column-names \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " error \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " error-text \@=" contained containedin=vv_r_construct_run_query
+    syn match vv_h_clause_run_query " input \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " name \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " no-loop \@=" contained containedin=vv_r_construct_run_query
     syn match vv_h_clause_run_query " no-loop$" contained containedin=vv_r_construct_run_query
@@ -1316,6 +1327,7 @@ syn region vv_r_construct_run_prepared_query start="^[[:space:]]*run-prepared-qu
     syn match vv_h_clause_run_prepared_query " column-names \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " error \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " error-text \@=" contained containedin=vv_r_construct_run_prepared_query
+    syn match vv_h_clause_run_prepared_query " input \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " name \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " no-loop \@=" contained containedin=vv_r_construct_run_prepared_query
     syn match vv_h_clause_run_prepared_query " no-loop$" contained containedin=vv_r_construct_run_prepared_query

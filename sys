@@ -1,6 +1,6 @@
 #!/bin/bash
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2019 DaSoftver LLC.
+#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -116,6 +116,7 @@ if [ "$VV_SYSTEM_DONE" != "1" ]; then
     elif [ "$VV_PLATFORM_ID" == "debian" ]; then
         if [ "$VV_PLATFORM_VERSION" == "10" ]; then export VV_OSNAME_ID="4"; fi
         if [ "$VV_PLATFORM_VERSION" == "11" ]; then export VV_OSNAME_ID="5"; fi
+        if [ "$VV_PLATFORM_VERSION" == "12" ]; then export VV_OSNAME_ID="12"; fi
     elif [[ "$VV_PLATFORM_ID" == "redhat" ]]; then
         if [ "$VV_PLATFORM_VERSION" == "8" ]; then export VV_OSNAME_ID="8"; fi
         if [ "$VV_PLATFORM_VERSION" == "9" ]; then export VV_OSNAME_ID="9"; fi
@@ -144,12 +145,10 @@ if [ "$VV_SYSTEM_DONE" != "1" ]; then
 #we use library path for vely, because this must work with our without source
     if [ -f $VV_LIBRARY_PATH/pcre2_version ]; then
         export VV_PCRE2_LIBS=$(cat $VV_LIBRARY_PATH/pcre2_libs)
-	if [ "$_VV_PCRE2_LO" == "10.37" ]; then
+        if [ "$_VV_PCRE2_LO" == "10.37" ]; then
             export VV_PCRE2_NEW="1"
-            export VV_PCRE2_LIBS=$(cat $VV_LIBRARY_PATH/pcre2_libs)
         else
             export VV_PCRE2_NEW="0"
-            export VV_PCRE2_LIBS=""
         fi
     fi
 

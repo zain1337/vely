@@ -15,7 +15,7 @@ vv <options>
 .RE
 
 .SH DESCRIPTION
-vv is a \fBvely\fP tool for application building. 
+vv is a Vely tool for application building. 
 
 .LP
 .B COMMAND-LINE OPTIONS
@@ -318,7 +318,6 @@ vv -q
 \fBquality_control\fP  
 \fBrename_files\fP  
 \fBSELinux\fP  
-\fBvely\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  

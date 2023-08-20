@@ -73,6 +73,12 @@ If you need to compile code based on which distribution of Operating System you 
 .RS 4
 \[bu]    
 11 for Mageia 8
+
+.RE
+
+.RS 4
+\[bu]    
+12 for Debian 12
 .RE
 
 
@@ -92,6 +98,7 @@ Compile guarded code if running Ubuntu 22 only:
 .EE
 .RE
 
+Note that generally the last 2 releases for a given distribution are available at any given moment, and the above list represents historical list of OS distributions that are (or were) available.
 .SH SEE ALSO
  
 .B - System information

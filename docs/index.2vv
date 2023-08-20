@@ -2,85 +2,188 @@
 .SH NAME
 index \- Vely documentation ()
 .SH DESCRIPTION
-Vely official web page
-Many back-end languages and frameworks are running as a virtual machine, interpreter or some other form of abstraction, or indirect execution. These layers of abstraction don't have the best performance, and are energy-inefficient, costing more electricity, water and computing equipment that relies on rare metals, ultimately affecting the environment in \fBa negative way\fP. An alternative is C - \fBthe most efficient and fastest\fP programming language. 
 
-Vely is a \fBfree open source\fP framework for C programming language that makes developing in C rapid, simple, and safer - read \fBabout why C and why Vely\fP. It is well suited for web applications, plain command-line programs, cloud applications, middleware, database applications, IOT or anything else. Read about \fBVely architecture\fP. Create and manage application servers as quickly as command-line programs. Take advantage of distributed computing in just a \fBsingle line\fP of code. 
+.B - What is Vely
 
-Vely statements are precompiled into C code and then compiled and linked with your own C code. This produces a 100% native application that's fast and small, without interpreters, virtual machines, or byte code shemes. You don't have to be a C expert because Vely writes C code for you. Read \fBhow Vely works\fP and see \fBexamples\fP. Vely supports databases, files, network, strings, encryption, JSON, REST, distributed computing, time, hash, FIFO, program execution, regex, memory management, SSL/TSL, encoding/decoding, cookies, upload/download, URL parameter parsing, error handling, web servers... Read about \fBapplication architecture\fP.
+Vely is a general-purpose framework for rapid development of high-performance software applications. It is especially well suited for web applications. It's Free \fBOpen Source\fP (under the \fBEclipse Public License 2 (EPL-2)\fP). 
 
-Vely is a great choice if you need better performance, and want simpler and safer coding. The code is functional & declarative and easy to read & write. Vely uses well-known standard libraries like cURL, OpenSSL, crypto, FastCGI, PCRE2, native database libraries from MariaDB, PostgreSQL, SQLite, for compliance, performance and reliability. Use simple \fBAPI\fP to connect to a Vely application server from elsewhere, and use existing libraries in Vely applications.
+Vely is not object-oriented, rather it's declarative and functional. It's simple to design, write and maintain applications.
 
+Vely applications are 100% native, high-performance and low-footprint without interpreters, virtual machines, or byte-code schemes. Decades of adding more energy-intensive and ever-complex abstractions on top of programming languages led to programming code \fBthat's bad for the environment\fP. 
 
+.B - What's it for
 
+Vely is great for web applications, plain command-line programs, cloud applications, middleware, distributed systems, database applications, IOT or anything else. Create and manage application servers as quickly as command-line programs.
 
+Vely supports querying databases, file manipulation, network, string manipulation, outputting data, encryption, JSON, REST, distributed computing, time, memory structures like hash and FIFO, program execution, regex, memory management, SSL/TSL, encoding/decoding, web stuff like cookies, input parameters, uploading and downloading of files, URL parameter parsing, error handling, web servers, request handling, daemonizing etc. in short, lots of very common and useful tasks you need all the time. 
 
+Vely is a great choice if you need better performance, and want simpler and safer coding. The code is functional & declarative and easy to read & write.
 
+.B - How it works
 
+Vely \fBstatements\fP are declarative, descriptive and short. They are precompiled into C code and then compiled and linked. This produces a 100% native application that's fast and small, without interpreters, virtual machines, or byte code shemes. You don't have to be a C expert because Vely writes C code for you, though you can write as much (or as little) of your own code in C as you like. 
 
+Read \fBhow Vely works\fP, \fBvely architecture\fP, \fBapplication architecture\fP, and see \fBexamples\fP.
 
+Vely uses well-known standard libraries like cURL, OpenSSL, crypto, FastCGI, PCRE2, native database libraries from MariaDB, PostgreSQL, SQLite, for compliance, performance and reliability. Use simple \fBAPI\fP to connect to a Vely application server from elsewhere, and use existing libraries in Vely applications.
 
+.B - Performance matters
 
+Many other back-end languages and frameworks are running as a virtual machine, interpreter or some other form of abstraction, or indirect execution. These layers of abstraction don't have the best performance, and are energy-inefficient, costing more electricity, water and computing equipment that relies on rare metals, ultimately affecting the environment in \fBa negative way\fP. An alternative is C - \fBthe most efficient and fastest\fP programming language.
 
+.B - Intuitive and practical
 
+Vely statements are easy to read and write. You write them inside skeleton C code so there is no need to learn anything new about the layer underneath; C is quite simple and well-known. 
 
+The scope of Vely statements is typically narrow and the generated code is shallow and direct, similar to what an experienced C programmer would write, incurring virtually no loss of performance. The arguments are specified in any order by naming their purpose, which is important for teams where readability is of utmost importance. 
 
+Vely is about productivity, safety and performance. The idea is to not sacrifice performance at all, and to improve productivity and safety significantly.
 
+.B - Memory safety
 
+When you use Vely statements, you do not need to allocate/free memory, or worry about buffer overruns or memory violations; you also get automatic memory freeing and automatic file closing. Vely is safer than pure C.
 
+.B - Why generate C
 
+C is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
 
+The reason why you wouldn't have used C in the past may have been buffer overwrites, memory management and low-level coding. Vely changes that by turning C into a rapid software development platform that's safer and easier.
 
+Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means the important and difficult parts are done by single-line Vely statements.
 
+.B - C and the environment
 
+C is the \fBfastest and most energy-efficient\fP programming language, which is the reason why it's widely used in system programming and infrastructure software. Performance is important everywhere, and especially in the Cloud, where smaller and faster means less CPU seconds, less RAM, less money spent, less energy used and less emissions. And \fBMoore's law\fP may or may not be failing, but it will take significantly more funding, time and expenditure of all kinds to keep it going, and at some point it may no longer.
 
+.B - Quality
 
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1804 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
 
 
+.B - Report bugs, request features, contact
 
+Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
 
 
+.B - Download and install
 
+Download and install Vely \fBhere\fP from pre-built packages with apt, dnf, zypper or pacman; or install from source.
 
 
+.B - Author
 
+Vely's author is \fBSergio Mijatovic\fP.
 
+.LP
+.B SAMPLE CODE
+.LP
 
 
+.B - Add a customer
 
+This adds a customer to a SQL database and outputs newly created customer ID as JSON document. Customer's first and last name are input parameters. This is sample code, see \fBhere\fP for a complete example.
 
+.RS 4
+.EX
 
+\[char35]include "vely.h"
+void add_customer()
+{
+    out-header use content-type "application/json"
 
+    input-param first_name
+    input-param last_name
+    
+    run-query @db_shopping = \\
+      "insert into customers (firstName, lastName) values ('%s', '%s') returning customerID" \\
+      : first_name, last_name \\
+      output define customerID 
 
+        @"<<p-out customerID>>"
 
+    end-query
+}
 
+.EE
+.RE
 
 
+.B - The application
 
+Let's name this application "shopping" and create it:
 
+.RS 4
+.EX
 
+sudo vf -i -u $(whoami) shopping
 
+.EE
+.RE
 
+And now build the application - Vely will automatically make all .vely files:
 
+.RS 4
+.EX
 
+vv -q
 
+.EE
+.RE
 
+This gives you a command-line program, and a server executable. You can test with either one, and they both work exactly the same. This makes it easy to automate tests.
 
+The little code example and the tools shown here exemplify Vely philosophy: simple, declarative and highly functional Vely code, with just a skeleton C code. Of course, you can write any C code you like, but generally you don't need to. The result is easy to read, maintain, and of high performance. Same goes for Vely tools.
 
+.B - Using as a service
 
+To start your application as an application server, simply do:
 
+.RS 4
+.EX
 
+vf shopping
 
+.EE
+.RE
 
+You can talk to this server directly from another program or application (see \fBhere\fP or \fBhere\fP), with a \fButility\fP, or via standard web servers like Apache or Nginx, see \fBhere\fP for a complete example.
+Some examples of using this service RESTfully, or as a URL query:
 
+.RS 4
+.EX
 
+https://.../add-customer/first-name/Roy/last-name/Delgado
 
+.EE
+.RE
 
+or
 
+.RS 4
+.EX
 
+https://.../add-customer?first-name=Roy&last-name=Delgado
 
+.EE
+.RE
 
 
+.B - From command-line
+
+A command line uses the same URL interface for input parameters:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/shopping"
+export PATH_INFO="/add-customer/first-name/Roy/last-name/Delgado"
+/var/lib/vv/bld/shopping/shopping
+
+.EE
+.RE
+
+This is great for writing programs executed from command line, such as in scripts, or as utilities. It's also a great way to test your web applications, because a command line program and an application server serve the exact same requests, take the same input and output, and work the same.
 
 
 

@@ -9,7 +9,10 @@ Outputs a web-encoded formatted string.
 .RS 4
 .EX
 
-pf-web [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [ , <expression> ]...
+pf-web <format> <expression> [ , <expression> ]... \\
+    [ bytes-written [ define ] <bytes> ] \\
+    [ to-error ] \\
+    [ to [ define ] <string> ]
 
 .EE
 .RE

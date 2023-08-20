@@ -9,7 +9,10 @@ Outputs a URL-encoded formatted string.
 .RS 4
 .EX
 
-pf-url [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [ , <expression> ]...
+pf-url <format> <expression> [ , <expression> ]... \\
+    [ bytes-written [ define ] <bytes> ] \\
+    [ to-error ] \\
+    [ to [ define ] <string> ]
 
 .EE
 .RE

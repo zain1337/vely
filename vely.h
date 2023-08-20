@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2019 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.2.0"
+#define VV_VERSION "17.3.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -783,7 +783,7 @@ num vely_total_so(vely_so_info **sos);
 FILE *vely_fopen (char *file_name, char *mode);
 int vely_fclose (FILE *f);
 #ifdef VV_INC_PCRE2
-num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached);
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached, num *reslen);
 void vely_regfree(regex_t *preg);
 #endif 
 void vely_set_env(char *arg);

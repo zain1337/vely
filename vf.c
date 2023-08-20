@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2019 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework. 
 
@@ -810,7 +810,7 @@ int main(int argc, char **argv)
                 minmaxset = 1;
                 break;
             case 'v':
-                out_msg ("Vely FastCGI Manager version [%s]. Copyright (c) Dasoftver LLC 2021. Licensed under GNU General Public License v3.0 (GPL 3).", VV_PKGVERSION);
+                out_msg ("Vely FastCGI Manager version [%s].", VV_PKGVERSION);
                 exit (0);
                 break;
             case 'f':

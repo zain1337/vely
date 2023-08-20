@@ -14,7 +14,7 @@ The following shows how to create a deployment image and a subsequent running co
 .EX
 
 \[char35]
-\[char35]Create base vely image. Install Vely on top of Ubuntu 20.04
+\[char35] Create base vely image. Install Vely on top of Ubuntu 20.04
 \[char35]
 FROM ubuntu:20.04
 ENV TZ=America/Phoenix
@@ -58,24 +58,24 @@ Next is velyapp.dockerfile, which is used to create an image for an application.
 .EX
 
 \[char35]
-\[char35]Create image that will be used to compile and link an application. Source code is copied from host,
-\[char35]application is setup, and the source code is deleted (remove this step if you want to ship the source code).
-\[char35]After that the image is ready to run in a container. Here, the application name is "velydemo"; change it to
-\[char35]fit your application. The port used in 2300, you can change that as well.
-\[char35]Customize the ENTRYPOINT command to fit your runtime.
+\[char35] Create image that will be used to compile and link an application. Source code is copied from host,
+\[char35] application is setup, and the source code is deleted (remove this step if you want to ship the source code).
+\[char35] After that the image is ready to run in a container. Here, the application name is "velydemo"; change it to
+\[char35] fit your application. The port used in 2300, you can change that as well.
+\[char35] Customize the ENTRYPOINT command to fit your runtime.
 \[char35]
 FROM vely
-\[char35]create vely user and give it limited sudo powers
+\[char35] create vely user and give it limited sudo powers
 RUN useradd -ms /bin/bash vely && echo "vely:vely" | chpasswd 
 RUN echo "vely ALL=(ALL) NOPASSWD: /usr/bin/vf" >> /etc/sudoers
-\[char35]default user
+\[char35] default user
 USER vely
-\[char35]default working dir
+\[char35] default working dir
 WORKDIR /home/vely
 EXPOSE 2300
-\[char35]copy over source code and make app
+\[char35] copy over source code and make app
 COPY ./docker/* /home/vely/
-\[char35]this is to run app with docker run
+\[char35] this is to run app with docker run
 ENTRYPOINT [ "./runit" ]
 
 .EE
@@ -87,8 +87,8 @@ The "runit" script will create an application in the container, build it, and st
 .EX
 
 \[char35]!/bin/bash
-\[char35]Create Vely application and run it in foreground for docker
-\[char35]demout has a log of execution
+\[char35] Create Vely application and run it in foreground for docker
+\[char35] demout has a log of execution
 sudo vf -i -u $(whoami) velydemo
 vv -c
 vv -q --db=mariadb:db -s

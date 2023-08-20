@@ -1,0 +1,364 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_distributed_servers \- Vely documentation (examples)
+.SH DESCRIPTION
+How to write distributed applications
+(Image distributed_computing.png not available in man page, see web page documentation)
+
+.LP
+.B WHAT IS DISTRIBUTED COMPUTING
+.LP
+
+Distributed computing is two or more servers communicating for a common purpose. Typically, some tasks are divvied up between a number of computers, and they all work together to accomplish it. Note that "separate servers" may mean physically separate computers. It may also mean virtual servers such as Virtual Private Servers (VPS) or containers, that may share the same physical hardware, though they appear as separate computers on the network. 
+
+There are many reasons why you might need this kind of setup. It may be that resources needed to complete the task aren't all on a single computer. For instance, your application may rely on multiple databases, each residing on a different computer. Or, you may need to distribute requests to your application because a single computer isn't enough to handle them all at the same time. In other cases, you are using remote services (like a REST API-based for instance), and those by nature reside somewhere else.
+
+In any case, the computers comprising your distributed system may be on a local network, or they may be worldwide, or some combination of those. The throughput (how many bytes per second can be exchanged via network) and latency (how long it takes for a packet to travel via network) will obviously vary: for a local network you'd have a higher throughput and lower latency, and for Internet servers it will be the opposite. Plan accordingly based on the quality of service you'd expect.
+
+.LP
+.B HOW SERVERS COMMUNICATE
+.LP
+
+Depending on your network(s) setup, different kinds of communication are called for. If two servers reside on a local network, then they would typically used the fastest possible means of communication. A local network typically means a secure network, because nobody else has access to it but you. So you would not need TSL/SSL or any other kind of secure protocol as that would just slow things down.
+
+If two servers are on the Internet though, then you must use a secure protocol (like TSL/SSL or some other) because your communication may be spied on. 
+
+.LP
+.B LOCAL NETWORK DISTRIBUTED COMPUTING
+.LP
+
+Most of the time, your distributed system would be on a local network. Such network may be separate and private in a physical sense, or (more commonly) in a virtual sense, where some kind of a Private Cloud Network is established for you by the Cloud provider. It's likely that separation is enforced by specialized hardware (such as routers and firewalls) and secure protocols that keep networks belonging to different customers separate. This way, a "local" network can be established even if computers on it are a world apart, though typically they reside as a part of a larger local network. 
+
+Either way, as far as your application is concerned, you are looking at a local network. Thus, the example here will be for such a case, as it's most likely what you'll have. A local network means different parts of your application residing on different servers will use some efficient protocol based on TCP/IP. One such protocol is FastCGI, a high-performance binary protocol for communication between servers, clients, and in general programs of all kinds, and that's the one used here. So in principle, the setup will look like this (there'll be more details later):
+(Image distributed_principle.png not available in man page, see web page documentation)
+
+.LP
+.B PREREQUISITES
+.LP
+
+To begin with, \fBinstall Vely\fP, which will be used to create application servers. Note that you can use similar code to call remote PHP FPM services, as it also uses FastCGI protocol!
+
+Next, you in theory you should have two servers, however in this example both servers will be on the same localhost (i.e. "127.0.0.1"). This is just for simplicity; the code is exactly the same if you have two different servers on a local network - simply use another IP (such as "192.168.0.15" for instance) for your "remote" server instead of local "127.0.0.1". The two servers do not even necessarily need to be physically two different computers. You can start a Virtual Machine (VM) on your computer and host another virtual computer there. Popular free software like VirtualBox or KVM Hypervisor can help you do that. 
+
+In any case, in this example you will start two simple application servers; they will communicate with one another. The first one will be called "local" and the other one "remote" server. The local application server will make a request to the remote one.
+
+.LP
+.B LOCAL SERVER
+.LP
+
+On a local server, create a new directory for your local application server source code:
+
+.RS 4
+.EX
+
+mkdir local_server
+cd local_server
+
+.EE
+.RE
+
+and then create a new file "status.vely" with the following:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void status() {
+    silent-header
+    out-header default
+    // input parameter: the IP address of remote server
+    input-param server
+    // input parameter: number of days to ask the status for
+    input-param days
+
+    // Create URL payload for remote server
+    // such as "/days/18" to get status for 18 days
+    (( define payload
+    @/days/<<p-out days>>
+    ))
+    // Create a string describing the remote server
+    // so if "server" is "192.168.0.15", then it would
+    // be 192.168.0.15:3800, meaning it runs on TCP port 3800
+    (( define srv_location
+    @<<p-out server>>:3800
+    ))
+    // Create a remote server connection
+    new-server define srv location srv_location \\
+        method "GET" app-path "/server" \\
+        request-path "/remote_status" \\
+        url-payload payload \\
+        timeout 30
+    // Call the remote server 
+    call-server srv
+    // Get the results from remote server
+    read-server srv data define dt
+    // Print out the results
+    @Output is: [<<p-out dt>>]
+}
+
+.EE
+.RE
+
+The code here is very simple. \fBnew-server\fP will create a new connection to a remote server, running on IP address given by input parameter "server" (and obtained with \fBinput-param\fP) on TCP port 3800. URL payload created in string variable "payload" is passed to the remote server. If it doesn't reply in 30 seconds, then the code would timeout. Then you're using \fBcall-server\fP to actually make a call to the remote server (which is served by application "server" and by request handler "remote_status.vely" below), and finally \fBread-server\fP to get the reply from it. For simplicity, error handling is omitted here, but you can easily detect a timeout, any network errors, any errors from the remote server, including error code and error text, etc. See the above statements for more on this.
+
+.LP
+.B MAKE AND START THE LOCAL SERVER
+.LP
+
+Next, create a local application:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) client
+
+.EE
+.RE
+
+Make the application (i.e. compile the source code and build the native executable):
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+Finally, start the local application server:
+
+.RS 4
+.EX
+
+vf -w 2 client
+
+.EE
+.RE
+
+This will start 2 server instances of a local application server.
+
+.LP
+.B REMOTE SERVER
+.LP
+
+Okay, now you have a local server. Next, you'll setup a remote server. Login to your remote server and create a new directory for your remote application server:
+
+.RS 4
+.EX
+
+mkdir remote_server
+cd remote_server
+
+.EE
+.RE
+
+Then create file "remote_status.vely" with this code:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void remote_status() {
+    silent-header
+    out-header default
+    input-param days
+
+    pf-out "Status in the past %s days is okay", days
+}
+
+.EE
+.RE
+
+This is super simple, and it just replies that the status is okay; it accepts the number of days to check for status and displays that back. In a real service, you might query a database to check for status (see \fBrun-query\fP).
+
+.LP
+.B MAKE AND START REMOTE SERVER
+.LP
+
+First create your application:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) server
+
+.EE
+.RE
+
+Then make your program:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+And finally start the server:
+
+.RS 4
+.EX
+
+vf -w 2 -p 3800 server
+
+.EE
+.RE
+
+This will start 2 daemon processes running as background servers. They will serve requests from your local server.
+
+Note that if you're running this example on different computers, some Linux distributions come with a firewall, and you may need to use \fBufw\fP or \fBfirewall-cmd\fP to make port 3800 accessible here. Also if you're using \fBSELinux\fP on this server, you may either need to allow binding to port 3800, or make SELinux permissive (with "sudo setenforce 0").
+
+.LP
+.B RUN DISTRIBUTED CALLS
+.LP
+
+There is a number of ways you can call the remote service you created. These are calls made from your local server, so change directory to it:
+
+.RS 4
+.EX
+
+cd local_server
+
+.EE
+.RE
+
+Here's various way to call the remote application server:
+
+.RS 4
+\[bu]    
+Execute a command-line program on local server that calls remote application server:
+(Image distributed_command_line.png not available in man page, see web page documentation)
+To do this, use "-r" option of \fBvv\fP utility to generate shell commands you can use to call your program:
+
+.RS 4
+.EX
+
+vv -r --req "/status/days/18/server/127.0.0.1"
+
+.EE
+.RE
+
+Here, you're saying that you want to make a request "status" (which is in source file "status.vely" on your local server). You are also saying that input parameter "days" should have a value of "18" and also that input parameter "server" should have a value of "127.0.0.1" - see \fBinput-param\fP statements in the above file "status.vely". If you actually have a different server with a different IP, use it instead of "127.0.0.1". The result of the above might be:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/client"
+export PATH_INFO="/status/days/18/server/127.0.0.1"
+export QUERY_STRING=""
+/var/lib/vv/bld/client/client
+
+.EE
+.RE
+
+Execute this, and the result will be:
+
+.RS 4
+.EX
+
+Output is: [Status in the past 18 days is okay]
+
+.EE
+.RE
+
+where the part in between "[..]" comes from the remote server, and the "Output is: " part comes from the command line Vely program you executed.
+
+.EE
+.RE
+
+.RE
+
+.RS 4
+\[bu]    
+Call remote application server directly from a command-line program:
+(Image distributed_command_utility.png not available in man page, see web page documentation)
+You will use \fBFastCGI_command_line_client\fP to do this: 
+
+.RS 4
+.EX
+
+export SCRIPT_NAME="/server"
+export PATH_INFO="/remote_status"
+export QUERY_STRING="days=12"
+cgi-fcgi -connect "127.0.0.1:3800" /server
+
+.EE
+.RE
+
+The result is, as expected:
+
+.RS 4
+.EX
+
+Status in the past 12 days is okay
+
+.EE
+.RE
+
+In this case, the output comes straight from the remote server, so the "Output is: " part is missing. "cgi-fcgi" utility simply copies the output from a remote service to the standard output.
+
+.RE
+
+.RS 4
+\[bu]    
+Use a command-line utility to contact local application server, which then calls the remote server, which replies back to local application server, which replies back to your command-line utility:
+(Image distributed_command_local.png not available in man page, see web page documentation)
+You will use \fBFastCGI_command_line_client\fP to do this:
+
+.RS 4
+.EX
+
+export SCRIPT_NAME="/client"
+export PATH_INFO="/status/server/127.0.0.1"
+export QUERY_STRING="days=10"
+cgi-fcgi -connect /var/lib/vv/client/sock/sock  /client
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+Output is: [Status in the past 10 days is okay]
+
+.EE
+.RE
+
+which is what you'd expect. Note that in this case, some of the input parameters are in the path of \fBrequest_URL\fP ("server" in "PATH_INFO") and some in query string ("days" in "QUERY_STRING"). Also, in this case the "cgi-fcgi" utility first sends a request to your local application server, which sends it to a remote service, so there is "Output is: " output.
+
+.RE
+
+You have different options when designing your distributed systems, and this article shows how easy it is to implement them.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample_client_API\fP  
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
+\fBexample_docker\fP  
+\fBexample_encryption\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

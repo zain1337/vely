@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2018 DaSoftver LLC.
+#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic. 
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -11,7 +11,7 @@ Maintainer: Dasoftver <vely@vely.dev>
 #sudo apt update
 #sudo apt -y install devscripts equivs build-essential lintian
 #mk-build-deps -i -s sudo debian/control
-Build-Depends: gnupg, libssl-dev, curl, libcurl4, libcurl4-openssl-dev, libmariadb-dev, zlib1g-dev, devscripts, dpkg-sig, reprepro, debhelper(>= 11), libfcgi-dev, libpq-dev, libsqlite3-dev, libpcre2-dev
+Build-Depends: gnupg, libssl-dev, curl, libcurl4, libcurl4-openssl-dev, libmariadb-dev, zlib1g-dev, devscripts, reprepro, debhelper(>= 11), libfcgi-dev, libpq-dev, libsqlite3-dev, libpcre2-dev
 Standards-Version: 4.1.2
 Homepage: https://vely.dev
 Vcs-Browser: https://vely.dev

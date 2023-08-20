@@ -29,7 +29,7 @@ A digest is basically a hash function that is used to scramble and lengthen the 
 
 The "salt" is a method of defeating so-called "rainbow" tables. An attacker knows that two hashed values will still look exactly the same if the originals were. However, if you add the salt value to hashing, then they won't. It's called "salt" because it's sort of mixed with the key to produce something different. Now, a rainbow table will attempt to match known hashed values with precomputed data in an effort to guess a password. Usually, salt is randomly generated for each key and stored with it. In order to match known hashes, the attacker would have to precompute rainbow tables for great many random values, which is generally not feasible.
 
-You will often hear about "iterations" in encryption. An iteration is a single cycle in which a key and salt are mixed in such a way to make guessing the key harder. This is done many times so to make it computationally difficult for an attacker to reverse-guess the key, hence "iterations" (plural). Typically, a minimum required number of iterations is 1000, but it can be different than that. If you start with a reallly strong password, generally you need less.
+You will often hear about "iterations" in encryption. An iteration is a single cycle in which a key and salt are mixed in such a way to make guessing the key harder. This is done many times so to make it computationally difficult for an attacker to reverse-guess the key, hence "iterations" (plural). Typically, a minimum required number of iterations is 1000, but it can be different than that. If you start with a really strong password, generally you need less.
 
 IV (or "Initialization Vector") is typically a random value that's used for encryption of each message. Now, salt is used for producing a key based on a password. And IV is used when you already have a key and now are encrypting messages. The purpose of IV is to make the same messages appear differently when encrypted. Sometimes, IV also has a sequential component, so it's made of a random string plus a sequence that constantly increases. This makes "replay" attacks difficult, which is where attacker doesn't need to decrypt a message; but rather an encrypted message was "sniffed" (i.e. intercepted between the sender and receiver) and then replayed, hoping to repeat the action already performed. Though in reality, most high-level protocols already have a sequence in place, where each message has, as a part of it, an increasing packet number, so in most cases IV doesn't need it.
 
@@ -328,7 +328,7 @@ This c\e000ontai
 .EE
 .RE
 
-The encryted value is shorter because the data is shorter in this case too, and the result matches exactly the original.
+The encrypted value is shorter because the data is shorter in this case too, and the result matches exactly the original.
 
 .LP
 .B USE ANY CIPHER OR DIGEST
@@ -595,6 +595,7 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -608,6 +609,8 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

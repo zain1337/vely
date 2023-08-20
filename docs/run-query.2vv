@@ -12,6 +12,7 @@ Execute a query and loop through result set.
 run-query \\
     [ @<database> ] \\
     = <query text> \\
+    [ input <input parameter> [ , ... ] ] \\
     [ ( output [ define ] <column name> [ , ... ] ) | unknown-output ] \\
     [ no-loop ] \\
     [ error [ define ] <error> ] \\
@@ -22,8 +23,7 @@ run-query \\
     [ name <query name> ] \\
     [ column-count [ define ] <column count> ] \\
     [ column-names [ define ] <column names> ] \\
-    [ column-data [ define ] <column data> ] \\
-    [ : <input parameter> [ , ... ] ]
+    [ column-data [ define ] <column data> ]
 
     <any code>
 
@@ -92,7 +92,7 @@ If for some reason you don't know the number of output columns of the query (for
 .B INPUT
 .LP
 
-The query's input parameters (if any) are specified with '%s' in the <query text> (note that single quotes must be included). The actual input variables are provided after optional semicolon (":"), in a list separated by a comma. Each input variable is a string regardless of the actual column type, as the database engine will interpret the data according to its usage. Each input variable is trimmed (left and right) before used in a query. Each <input parameter> may contain a comma if it is a string (i.e. quoted) or it is an expression within parenthesis.
+The query's input parameters (if any) are specified with '%s' in the <query text> (note that single quotes must be included). The actual input variables are provided after optional "input" clause (you can instead use semicolon, i.e. ":"), in a list separated by a comma. Each input variable is a string regardless of the actual column type, as the database engine will interpret the data according to its usage. Each input variable is trimmed (left and right) before used in a query. Each <input parameter> may contain a comma if it is a string (i.e. quoted) or it is an expression within parenthesis.
 
 .LP
 .B LOOPING THROUGH DATA
@@ -250,10 +250,10 @@ The array of <column data>, as well as each member of this array, are \fBallocat
 .EX
 
 // No space after "@" and "="
-run-query @db ="select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+run-query @db ="select firstName, lastName from employee where employeeId='%s'" output firstName, lastName input empid
 
 // Space after "@" and "="
-run-query @ db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+run-query @ db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName input empid
 
 .EE
 .RE
@@ -272,7 +272,7 @@ Select first and last name (output is firstName and lastName) based on employee 
 .EX
 
 input-param empid
-run-query @db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName : empid
+run-query @db = "select firstName, lastName from employee where employeeId='%s'" output firstName, lastName input empid
     @Employee is <<query-result  firstName>> <<query-result  lastName>>
 end-query
 
@@ -284,7 +284,7 @@ Prepared query without a loop and obtain error code and affected rows:
 .RS 4
 .EX
 
-run-prepared-query @db = qry no-loop error define ecode affected-rows define arows : stock_name, stock_price, stock_price
+run-prepared-query @db = qry no-loop error define ecode affected-rows define arows input stock_name, stock_price, stock_price
 
 .EE
 .RE
@@ -294,7 +294,7 @@ When only a single database is used (a single \fBdatabase_config_file\fP for an 
 .RS 4
 .EX
 
-run-query =myqry no-loop : stock_name, stock_price, stock_price
+run-query =myqry no-loop input stock_name, stock_price, stock_price
 
 .EE
 .RE

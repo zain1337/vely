@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// Copyright 2019 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -36,9 +36,10 @@ void vely_regfree(regex_t *preg)
 // If case_insensitive is 1, then case doesn't matter (0 otherwise).
 // If single_match is 1, then only a single match/replacement is done.
 // If utf8 is 1, then characters are treated as UTF8
+// reslen is the length of the replaced result, or it could be NULL if not needed
 // cached is a compiled regex_t. If NULL, it's not used. If *cached is NULL, it's assigned. If *cached is not-NULL, it's used.
 //
-num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached)
+num vely_regex(char *look_here, char *find_this, char *replace, char **res, num utf8, num case_insensitive, num single_match, regex_t **cached, num *reslen)
 {
     VV_TRACE("");
     num reg_ret=0;
@@ -70,7 +71,7 @@ num vely_regex(char *look_here, char *find_this, char *replace, char **res, num 
     }
 #else
     // Some distros will link in pcre2 even though libc is present, because regcomp/... is the same function names used
-    // for both for prior versions of pcre2. It was a stupendously bad idea to duplicate function names in pcre2 prior to 
+    // for both for prior versions of pcre2. It was not the best idea to duplicate function names in pcre2 prior to 
     // version 10.37.
     if (!pcre2_resolved) 
     {
@@ -317,6 +318,8 @@ num vely_regex(char *look_here, char *find_this, char *replace, char **res, num 
             num len_of_reminder;
             VV_ALLOC_REPLACE(len_of_reminder = strlen(last_look_here));
             memcpy(replace_res+replace_res_len, last_look_here, len_of_reminder+1); 
+            if (reslen != NULL) *reslen = replace_res_len+len_of_reminder; // +1 in memcpy above is to copy null-char
+                                                                           // which we don't count in string length
         }
 
         // DONE with replacement

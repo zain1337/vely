@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2019 DaSoftver LLC. 
+#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic. 
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
@@ -165,6 +165,7 @@ install:
 	install -D -m 0755 vf  -t $(DESTDIR)$(V_BIN)/
 	install -m 0755 -d $(DESTDIR)$(V_MAN)
 	install -D -m 0644 docs/*.2vv -t $(DESTDIR)$(V_MAN)/
+	mv $(DESTDIR)$(V_MAN)/index.2vv $(DESTDIR)$(V_MAN)/vely.2vv
 	install -D -m 0755 sys -t $(DESTDIR)$(V_LIB)/
 	sed -i "s|^[ ]*export[ ]*VV_LIBRARY_PATH[ ]*=.*|export VV_LIBRARY_PATH=$(V_LIB)|g" $(DESTDIR)$(V_LIB)/sys
 	sed -i "s|^[ ]*export[ ]*VV_LIBRARY_PATH[ ]*=.*|export VV_LIBRARY_PATH=$(V_LIB)|g" $(DESTDIR)$(V_BIN)/vv

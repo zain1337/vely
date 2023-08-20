@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: EPL-2.0
-// If format is NULL, flush the output.
-// Copyright 2019 DaSoftver LLC.
+// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 // Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 // On the web https://vely.dev/ - this file is part of Vely framework. 
 
@@ -73,6 +72,7 @@
 #define VV_KEYPASSWORD "password "
 #define VV_KEYINPUTLENGTH "input-length "
 #define VV_KEYOUTPUTLENGTH "output-length "
+#define VV_KEYRESULTLENGTH "result-length "
 #define VV_KEYITERATIONS "iterations "
 #define VV_KEYSALT "salt "
 #define VV_KEYSALTLENGTH "salt-length "
@@ -2872,6 +2872,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         vely_db_parse vp;
                         memset  (&vp, 0, sizeof(vely_db_parse)); // all are NULL now
+                        bool is_colon_subst = false;
 
                         //
                         // find keyword must be first
@@ -2886,6 +2887,19 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         vp.with_output = find_keyword (mtext, VV_KEYOUTPUT, 1);
                         vp.with_unknown_output = find_keyword (mtext, VV_KEYUNKNOWNOUTPUT, 1);
                         vp.colon = find_keyword (mtext, VV_KEYCOLON, 0);
+                        char *colon_subst = find_keyword (mtext, VV_KEYINPUT, 0);
+                        if (vp.colon != NULL)
+                        {
+                            if (colon_subst != NULL) _vely_report_error("Cannot use both ':' and input clause, use one or the other");
+                        }
+                        else
+                        {
+                            if (colon_subst != NULL) 
+                            {
+                                vp.colon = colon_subst;
+                                is_colon_subst = true;
+                            }
+                        }
                         vp.eq = find_keyword (mtext, VV_KEYEQUALSHORT, 0);
                         vp.at = find_keyword (mtext, VV_KEYAT, 0);
                         vp.noloop = find_keyword (mtext, VV_KEYNOLOOP, 0);
@@ -2907,7 +2921,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&(vp.on_error_exit), "run-query", VV_KEYONERROREXIT, 0, 0);
                         carve_statement (&(vp.with_output), "run-query", VV_KEYOUTPUT, 0, 1);
                         carve_statement (&(vp.with_unknown_output), "run-query", VV_KEYUNKNOWNOUTPUT, 0, 0);
-                        carve_statement (&(vp.colon), "run-query", VV_KEYCOLON, 0, 1);
+                        carve_statement (&(vp.colon), "run-query", is_colon_subst ? VV_KEYINPUT : VV_KEYCOLON, 0, 1);
                         carve_statement (&(vp.eq), "run-query", VV_KEYEQUALSHORT, 1, 1);
                         carve_statement (&(vp.at), "run-query", VV_KEYAT, 0, 1);
                         carve_statement (&(vp.noloop), "run-query", VV_KEYNOLOOP, 0, 0);
@@ -4261,6 +4275,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *in = find_keyword (mtext, VV_KEYIN, 1);
                         char *replace_with = find_keyword (mtext, VV_KEYREPLACEWITH, 1);
                         char *result = find_keyword (mtext, VV_KEYRESULT, 1);
+                        char *reslen = find_keyword (mtext, VV_KEYRESULTLENGTH, 1);
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
                         char *case_insensitive = find_keyword (mtext, VV_KEYCASEINSENSITIVE, 1);
                         char *utf8 = find_keyword (mtext, VV_KEYUTF8, 1);
@@ -4275,6 +4290,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&in, "match-regex", VV_KEYIN, 1, 1);
                         carve_statement (&replace_with, "match-regex", VV_KEYREPLACEWITH, 0, 1);
                         carve_statement (&result, "match-regex", VV_KEYRESULT, 0, 1);
+                        carve_statement (&reslen, "match-regex", VV_KEYRESULTLENGTH, 0, 1);
                         carve_statement (&status, "match-regex", VV_KEYSTATUS, 0, 1);
                         carve_statement (&case_insensitive, "match-regex", VV_KEYCASEINSENSITIVE, 0, 2);
                         carve_statement (&utf8, "match-regex", VV_KEYUTF8, 0, 2);
@@ -4300,6 +4316,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         // result can be defined
                         define_statement (&result, VV_DEFSTRING);
                         define_statement (&status, VV_DEFNUM);
+                        define_statement (&reslen, VV_DEFNUM);
 
                         //
                         // If there is data right after statement (i.e. 'match') and it has no option (such as call-web https://...)
@@ -4317,8 +4334,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             oprintf ("if ((%s)) {if (%s != NULL) vely_regfree(%s); %s = NULL;}\n", ccache, regname, regname, regname);
                         }
 
-                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
-                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        if (replace_with == NULL) oprintf ("%s%svely_regex(%s, %s, %s, %s, %s, %s, %s, %s%s, NULL);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, "NULL", "NULL", utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname);
+                        else oprintf ("%s%svely_regex(%s, %s, %s, &(%s), %s, %s, %s, %s%s, %s%s);\n", status==NULL?"":status,status==NULL?"":"=", in, pattern, replace_with, result, utf8c, case_insensitivec, single_matchc, cache==NULL?"":"&",cache==NULL?"NULL":regname, reslen==NULL?"":"&",reslen==NULL?"NULL":reslen);
                         vely_free(case_insensitivec);
                         vely_free(single_matchc);
                         vely_free(utf8c);
@@ -4589,8 +4606,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *format = find_keyword (mtext, "\"", 0);
                         char *written = find_keyword (mtext, VV_KEYBYTESWRITTEN, 0);
                         char *toerr = find_keyword (mtext, VV_KEYTOERROR, 0);
+                        char *to = find_keyword (mtext, VV_KEYTO, 0);
 
                         carve_statement (&toerr, "pf-*", VV_KEYTOERROR, 0, 0);
+                        carve_statement (&to, "pf-*", VV_KEYTO, 0, 1);
                         //carve out bytes-written to get its value 
                         carve_statement (&written, "pf-*", VV_KEYBYTESWRITTEN, 0, 1);
 
@@ -4609,18 +4628,32 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             _vely_report_error( "format must be followed by a comma and a list of arguments in pf-* statement");
                         }
-                        if (written != NULL && (written-mtext > comma-mtext))
+                        /*if (written != NULL && (written-mtext > comma-mtext))
                         {
                             _vely_report_error( "bytes-written must be before format in pf-* statement");
-                        }
+                        }*/
+                        if (toerr != NULL && to != NULL) _vely_report_error( "cannot use both to-error and 'to' clause; use one or the other");
                         // bytes-written may be define'd
                         define_statement (&written, VV_DEFNUM);
+                        define_statement (&to, VV_DEFSTRING);
 
                         //
                         // Look for each option and collect relevant info
                         // First we MUST get each options position
                         //
-                        oprintf ("%s%svely_printf(%s, %s, %s);\n", written==NULL?"":written,written==NULL?"":"=", toerr!=NULL?"true":"false",c_printf!=0?"VV_NOENC":(c_printf_web!=0?"VV_WEB":"VV_URL"),format);
+                        if (to == NULL) oprintf ("%s%svely_printf(%s, %s, %s);\n", written==NULL?"":written,written==NULL?"":"=", toerr!=NULL?"true":"false",c_printf!=0?"VV_NOENC":(c_printf_web!=0?"VV_WEB":"VV_URL"),format);
+                        else
+                        {
+                            // this is ... to [ define ] <str>
+                            //
+                            oprintf("vely_write_to_string (&(%s));\n", to);
+                            gen_ctx->total_write_string++;
+                            //toerr is guaranteed to be NULL here, see above
+                            oprintf ("%s%svely_printf(true, %s, %s);\n", written==NULL?"":written,written==NULL?"":"=", c_printf!=0?"VV_NOENC":(c_printf_web!=0?"VV_WEB":"VV_URL"),format);
+                            oprintf("vely_write_to_string_notrim();\n"); 
+                            oprintf("vely_write_to_string (NULL);\n"); 
+                            gen_ctx->total_write_string--;
+                        }
 
                         continue;
                     }
@@ -5655,7 +5688,7 @@ int main (int argc, char* argv[])
     //
     if (argc == 1 || (argc == 2 && !strcmp (argv[1], "-version")))
     {
-        fprintf (stdout, "%s %s on %s (%s)\nCopyright (c) 2020 Dasoftver LLC",argv[0], VV_VERSION, VV_OS_NAME, VV_OS_VERSION);
+        fprintf (stdout, "%s %s on %s (%s)\n",argv[0], VV_VERSION, VV_OS_NAME, VV_OS_VERSION);
         exit(0);
     }
 

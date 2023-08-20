@@ -6,135 +6,7 @@ Click on each example for instructions.
 
 .RS 4
 \[bu]    
-\fBHello_world\fP:
-.RS 4
-\[bu]    
-This is a simple Hello World example. It explains basics of making applications as well as tracing and debugging them.
-.RE
-
-.RS 4
-\[bu]    
-What's in it:  command line; web browser; Nginx; Unix sockets; \fB2 source files, 7 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBEncryption and decryption\fP :
-.RS 4
-\[bu]    
-Here you will learn how to encrypt and decrypt data using a password, also known as symmetrical encryption. This password must be known to both parties exchanging information.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: encryption, decryption, OpenSSL.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBShopping\fP:
-.RS 4
-\[bu]    
-This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; \fB11 source files, 212 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBCookies\fP:
-.RS 4
-\[bu]    
-A value is entered in the browser and saved as a cookie, then read back later. This example displays a web form. When it is submitted, the input is used to set a cookie in response. Then in a separate page, the cookie value is obtained and displayed. This is the basic mechanism often used in saving web application states and session information.
-.RE
-
-.RS 4
-\[bu]    
-What's in it:  web browser; Apache; Unix sockets; \fB1 source files, 49 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBClient API\fP :
-.RS 4
-\[bu]    
-Connect to FastCGI servers such as Vely or PHP FPM.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: FastCGI, client, server, API.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBCreate_table\fP:
-.RS 4
-\[bu]    
-Example of manipulating tables via SQL. Table is dropped, created, data inserted, then queried, and finally it is dropped.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: PostgreSQL; command line; web browser; Nginx; Unix sockets; \fB2 source files, 44 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBForm\fP:
-.RS 4
-\[bu]    
-This application is a guest tracking database. The user can input first and last name, which are added to a database table. A web page shows the list of names queried from the database.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: PostgreSQL; web browser; Apache; Unix sockets; \fB4 source files, 86 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBSendmail\fP:
-.RS 4
-\[bu]    
-Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
-.RE
-
-.RS 4
-\[bu]    
-What's in it:  web browser; Apache; Unix sockets; \fB1 source files, 79 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBStock\fP:
+\fBStock ticker application\fP:
 .RS 4
 \[bu]    
 Stock ticker example will create a new ticker (stock name and its price) or update an existing one, and display the stock ticker database.
@@ -142,7 +14,7 @@ Stock ticker example will create a new ticker (stock name and its price) or upda
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; \fB3 source files, 55 lines of code\fP.
+What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
 .RE
 
 .RE
@@ -150,31 +22,15 @@ What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; \fB3 sour
 
 .RS 4
 \[bu]    
-\fBMultitenant_SaaS\fP:
+\fBWeb file manager in 170 lines of code\fP:
 .RS 4
 \[bu]    
-This is a multi-tenant web application that you can run on the Internet as Software-as-a-Service (SaaS). Each user has a completely separate data space from any other. This web application will let user sign up for Notes service - a place where a user can create notes, and then view and delete them. This example also shows how to change application path (see \fBrequest_URL\fP) and use REST-like URLs for your API/application.
+Uploading and downloading files is one of the most common tasks in web applications. This article shows how to build a file manager application in about 170 lines of code. 
 .RE
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; web browser; Apache; Application path; Unix sockets; \fB7 source files, 315 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBFile_manager\fP:
-.RS 4
-\[bu]    
-This is a file manager application. Files such as JPG, PDF or other can be uploaded, and each file can have a description tag. A list of uploaded files can be displayed. Each file can be viewed or downloaded, and each file can be deleted. Files metadata is kept in the database (name, path, description, size, extension), while the files themselves are kept in Vely \fBfile_storage\fP.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: PostgreSQL; web browser; Apache; TCP sockets; \fB6 source files, 169 lines of code\fP.
+What's in it: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
 .RE
 
 .RE
@@ -182,31 +38,15 @@ What's in it: PostgreSQL; web browser; Apache; TCP sockets; \fB6 source files, 1
 
 .RS 4
 \[bu]    
-\fBWrite_report\fP:
+\fBMultitenant SaaS with MariaDB and Apache\fP:
 .RS 4
 \[bu]    
-Builds a report of employees from a database. Creates a "reports" directory and a file name with a time stamp, then writes the report to a file and also displays the report to a web page.
+Cloud applications typically run as \fBSoftware-as-a-Service\fP (SaaS). This article will demonstrate typical functionality you need to have for a minimal functioning SaaS, and how to achieve it. The example shown here is a complete application you can run on virtually any Linux computer.
 .RE
 
 .RS 4
 \[bu]    
-What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; \fB2 source files, 69 lines of code\fP.
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-\fBUtility\fP:
-.RS 4
-\[bu]    
-In this example, a temperature measuring device will periodically insert temperatures into a database table, along with a timestamp. The purpose is to read this history and output the result from time to time, which can then be piped or sent elsewhere.
-.RE
-
-.RS 4
-\[bu]    
-What's in it: SQLite; command line; Unix sockets; \fB2 source files, 25 lines of code\fP.
+What's in it: MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 315 lines of code.
 .RE
 
 .RE
@@ -214,15 +54,15 @@ What's in it: SQLite; command line; Unix sockets; \fB2 source files, 25 lines of
 
 .RS 4
 \[bu]    
-\fBJson\fP:
+\fBServer communication, distributed computing\fP :
 .RS 4
 \[bu]    
-This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
+Application servers running on different computers and communicate back and forth in just a few lines of code.
 .RE
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines of code\fP.
+What's in it: application servers, distributed computing, call-server statement.
 .RE
 
 .RE
@@ -230,15 +70,15 @@ What's in it:  web browser; Nginx; Unix sockets; \fB5 source files, 160 lines of
 
 .RS 4
 \[bu]    
-\fBHash_server\fP:
+\fBShopping REST API\fP:
 .RS 4
 \[bu]    
-You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form. This is an extremely fast, single-process hash server.
+This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 .RE
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Apache; REST API; Unix sockets; \fB3 source files, 54 lines of code\fP.
+What's in it: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 12 source files, 212 lines of code.
 .RE
 
 .RE
@@ -262,6 +102,214 @@ What's in it: PostgreSQL, command line, writing files.
 
 .RS 4
 \[bu]    
+\fBUploading files\fP :
+.RS 4
+\[bu]    
+This example shows how to upload files to your web applications. It is one of the most common tasks in web development.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: Nginx, application server.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBMariaDB/mySQL databases\fP :
+.RS 4
+\[bu]    
+Learn how to use MariaDB and mySQL databases in your projects, both web applications and command-line programs.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: MariaDB/mySQL, Apache, command line, application server.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBSQLite example: temperature utility\fP:
+.RS 4
+\[bu]    
+In this example, a temperature measuring device will periodically insert temperatures into a database table, along with a timestamp. The purpose is to read this history and output the result from time to time, which can then be piped or sent elsewhere.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: SQLite; command line; Unix sockets; 2 source files, 25 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBEncryption and decryption\fP :
+.RS 4
+\[bu]    
+Here you will learn how to encrypt and decrypt data using a password, also known as symmetrical encryption. This password must be known to both parties exchanging information.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: encryption, decryption, OpenSSL.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBJSON parsing and searching\fP:
+.RS 4
+\[bu]    
+This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBCookies in a web application\fP:
+.RS 4
+\[bu]    
+A value is entered in the browser and saved as a cookie, then read back later. This example displays a web form. When it is submitted, the input is used to set a cookie in response. Then in a separate page, the cookie value is obtained and displayed. This is the basic mechanism often used in saving web application states and session information.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBHTML form for guest database\fP:
+.RS 4
+\[bu]    
+This application is a guest tracking database. The user can input first and last name, which are added to a database table. A web page shows the list of names queried from the database.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBSending mail\fP:
+.RS 4
+\[bu]    
+Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBClient API, connect to Vely, PHP FPM\fP :
+.RS 4
+\[bu]    
+Connect to FastCGI servers such as Vely or PHP FPM.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: FastCGI, client, server, API.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBUsing DDL and DML with database\fP:
+.RS 4
+\[bu]    
+Example of manipulating tables via SQL. Table is dropped, created, data inserted, then queried, and finally it is dropped.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 source files, 44 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBHashed key/value server\fP:
+.RS 4
+\[bu]    
+You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form. This is an extremely fast, single-process hash server.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  web browser; Apache; REST API; Unix sockets; 3 source files, 54 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBHello_world\fP:
+.RS 4
+\[bu]    
+This is a simple Hello World example. It explains basics of making applications as well as tracing and debugging them.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  command line; web browser; Nginx; Unix sockets; 2 source files, 7 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBReport from SQL database, file writing\fP:
+.RS 4
+\[bu]    
+Builds a report of employees from a database. Creates a "reports" directory and a file name with a time stamp, then writes the report to a file and also displays the report to a web page.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
 \fBSimple Hello World\fP :
 .RS 4
 \[bu]    
@@ -278,7 +326,7 @@ What's in it: Hello World, command line, application server.
 
 .RS 4
 \[bu]    
-\fBDocker\fP :
+\fBDocker container for Vely application\fP :
 .RS 4
 \[bu]    
 Here you will build a Vely docker container with a simple stock application. The web server and the database are outside the container. This way any Vely application can easily be containerized and moved/managed anywhere.
@@ -299,6 +347,7 @@ What's in it: Docker, MariaDB, web browser, Apache.
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -312,6 +361,8 @@ What's in it: Docker, MariaDB, web browser, Apache.
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

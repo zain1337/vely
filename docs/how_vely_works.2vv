@@ -263,7 +263,6 @@ Vely provides enhanced \fBdiagnostic_messages\fP; here is an example:
 \fBquality_control\fP  
 \fBrename_files\fP  
 \fBSELinux\fP  
-\fBvely\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  

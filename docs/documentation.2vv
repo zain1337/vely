@@ -121,6 +121,7 @@ ldx
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -134,6 +135,8 @@ ldx
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP   
 .RE
@@ -181,7 +184,6 @@ ldx
 \fBquality_control\fP  
 \fBrename_files\fP  
 \fBSELinux\fP  
-\fBvely\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  

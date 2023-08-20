@@ -1,0 +1,295 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_using_mariadb_mysql \- Vely documentation (examples)
+.SH DESCRIPTION
+Using MariaDB and mySQL in web applications
+(Image article_mariadb.jpg not available in man page, see web page documentation)
+
+.LP
+.B MARIADB AND MYSQL
+.LP
+
+MariaDB and mySQL are popular Open Source databases that share good amount of functionality and syntax, given their common roots. In recent years, the divergence between them has been growing, though for the most part they are still interchangeable. This article will cover MariaDB, as it is included in virtually all Linux distributions. However, it should also be applicable to mySQL as well.
+
+.LP
+.B CONNECTING TO DATABASE
+.LP
+
+There are a number of ways to connect to MariaDB/mySQL, but the fastest connection method is via native C library. There are a few aspects to consider when choosing how will you access MariaDB/mySQL (and not just those):
+
+.RS 4
+\[bu]    
+Are you using only native libraries to connect, as they are faster than those with layers of abstractions on top of it that slow down the access?
+
+.RE
+
+.RS 4
+\[bu]    
+Is the database connection persistent? Meaning does the client connection stay open between queries, or does it connect and disconnect each time it needs to access the database?
+
+.RE
+
+.RS 4
+\[bu]    
+Are the prepared statements supported? Prepared statements speed up SQL access in many cases because the server does not parse a SQL statement every single time.
+.RE
+
+When you choose your database access framework, try to find out if you will get at least some positive answers to these questions. Here I will use \fBVely\fP, for which the answer is "yes" on all three counts above. 
+
+.LP
+.B PREREQUISITES
+.LP
+
+First, \fBinstall MariaDB\fP. I will also use Apache as a web server to access the database from web browser, so \fBinstall Apache\fP too - if not already setup, you may need to configure a firewall for it to allow HTTP traffic (see \fBufw\fP, \fBfirewall-cmd\fP etc.). And finally, \fBinstall Vely\fP, which will be an application server that sits between the web server and the database.
+
+You can also install mySQL and all the steps should be the same.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Login as root to "mysql" utility and execute the following:
+
+.RS 4
+.EX
+
+create database if not exists db_people;
+create user if not exists vely identified by 'your_password';
+grant create,alter,drop,select,insert,delete,update on db_people.* to vely;
+use db_people;
+create table if not exists people_list (first_name varchar(30), last_name varchar(40));
+exit
+
+.EE
+.RE
+
+Here, you will create database "db_people" and user "vely". You can change their names however you like, but remember to change them everywhere here. Then you'll give user "vely" the permissions to basically own database "db_people" and be able to create objects, data etc.
+
+Finally, table "people_list" is created in this database - it's very simple with just a first and last name. That's it for the database setup.
+
+.LP
+.B ACCESS THE DATABASE
+.LP
+
+In order to access your database (any database really), you will need a \fBdatabase_config_file\fP for it. This file is simply specifying things like the method of accessing the database, what is the user name and password and so on. To that effect, create a database configuration file "people". You can call this file anything, but keep in mind its name is used in the code to reference the database, so if you change it, then also change it in the code below. Create file "people":
+
+.RS 4
+.EX
+
+[client]
+user=vely
+password=your_password
+database=db_people
+protocol=TCP
+host=127.0.0.1
+port=3306
+
+.EE
+.RE
+
+This is actually a native MariaDB client configuration file, so learning the format of it may help you elsewhere as well. The "[client]" section signifies this is information that a client needs to connect. Next, you'd specify MariaDB user name (which is "vely" user we created above), then the password ("your_password", of course you can have your own), and the database name is "db_people" - again that's the database we created already. 
+
+The rest is pretty much the default method of contacting the database - MariaDB out of the box will listen on TCP port 3306 on localhost. If you changed any of that, then you have to change it here too. Now your code can assess the database.
+
+.LP
+.B THE CODE
+.LP
+
+Create file "list_people.vely" and copy this to it:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void list_people() {
+    out-header default
+
+    @List of people:<hr/>
+
+    run-query @people = "select first_name, last_name from people_list" output define f_name, l_name
+        @First name <<p-out f_name>>, last name <<p-out l_name>><br/>
+    end-query
+}
+
+.EE
+.RE
+
+This will run a query that lists everyone's first and last names. The query will use configuration file "people" that you created previously (note "@people"). And the output columns will go to string variables (i.e. "char *") named "f_name" and "l_name" - these variables are created on the spot with "define" clause of \fBrun-query\fP statement. You can also use prepared SQL statements by using "run-prepared-query" statement instead of "run-query" in the code above.
+
+And the "@" \fBoutput_statement\fP sends the data to standard output, which can be the actual "stdout" stream if this is going to be a command-line program, or to the browser if this is a web application. The nice thing is, it works the same for both. \fBp-out\fP statement outputs a string, and when placed in between << and >> it is "inlined" into an output statement. 
+
+.LP
+.B CREATE AND MAKE THE APPLICATION
+.LP
+
+When you get started on a Vely application, you have to create it first with the \fBvf\fP program manager:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) people_app
+
+.EE
+.RE
+
+"-i" option says to create an application. "-u" option says which user will own it, in this case it's "$(whoami)" which is Linux-speak for the "currently logged in user". And finally the application name is "people_app". 
+
+To make your application, use \fBvv\fP tool:
+
+.RS 4
+.EX
+
+vv -q --db='mariadb:people'
+
+.EE
+.RE
+
+This gathers all the .vely files in the current directory (in this case just one), processes all the Vely statements (like run-query) into C code, and then compiles and links it all together into a native application. Note "--db='mariadb:people'" option - it states your program uses database named "people" and the database vendor is MariaDB or mySQL. You can have any number of databases and any number of supported vendors.
+
+Two executables will be produced, both in the "/var/lib/vv/bld/people_app" directory. Note the "people_app" subdirectory - it matches your application name created above. This directory is like a scratch-pad for your application, this is where all the generated code goes. One executable created will be "people_app" that you can run from the command line. The other one is "people_app.fcgi" that you can run as a \fBFastCGI\fP application server, which is the web application. You'll use both in this article.
+
+.LP
+.B PUT SOME DATA IN
+.LP
+
+To get started, you'll need some data to query. To that effect, insert some data first. Log in to the database with the user credentials created previously (change "your_password" if you changed your password):
+
+.RS 4
+.EX
+
+mysql -u vely -pyour_password
+
+.EE
+.RE
+
+and then execute this SQL:
+
+.RS 4
+.EX
+
+use db_people;
+insert into people_list (first_name, last_name) values ("Timothy", "McMillan"), ("Tina", "Clark");
+commit;
+exit;
+
+.EE
+.RE
+
+Now you have two people in your database, Timothy and Tina. 
+
+.LP
+.B RUN FROM COMMAND LINE
+.LP
+
+Execute your program:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/people_app"
+export PATH_INFO="/list_people"
+export VV_SILENT_HEADER="yes"
+/var/lib/vv/bld/people_app/people_app
+
+.EE
+.RE
+
+You'll get:
+
+.RS 4
+.EX
+
+List of people:<hr/>
+First name Timothy, last name McMillan<br/>
+First name Tina, last name Clark<br/>
+
+.EE
+.RE
+
+Vely is all about standard HTTP requests. So even when you run a command line program, it does so by receiving an HTTP request. That's why there's a request method ("GET"), a script name (which is a path to application name "people_app") and a path info (which is a path to request handler "list_people", i.e. your code above). This makes is very easy to build programs for both command-line and web execution, because they are the same. You don't need to write two code bases and you only debug once. Plus, you can do on command line virtually anything you can on the web, so you can write your program without ever even having a web server setup.
+
+Note the VV_SILENT_HEADER environment variable - it suppresses HTTP header output. If it weren't there, you'd get the HTTP header, the same one that a browser will get. We'll do that next.
+
+.LP
+.B SETUP APACHE FOR WEB ACCESS
+.LP
+
+In this article, you will use Apache web server. Apache has FastCGI support, as most (if not all) major web servers do. Apache is very modular and so this support (like many of its features) has to be enabled. To do that, follow the \fBinstructions to setup Apache for Vely\fP access. Note that in Step 3, the <app path> and <app name> are both "people_app" (i.e. the same as application name), so the ProxyPass will be like this:
+
+.RS 4
+.EX
+
+ProxyPass "/people_app" unix:///var/lib/vv/people_app/sock/sock|fcgi://localhost/people_app
+
+.EE
+.RE
+
+The "ProxyPass" directive tells Apache that any URL path that starts with "/people_app" will be served by your "people_app" application. How does it do that? Note the path "/var/lib/vv/people_app/sock/sock" above - this is a Unix socket file created by Vely to allow other software (like Apache) to communicate with your application. This is a super fast mode of communication, and is typically used by applications running on the same host, as it's directly supported by Linux kernel.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To run from browser, start your application server first:
+
+.RS 4
+.EX
+
+vf -w 2 people_app
+
+.EE
+.RE
+
+This will start 2 daemon processes to serve requests. These requests come from browser (or another server), pass through Apache web server to your Vely application, and then back. You have many options with \fBvf\fP program manager to run your server efficiently.
+
+.LP
+.B RUN FROM BROWSER
+.LP
+
+Copy this URL to your browser (assuming your server is on your own local computer; if not, replace "127.0.0.1" with your web address):
+
+.RS 4
+.EX
+
+http://127.0.0.1/people_app/list_people
+
+.EE
+.RE
+
+You should get the exact same response as the above, when you ran it from command line, as in:
+(Image article_people_list_maria.png not available in man page, see web page documentation)
+
+.LP
+.B CONCLUSION
+.LP
+
+Connecting to MariaDB/mySQL isn't difficult. This article explains how to do so in a simple way that you can custom tailor to your own needs.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample_client_API\fP  
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
+\fBexample_docker\fP  
+\fBexample_encryption\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

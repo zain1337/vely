@@ -2,9 +2,12 @@
 .SH NAME
 example_sendmail \- Vely documentation (examples)
 .SH DESCRIPTION
+Sending mail
 Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
 
-In a nutshell:  web browser; Apache; Unix sockets; \fB1 source files, 79 lines of code\fP.
+In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
+
+To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -14,6 +17,103 @@ An HTML form will accept the necessary information to send an email. Your server
 (Image sendmail_enter.png not available in man page, see web page documentation)
 Once email is sent, a confirmation is sent to the user.:
 (Image sendmail_sent.png not available in man page, see web page documentation)
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Send email on the web (mail.vely)
+
+Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
+
+Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix or sendmail), and your computer must be authorized to send email on the internet. Otherwise you can test this by sending emails to your localhost.
+
+.RS 4
+.EX
+
+
+//
+// Send email example
+// 
+
+\[char35]include "vely.h" 
+
+void mail()
+{
+
+    out-header default
+
+    task-param action
+
+    if-task "show_form"
+
+        // Display HTML form to input email details. Here we will set the 'action' parameter
+        // to 'submit_form'. This way, when the user submits the form, such a request would
+        // come back here and the code under else-if-string checking for 'submit_form' (below)
+        // would execute
+
+        @<h2>Enter email and click Send to send it</h2>
+        @Note: 'From' field must be the email address from the domain of your server.<br/><br/>
+
+        @<form action="<<p-path>>/mail" method="POST">
+        @    <input type="hidden" name="action" value="submit_form">
+
+        @    <label for="from_mail">From:</label><br>
+        @    <input type="text" name="from_mail" value=""><br>
+        
+        @    <label for="to_mail">To:</label><br>
+        @    <input type="text" name="to_mail" value=""><br><br>
+        
+        @    <label for="subject_mail">Subject:</label><br>
+        @    <input type="text" name="subject_mail" value=""><br><br>
+        
+        @    <label for="message">Message:</label><br>
+        @    <textarea name="message" rows="3" columns="50"></textarea>
+
+        @    <br/><br/>
+        
+        @    <input type="submit" value="Send">
+        @</form>
+        
+    else-task "submit_form"
+
+        // Send email using data from the form. This code is called from the form above.
+        // Effectively, in this file we have the code to display the form and the code
+        // to handle its submission (below).
+
+        input-param from_mail
+        input-param to_mail
+        input-param message
+        input-param subject_mail
+
+        write-string define msg
+        @From: <<p-out from_mail>>
+        @To: <<p-out to_mail>>
+        @Subject: <<p-out subject_mail>>
+        @
+        <<p-out message>>
+        end-write-string
+        num st;
+        exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status st
+        if (st!=0) {
+            @Could not send email!
+        } else {
+            @Email sent!
+        }
+        @<hr/>
+
+    else-task other
+        @Unrecognized action!<hr/>
+    end-task
+
+}
+
+
+.EE
+.RE
+
 
 .LP
 .B SETUP PREREQUISITES
@@ -311,109 +411,13 @@ Use the following URL(s) to access your application server from a client like br
 .RS 4
 .EX
 
-\[char35]Display a send-mail form 
+\[char35] Display a send-mail form 
 http://127.0.0.1/sendmail/mail?action=show_form
 
 .EE
 .RE
 
 Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
-
-.SH FILES
-You are now done with the example! What follows are the source files in this project so you can examine how it works:
-
-.LP
-.B SEND EMAIL ON THE WEB (MAIL.VELY)
-.LP
-
-Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
-
-Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix or sendmail), and your computer must be authorized to send email on the internet. Otherwise you can test this by sending emails to your localhost.
-
-.RS 4
-.EX
-
-
-//
-// Send email example
-// 
-
-\[char35]include "vely.h" 
-
-void mail()
-{
-
-    out-header default
-
-    task-param action
-
-    if-task "show_form"
-
-        // Display HTML form to input email details. Here we will set the 'action' parameter
-        // to 'submit_form'. This way, when the user submits the form, such a request would
-        // come back here and the code under else-if-string checking for 'submit_form' (below)
-        // would execute
-
-        @<h2>Enter email and click Send to send it</h2>
-        @Note: 'From' field must be the email address from the domain of your server.<br/><br/>
-
-        @<form action="<<p-path>>/mail" method="POST">
-        @    <input type="hidden" name="action" value="submit_form">
-
-        @    <label for="from_mail">From:</label><br>
-        @    <input type="text" name="from_mail" value=""><br>
-        
-        @    <label for="to_mail">To:</label><br>
-        @    <input type="text" name="to_mail" value=""><br><br>
-        
-        @    <label for="subject_mail">Subject:</label><br>
-        @    <input type="text" name="subject_mail" value=""><br><br>
-        
-        @    <label for="message">Message:</label><br>
-        @    <textarea name="message" rows="3" columns="50"></textarea>
-
-        @    <br/><br/>
-        
-        @    <input type="submit" value="Send">
-        @</form>
-        
-    else-task "submit_form"
-
-        // Send email using data from the form. This code is called from the form above.
-        // Effectively, in this file we have the code to display the form and the code
-        // to handle its submission (below).
-
-        input-param from_mail
-        input-param to_mail
-        input-param message
-        input-param subject_mail
-
-        write-string define msg
-        @From: <<p-out from_mail>>
-        @To: <<p-out to_mail>>
-        @Subject: <<p-out subject_mail>>
-        @
-        <<p-out message>>
-        end-write-string
-        num st;
-        exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status st
-        if (st!=0) {
-            @Could not send email!
-        } else {
-            @Email sent!
-        }
-        @<hr/>
-
-    else-task other
-        @Unrecognized action!<hr/>
-    end-task
-
-}
-
-
-.EE
-.RE
-
 .SH SEE ALSO
  
 .B - Examples
@@ -421,6 +425,7 @@ void mail()
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -434,6 +439,8 @@ void mail()
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

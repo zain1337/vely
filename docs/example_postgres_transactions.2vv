@@ -54,7 +54,7 @@ Working with PostgreSQL is the fastest with a native C library. Here I will use 
 .B PREREQUISITES
 .LP
 
-To begin with, \fBinstall Postgres\fP. Also, \fBinstall Vely\fP, which will be used to create a native executable for this example - Vely is a framework for C programming language.
+To begin with, \fBinstall Postgres\fP. Also, \fBinstall Vely\fP, which will be used to create a native executable for this example.
 
 .LP
 .B SETUP THE DATABASE
@@ -300,6 +300,7 @@ You can of course run this example as a web service by starting your own applica
 \fBexample_client_API\fP  
 \fBexample_cookies\fP  
 \fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
 \fBexample_docker\fP  
 \fBexample_encryption\fP  
 \fBexample_file_manager\fP  
@@ -313,6 +314,8 @@ You can of course run this example as a web service by starting your own applica
 \fBexample_sendmail\fP  
 \fBexample_shopping\fP  
 \fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
 \fBexample_utility\fP  
 \fBexample_write_report\fP    
 See all 

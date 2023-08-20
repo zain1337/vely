@@ -153,7 +153,6 @@ Vely programs are built in a single command-line step, and ready to use immediat
 \fBquality_control\fP  
 \fBrename_files\fP  
 \fBSELinux\fP  
-\fBvely\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  

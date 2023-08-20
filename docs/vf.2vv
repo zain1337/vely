@@ -19,7 +19,7 @@ vf is a FastCGI (FCGI) program manager. An FCGI program is started as a number o
 
 A number of options are available to setup and manage the execution of a FCGI program as an application server, which can be accessed either via TCP/IP or a Unix domain socket. 
 
-vf is a part of \fBvely\fP package. You can, however, use vf  in any case, whether your FCGI programs are created by Vely or otherwise.
+vf is a part of Vely package. You can, however, use vf  in any case, whether your FCGI programs are created by Vely or otherwise.
 
 <app name> specifies the name of your application. Each application must have a unique name. <app name> may contain alphanumeric characters and an underscore, must start with a character and its maximum length is 30. 
 
@@ -198,8 +198,7 @@ If vf is terminated without "-m stop", (for example with SIGKILL signal), then a
 .B PLATFORMS AND REQUIREMENTS
 .LP
 
-vf is a part of Vely package. See \fBvely\fP.
-
+vf is a part of Vely package. 
 
 .LP
 .B EXAMPLES
@@ -346,7 +345,6 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
 \fBquality_control\fP  
 \fBrename_files\fP  
 \fBSELinux\fP  
-\fBvely\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
 \fBvf\fP  

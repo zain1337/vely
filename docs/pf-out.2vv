@@ -9,7 +9,10 @@ Outputs a formatted string without encoding.
 .RS 4
 .EX
 
-pf-out [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [ , <expression> ]...
+pf-out <format> <expression> [ , <expression> ]... \\
+    [ bytes-written [ define ] <bytes> ] \\
+    [ to-error ] \\
+    [ to [ define ] <string> ]
 
 .EE
 .RE
@@ -17,9 +20,11 @@ pf-out [ bytes-written [ define ] <bytes> ] [ to-error ] <format> <expression> [
 .SH DESCRIPTION
 pf-out formats a string according to the <format> string and a list of variable-type <expression>s (in the same way C's "printf()" does) and then outputs the result without any encoding (meaning a string is output exactly as it is, and the client may interpret such text in any way it sees fit). The result is sent to a client that made the request. If another string is built by using \fBwrite-string\fP, then the result is output into the buffer that builds a new string.
 
-<format> string must be present. If you'd like to know the number of bytes written out, use the optional "bytes-written" clause prior to <format>, in which case <bytes> holds the number of bytes written. If this variable is not defined, use "define" clause to create it within the statement. There must be at least one <expression> (it means if you want to print out a simple string literal you still have to use "%s" as format).
+<format> string must be present. If you'd like to know the number of bytes written out, use the optional "bytes-written" clause, in which case <bytes> holds the number of bytes written; use "define" clause to create it within the statement. There must be at least one <expression> (it means if you want to print out a simple string literal you still have to use "%s" as format).
 
 If the optional "to-error" clause is used, the output is sent to "stderr", or standard output stream.
+
+If the optional "to" clause is used, then the output of pf-out is stored into <string>. The <string> can be created with optional "define". <string> is \fBallocated memory\fP.
 
 .SH EXAMPLES
 To output data (the string output is "the number is 20" and the number of bytes written is in variable "bwritten"):

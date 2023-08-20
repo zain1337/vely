@@ -2,7 +2,8 @@
 .SH NAME
 statement_APIs \- Vely documentation (language)
 .SH DESCRIPTION
-Statement APIs, or Vely statements (such as \fBwrite-file\fP or \fBrun-query\fP etc.) are programming statements written within C code in files with .vely extension. They are pre-processed by \fBvv\fP into C code, and then compiled into a native executable. A statement does something useful, for example runs a database query, searches a string with regex, calls a web service, parses JSON, creates a unique file, etc. (see \fBdocumentation\fP).
+Vely statements
+Vely statements (such as \fBwrite-file\fP or \fBrun-query\fP etc.) are programming statements written within C code in files with .vely extension. They are pre-processed by \fBvv\fP into C code, and then compiled into a native executable. A statement does something useful, for example runs a database query, searches a string with regex, calls a web service, parses JSON, creates a unique file, etc. (see \fBdocumentation\fP).
 
 .LP
 .B STATEMENTS VS API

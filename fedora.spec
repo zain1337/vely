@@ -1,10 +1,10 @@
 #SPDX-License-Identifier: EPL-2.0
-#Copyright 2019 DaSoftver LLC.
+#Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.
 #Licensed under Eclipse Public License - v 2.0. See LICENSE file.
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    17.2.0
+Version:    17.3.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC
