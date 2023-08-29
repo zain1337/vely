@@ -15,7 +15,9 @@ new-json [ define ] <json> from <text> \\
     [ error-text [ define ] <error text> ] \\
     [ error-position [ define ] <error position> ] \\
     [ max-hash-size <max-hash-size> ] \\
-    [ noencode ]
+    [ noencode ] \\
+    [ no-hash ] \\
+    [ node-handler <node handler> ]
 
 .EE
 .RE
@@ -66,6 +68,85 @@ To create a JSON document, you can use \fBwrite-string\fP to programmatically co
 .LP
 
 <json> is \fBallocated memory\fP along with additional internal memory, which can be released if \fBdelete-json\fP is used with <json> from a previously executed new-json.
+
+.LP
+.B SKIP HASH BUILDING
+.LP
+
+If you do not need to randomly access nodes in a JSON document, you may skip hash building with "no-hash" clause. In this case read-json will always return VV_ERR_EXIST, i.e. not-found error code, regardless of whether you are using "traverse" clause or not. "no-hash" clause may be useful if you want to just validate JSON document (i.e. find if it has any errors), or if you want to use a node handler to process data in some other way (see "Node processing").
+
+.LP
+.B NODE PROCESSING
+.LP
+
+You can process JSON leaf nodes as they become available during parsing. To do that, use "node-handler" clause and implement a node handler. A node handler is a function with the following signature:
+
+.RS 4
+.EX
+
+num my_json_handler (num node_count, json_node *list, char *val, num type);
+
+.EE
+.RE
+
+The data passed to your handler is "node_count", which is the number of nodes in the path leading to a leaf node (inclusive of it), the list of such nodes ("list"), the value of JSON node ("value") and its type ("type") which is one of the aforementioned types (such as VV_JSON_TYPE_STRING for instance). The node structure is:
+
+.RS 4
+.EX
+
+typedef struct 
+{
+    char *name; // name of node
+    num name_len; // length of name of node
+    num index; // index of node if array, otherwise -1
+} json_node;
+
+.EE
+.RE
+
+In this structure, you can obtain the "name" of each node, its length ("name_len"), and the index of a node in a JSON array of values (if it is an array, otherwise "-1"). Here's an example to specify such a handler for JSON parsing:
+
+.RS 4
+.EX
+
+new-json define my_json from my_text node-handler my_json_handler
+
+.EE
+.RE
+
+An example implementation of a node handler that displays normalized values may be:
+
+.RS 4
+.EX
+
+num my_json_handler (num node_count, json_node *list, char *val, num type) {
+    num i;
+    p-out "Name ["
+    // Loop through all nodes that lead to a leaf node
+    for (i = 0; i < node_count; i++) {
+        char *arr;
+        // Check if any given node is an array
+        if (list[i].index == -1) arr = "";
+        else {
+            // if it's an array, construct an index
+            pf-out "[%lld]", list[i].index to arr
+        }
+        // display a node, as "node_name"[index in array] (if part of an array)
+        // or just "node_name" (if not part of an array). Add a dot at the end
+        // if not the very last (i.e. leaf) node.
+        pf-out format i==node_count-1 ? "\[char92]"%s\[char92]"%s":"\[char92]"%s\[char92]"%s.", list[i].name, arr
+    }
+    // display leaf node type and value, and return VV_OKAY (or VV_ERR_JSON to stop processing)
+    pf-out "] type [%lld] value [%s]\en", type, val
+    return VV_OKAY;
+}
+
+.EE
+.RE
+
+The return value from a node handler should be VV_OKAY to continue processing of a JSON document, or VV_ERR_JSON to stop it, in which case the "status" clause in \fBnew-json\fP will be VV_ERR_JSON and "error-text" clause will indicate that the user has interrupted the JSON processing. This is useful if you have found all the data you wanted from the document and wish to stop processing.
+
+If you only want to use a node handler to process JSON data (and do not need to use \fBread-json\fP), you should also use "no-hash" clause for maximum performance.
 
 .SH EXAMPLES
 Parse text "json_text1" and store the result in "json_var" variable, get status, error text and the location of error:

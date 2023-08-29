@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "17.3.0"
+#define VV_VERSION "18.0.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -259,7 +259,6 @@ typedef double dbl;
 #define VV_JSON_TYPE_NULL 4
 // errors in json parsin
 #define VV_ERR_JSON_UNKNOWN "Unknown entity (true, false or null)"
-#define VV_ERR_JSON_PATH_LENGTH "Normalized name too long"
 #define VV_ERR_JSON_NUMBER "Cannot parse a number"
 #define VV_ERR_JSON_COLON_EXPECTED "Colon is expected here"
 #define VV_ERR_JSON_NAME_EXPECTED "Name is expected here"
@@ -273,6 +272,7 @@ typedef double dbl;
 #define VV_ERR_JSON_SYNTAX "Extra characters remaining unparsed"
 #define VV_ERR_JSON_DEPTH "Depth of leaf node too great"
 #define VV_ERR_JSON_SURROGATE "Surrogate UTF-8 value missing"
+#define VV_ERR_JSON_INTERRUPTED "JSON parsing interrupted by a request handler"
 
 //UTF8 errors
 #define VV_UTF8_ERR_ILLEGAL_CHARACTER_FEFF "Illegal character code 0xFEFF"
@@ -344,6 +344,7 @@ typedef struct vely_file_s
 //
 typedef struct s_vely_app_data
 {
+    char *run_dir; // the current directory at the moment program starts
     char *home_dir; // home directory
     char *dbconf_dir; // database connections dir
     char *trace_dir; // directory for tracing
@@ -447,12 +448,6 @@ typedef struct vely_input_req_s
 } vely_input_req;
 // 
 // Context of execution. Contains input request, flags
-//
-// We use oops/file_too_large (and maybe others in the future) as set at runtime (see below).
-//
-typedef void (*oops_ptr)(vely_input_req *,char *);
-typedef void (*file_too_large_ptr)(vely_input_req *, int);
-
 typedef union s_vely_dbc
 {
     // In all Vely libraries, VV_INC_POSTGRES/MARIADB are defined. So, db-specific pointers are used instead of void*
@@ -609,6 +604,20 @@ typedef struct vely_jsonn_s
     char *str; // string value
 } vely_jsonn;
 //
+// A normalized path in json file being traversed
+//
+typedef struct vely_s_json_node
+{
+    char *name; // name of node
+    num name_len; // length of name of node
+    num index; // index of node if array, otherwise -1
+    num index_len; // length of array number, so for 23 it's 2
+} json_node;
+//
+// Json node handler 
+//
+typedef num (*vely_json_node_handler)(num node_count, json_node *list, char *val, num type); // node_handler when in use in new-json
+//
 // Json structure sent back to Vely
 //
 typedef struct vely_json_s
@@ -618,6 +627,8 @@ typedef struct vely_json_s
     vely_hash *hash; // hash for normalized names
     num maxhash; // maximum size of hash
     num dnext; // index of traverse read
+    bool usehash; // true if hash
+    vely_json_node_handler node_handler; // function user uses to handle incoming json data with node-handler
 } vely_json;
 
 
@@ -808,9 +819,9 @@ void vely_hex2bin(char *src, char **dst, num ilen, num *olen);
 void vely_bin2hex(char *src, char **dst, num ilen, num *olen, char *pref);
 void vely_db_free_result (char is_prep);
 num vely_json_new (char *val, num *curr, num len, char dec);
-void vely_set_json (vely_json **j, num maxhash);
+void vely_set_json (vely_json **j, num maxhash, char nohash, vely_json_node_handler nodeh);
 num vely_topower(num b,num p);
-num vely_read_json (vely_json *j, char *key, char **to, num *type);
+num vely_read_json (vely_json *j, char *key, char **keylist, char **to, num *type);
 char *vely_json_err();
 void vely_del_json (vely_json *j);
 num vely_decode_utf8 (num32 u, unsigned char *r, char **e);
@@ -819,8 +830,8 @@ num32 vely_make_from_utf8_surrogate (num32 u0, num32 u1);
 void vely_get_utf8_surrogate (num32 u, num32 *u0, num32 *u1);
 void vely_create_hash (vely_hash **hres_ptr, num size);
 void vely_delete_hash (vely_hash **h, char recreate);
-void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldkey);
-char *vely_add_hash (vely_hash *h, char *key, void *data, num *st, char **oldkey);
+void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *found, char **oldkey);
+char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *st, char **oldkey);
 char *vely_next_hash(vely_hash *h, void **data);
 void vely_del_hash_traverse (vely_hash *h);
 void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table *prev, num hashind);

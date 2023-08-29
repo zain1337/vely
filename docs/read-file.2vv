@@ -36,7 +36,7 @@ If "position" clause is used, then reading starts at byte <position>, otherwise 
 
 If "length" clause is used, then <length> number of bytes is read, otherwise the rest of the file is read. If <length>  is 0, <content> is empty string and <status> is 0.
 
-If "status" clause is used, then the number of bytes read is stored to <status>, unless error occurred, in which case <status> has the error code. The error code can be VV_ERR_POSITION (if <position> is negative, outside the file, or file does not support it), VV_ERR_READ (if <length> is negative or there is an error reading file) or VV_ERR_OPEN if file is not open. 
+If "status" clause is used, then the number of bytes read is stored to <status>, unless error occurred, in which case <status> is negative and has the error code. The error code can be VV_ERR_POSITION (if <position> is negative, outside the file, or file does not support it), VV_ERR_READ (if <length> is negative or there is an error reading file) or VV_ERR_OPEN if file is not open. 
 
 .LP
 .B WITH FILE-ID

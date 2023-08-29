@@ -7,156 +7,6 @@ You will create your own hash server in this example. A REST API will enable end
 
 In a nutshell:  web browser; Apache; REST API; Unix sockets; 3 source files, 54 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Create hash server (_startup.vely)
-
-Hash itself (i.e. the fast-access structure used to store and search data based on a key) is created on process startup in a \fBstartup_handler\fP, which in this case allocates \fBnew-hash\fP using unmanaged memory (see \fBmemory_handling\fP). It means this hash will remain available across all the requests a process serves, which is exactly what a hash server needs.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void _startup() {
-
-    // Create memory available for the life of process
-    manage-memory off
-    new-hash define h size 1024
-    manage-memory on
-
-    // Register hash as process-wide data
-    set-app process-data h   
-    
-}
-
-.EE
-.RE
-
-
-.B - Hash server (server.vely)
-
-This is the hash server. Because the data kept in hash needs to exist beyond a single request, we use unmanaged memory (see \fBmemory_handling\fP). This way hash data stays allocated and available for the life of the server process.
-
-The first step is to obtain the \fBglobal_process_data\fP via \fBget-app\fP statement. This global process data is the pointer to the hash data, which has been set in \fBset-app\fP in the \fBstartup_handler\fP (_startup.vely).
-
-Next, you get the input parameters  (see \fBinput-param\fP); in this case "op" (operation requested), "key" (value of a key) and "data" (value of data). Then, depending on the operation requested, the data is added, deleted and retrieved (i.e. queried). Note that because input parameter values are automatically freed when the request is finished, they are copied before being stored in the hash.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void server() {
-    out-header default
-
-    // Unmanaged memory, i.e. not released at the end of the request
-    manage-memory off
-
-    // Get hash allocated in _startup.vely
-    vely_hash *h;
-    get-app process-data to h
-
-    // Get input parameters
-    task-param op
-    input-param key
-    input-param data
-
-    if-task "add" // Add data to hash, make a copy as input params are request-scoped
-        copy-string key to define c_key
-        copy-string data to define c_data
-        write-hash h key c_key value c_data
-        @Added [<<p-out key>>]
-    else-task "delete" // Delete data and obtain the value deleted
-        read-hash h key (key) value define val old-key define okey delete status define st
-        if (st == VV_ERR_EXIST) {
-            @Not found [<<p-out key>>]
-        } else {
-            // If found, then delete key and value
-            @Deleted [<<p-out val>>]
-            delete-mem val
-            delete-mem okey
-        }
-    else-task "query" // Query hash based on key value
-        read-hash h key (key) value define val status define st
-        if (st == VV_ERR_EXIST) {
-            @Not found, queried [<<p-out key>>]
-        } else {
-            @Value [<<p-out val>>]
-        }
-    end-task
-}
-
-.EE
-.RE
-
-
-.B - bash testing script (test_hash)
-
-Test hash server by adding 1000 key/data pairs, querying to make sure the data is correct, deleting all of them and then querying to make sure they were all deleted.
-
-.RS 4
-.EX
-
-\[char35]Restart hash_server server for this test
-vf -m restart hash_server
-
-\[char35]Add 1000 key/data pairs. Key value is 0,1,2... and data values are "data_0", "data_1", "data_2" etc.
-for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash_server/server/op/add/key/$i/data/data_$i")" != "Added [$i]" ]; then
-        echo "Error adding key [$i]"
-        exit -1
-    fi
-done
-
-echo "Keys added"
-
-\[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
-for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Value [data_$i]" ]; then
-        echo "Error querying key [$i]"
-        exit -1
-    fi
-done
-
-echo "Keys queried"
-
-\[char35]Delete all 1000 keys
-ERR="0"
-for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash_server/server/op/delete/key/$i")" != "Deleted [data_$i]" ]; then
-        echo "Error deleting key [$i]"
-        exit -1
-    fi
-done
-
-echo "Keys deleted"
-
-\[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
-for i in {1..1000}; do
-    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Not found, queried [$i]" ]; then
-        echo "Error querying key [$i] after deletion."
-        exit -1
-    fi
-done
-
-echo "Keys queried"
-
-echo "Hash server test successful"
-
-
-
-
-.EE
-.RE
-
-
 .LP
 .B SETUP PREREQUISITES
 .LP
@@ -532,6 +382,155 @@ Deleted [data_1]
 .RE
 
 
+.RE
+
+
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Create hash server (_startup.vely)
+
+Hash itself (i.e. the fast-access structure used to store and search data based on a key) is created on process startup in a \fBstartup_handler\fP, which in this case allocates \fBnew-hash\fP using unmanaged memory (see \fBmemory_handling\fP). It means this hash will remain available across all the requests a process serves, which is exactly what a hash server needs.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void _startup() {
+
+    // Create memory available for the life of process
+    manage-memory off
+    new-hash define h size 1024
+    manage-memory on
+
+    // Register hash as process-wide data
+    set-app process-data h   
+    
+}
+
+.EE
+.RE
+
+
+.B - Hash server (server.vely)
+
+This is the hash server. Because the data kept in hash needs to exist beyond a single request, we use unmanaged memory (see \fBmemory_handling\fP). This way hash data stays allocated and available for the life of the server process.
+
+The first step is to obtain the \fBglobal_process_data\fP via \fBget-app\fP statement. This global process data is the pointer to the hash data, which has been set in \fBset-app\fP in the \fBstartup_handler\fP (_startup.vely).
+
+Next, you get the input parameters  (see \fBinput-param\fP); in this case "op" (operation requested), "key" (value of a key) and "data" (value of data). Then, depending on the operation requested, the data is added, deleted and retrieved (i.e. queried). Note that because input parameter values are automatically freed when the request is finished, they are copied before being stored in the hash.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void server() {
+    out-header default
+
+    // Unmanaged memory, i.e. not released at the end of the request
+    manage-memory off
+
+    // Get hash allocated in _startup.vely
+    vely_hash *h;
+    get-app process-data to h
+
+    // Get input parameters
+    task-param op
+    input-param key
+    input-param data
+
+    if-task "add" // Add data to hash, make a copy as input params are request-scoped
+        copy-string key to define c_key
+        copy-string data to define c_data
+        write-hash h key c_key value c_data
+        @Added [<<p-out key>>]
+    else-task "delete" // Delete data and obtain the value deleted
+        read-hash h key (key) value define val old-key define okey delete status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found [<<p-out key>>]
+        } else {
+            // If found, then delete key and value
+            @Deleted [<<p-out val>>]
+            delete-mem val
+            delete-mem okey
+        }
+    else-task "query" // Query hash based on key value
+        read-hash h key (key) value define val status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found, queried [<<p-out key>>]
+        } else {
+            @Value [<<p-out val>>]
+        }
+    end-task
+}
+
+.EE
+.RE
+
+
+.B - bash testing script (test_hash)
+
+Test hash server by adding 1000 key/data pairs, querying to make sure the data is correct, deleting all of them and then querying to make sure they were all deleted.
+
+.RS 4
+.EX
+
+\[char35]Restart hash_server server for this test
+vf -m restart hash_server
+
+\[char35]Add 1000 key/data pairs. Key value is 0,1,2... and data values are "data_0", "data_1", "data_2" etc.
+for i in {1..1000}; do
+    if [ "$(curl -s "http://localhost/hash_server/server/op/add/key/$i/data/data_$i")" != "Added [$i]" ]; then
+        echo "Error adding key [$i]"
+        exit -1
+    fi
+done
+
+echo "Keys added"
+
+\[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
+for i in {1..1000}; do
+    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Value [data_$i]" ]; then
+        echo "Error querying key [$i]"
+        exit -1
+    fi
+done
+
+echo "Keys queried"
+
+\[char35]Delete all 1000 keys
+ERR="0"
+for i in {1..1000}; do
+    if [ "$(curl -s "http://localhost/hash_server/server/op/delete/key/$i")" != "Deleted [data_$i]" ]; then
+        echo "Error deleting key [$i]"
+        exit -1
+    fi
+done
+
+echo "Keys deleted"
+
+\[char35]Query all 1000 keys and check that values retrieved are the correct ones. 
+for i in {1..1000}; do
+    if [ "$(curl -s "http://localhost/hash_server/server/op/query/key/$i")" != "Not found, queried [$i]" ]; then
+        echo "Error querying key [$i] after deletion."
+        exit -1
+    fi
+done
+
+echo "Keys queried"
+
+echo "Hash server test successful"
+
+
+
+
+.EE
 .RE
 
 .SH SEE ALSO

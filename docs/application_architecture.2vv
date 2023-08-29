@@ -271,6 +271,7 @@ Sharing and extensibility: is a request standalone, without shared code or data 
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

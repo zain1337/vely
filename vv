@@ -73,6 +73,13 @@ OPTIONS:
 -r      display shell commands to run a program
             --req=\"/<request name><url payload>\"
             --method=\"<request method>\"
+            --content=\"<file name>\"
+            --content-type=\"<content type>\"
+            --exec
+            --app=\"application path\" 
+            --server
+            --remote=\"server IP:port\"
+            --socket=\"socket path\"
 -q      build application
             --db=\"mariadb:<db name>|postgres:<db name> ...\" 
             --lflag=<linker flags> 
@@ -104,7 +111,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,posix-regex,asan,asan-opt,path:,c-lines,debug,req:,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
+_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,posix-regex,asan,asan-opt,content:,content-type:,server,remote:,socket:,app:,path:,c-lines,debug,req:,exec,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -145,6 +152,11 @@ _DO_QUICK=0
         --asan  )
             export VV_C_ASAN="1"
             _DEVOPT=1
+            shift 
+            ;;
+#vv -r to talk to server (local socket by default)
+        --server  )
+            _REQ_SRV="1"
             shift 
             ;;
         --path  )
@@ -198,9 +210,39 @@ _DO_QUICK=0
             _DEVOPT=1
             shift 2
             ;;
+        --content-type  )
+#content type
+            _REQ_CONTENT_TYPE="$2"
+            shift 2
+            ;;
+        --content  )
+            #content file (read from file)
+            _REQ_CONTENT="$2"
+            shift 2
+            ;;
         --method  )
 #request method (GET, POST...)
             _REQ_METHOD="$2"
+            shift 2
+            ;;
+        --exec  )
+#request execute
+            _REQ_EXEC="1"
+            shift 1
+            ;;
+        --app  )
+#app name (script name) for -r
+            _REQ_APP="$2"
+            shift 2
+            ;;
+        --socket  )
+#socket for -r --exec
+            _REQ_SOCK="$2"
+            shift 2
+            ;;
+        --remote  )
+#serverIP:port for -r --exec
+            _REQ_IP="$2"
             shift 2
             ;;
         --req  )
@@ -327,6 +369,15 @@ _DO_QUICK=0
         exit 0
     fi
 
+#can run this from anywhere if has --req and (--server or --app), otherwise must be in app dir
+if [[ "$_COMMRUN" != "" && ("$_REQ_APP" != "" ||  ("$_REQ_SRV" != "" && ("$_REQ_IP" != "" || "$_REQ_SOCK" != "")))  ]]; then
+        _TOEXEC=".vely_reqexec"
+        #need || true to remove temp file
+        show_run_program || true
+        rm -f "$_TOEXEC"
+        exit 0
+    fi
+
 #application name created with vf in .vappname, which must exist
     if [ -f ".vappname" ]; then
         export VV_C_NAME=$(cat .vappname)
@@ -361,6 +412,8 @@ _DO_QUICK=0
     fi
 
     if [ "$_COMMRUN" != "" ]; then
+        _TOEXEC="$VV_BLD/.reqexec"
+        . $VV_BLD/.blds
         show_run_program
         exit 0
     fi
@@ -460,12 +513,17 @@ function setup_highlighting() {
 #
 #
 function show_run_program() {
-    . $VV_BLD/.blds
     if [ "$VV_C_RESTPATH" == "" ];  then
         _APATH="/$VV_C_NAME"
     else
         _APATH="$VV_C_RESTPATH"
     fi
+#--app overrides current working directory application above
+    if [ "$_REQ_APP" != "" ]; then
+        _APATH="$_REQ_APP"
+    fi
+#get app name from _APATH, it's the last path segment, since _APATH is application path
+    _ANAME=$(echo "$_APATH" | awk -F "/" '{print $NF}')
     _REQ_PATH="/<request name><url payload>"
     _REQ_QUERY="<request query>"
     if [ "$_REQ_URL" != "" ]; then
@@ -480,11 +538,61 @@ function show_run_program() {
     if [ "$_REQ_METHOD" == "" ]; then
         _REQ_METHOD="GET"
     fi
-    echo "export REQUEST_METHOD=$_REQ_METHOD
+    _CONT=""
+    _CONTL=""
+    _CONTT="export CONTENT_TYPE="
+    if [[ "$_REQ_CONTENT_TYPE" != "" && "$_REQ_CONTENT" == "" ]]; then
+        error "Cannot use --content-type without --content"
+    fi
+    if [ "$_REQ_CONTENT" != "" ]; then
+        if [ ! -f "$_REQ_CONTENT" ]; then
+           error "Cannot access file $_REQ_CONTENT"
+        fi
+        _CONT="cat '$_REQ_CONTENT' | "
+        _CONTL="export CONTENT_LENGTH=\$(stat -c%s '$_REQ_CONTENT')"
+        if [ "$_REQ_CONTENT_TYPE" != "" ]; then
+            _CONTT="export CONTENT_TYPE='$_REQ_CONTENT_TYPE'"
+        fi
+    else
+        _CONTL="export CONTENT_LENGTH="
+    fi
+    echo "$_CONTT
+$_CONTL
+export REQUEST_METHOD=$_REQ_METHOD
 export SCRIPT_NAME=\"$_APATH\"
 export PATH_INFO=\"$_REQ_PATH\"
-export QUERY_STRING=\"$_REQ_QUERY\"
-/var/lib/vv/bld/$VV_C_NAME/$VV_C_NAME"
+export QUERY_STRING=\"$_REQ_QUERY\""> $_TOEXEC
+    if [ "$_REQ_SRV" == "1" ]; then
+        if [[ "$_REQ_IP" != "" && "$_REQ_SOCK" != "" ]]; then
+            error "Cannot use both --remote and --socket"
+        fi
+        if [ "$_REQ_IP" != "" ]; then
+            echo "${_CONT}cgi-fcgi -connect \"$_REQ_IP\" $_APATH" >> $_TOEXEC 
+        else
+            if [ "$_REQ_SOCK" != "" ]; then
+                if [ ! -S "$_REQ_SOCK" ]; then
+                    error "Cannot access socket $_REQ_SOCK or is not a socket file"
+                fi
+                echo "${_CONT}cgi-fcgi -connect $_REQ_SOCK $_APATH" >> $_TOEXEC 
+            else
+                echo "${_CONT}cgi-fcgi -connect /var/lib/vv/$_ANAME/sock/sock  $_APATH" >> $_TOEXEC 
+            fi
+        fi
+    else
+        if [[ "$_REQ_IP" != "" || "$_REQ_SOCK" != "" ]]; then
+            error "Cannot use --remote or --socket without --server"
+        fi
+        echo "${_CONT}/var/lib/vv/bld/$_ANAME/$_ANAME" >> $_TOEXEC 
+    fi
+    if [[ "$_REQ_EXEC" == "1" && "$_REQ_URL" == "" ]]; then
+        error "Cannot use --exec without --req"
+    fi
+    if [ "$_REQ_EXEC" == "1" ]; then
+       chmod +x $_TOEXEC
+       . $_TOEXEC
+    else
+        cat $_TOEXEC
+    fi
 }
 
 

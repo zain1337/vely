@@ -64,17 +64,17 @@ function displ() {
     IS_VELY=0
 #if in Vely code, display it first, then down below display C code too
     if [ "$CL" != "$VL" ]; then
-        echo -e "$RED>>> Vely stmt: [$VL]$NORMAL"
+        echo -e -n "$RED>>> "; echo -n "Vely stmt: [$VL]"; echo -e "$NORMAL"
         IS_VELY=1
     fi
 #for C code, display it and put the caret up, first 
     if [ "$IS_VELY" == "0" ]; then
-        echo -e "$RED>>> C code: $CL$NORMAL"
+        echo -e -n "$RED>>> "; echo -n "C code: $CL"; echo -e "$NORMAL"
 #Add 12 for '>>> C code: '
         ((COL=COL-1+12))
         echo -n -e "$RED"
     else
-        echo -e "$GREEN### Generated C code: $CL$NORMAL"
+        echo -e -n "$GREEN### "; echo -n "Generated C code: $CL"; echo -e "$NORMAL"
 #Add 22 for '### Generated C code: '
         ((COL=COL-1+22))
         echo -n -e "$GREEN"

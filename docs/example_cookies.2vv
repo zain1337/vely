@@ -7,8 +7,6 @@ A value is entered in the browser and saved as a cookie, then read back later. T
 
 In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -19,73 +17,6 @@ A reply page when the server receives the information and sets the cookie in the
 (Image cookies_sent.png not available in man page, see web page documentation)
 A request sent to the server will now have the cookie, which the server code will read and display back:
 (Image cookies_show.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Working with cookies (cookies.vely)
-
-Usage of cookies is simple - \fBget-cookie\fP is used to obtain the cookie from a web client (i.e. a browser), and \fBset-cookie\fP to set the cookie in the browser when the response is sent back.
-
-Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter a value that is sent back to the server (see "enter_cookie" as the "action" parameter), which the server then sends back to the browser in response (see "save_cookie"), and finally with "query_cookie" this value can be obtained and displayed again. This demonstrates how server-side software uses cookies to manipulate and obtain the client state. 
-
-.RS 4
-.EX
-
-
-
-\[char35]include "vely.h" 
-
-void cookies()
-{
-
-    task-param action
-
-    if-task "enter_cookie"
-
-        // Display a form to get cookie value
-        out-header default
-        @<h2>Enter your name</h2>
-        @<form action="<<p-path>>/cookies" method="POST">
-        @    <input type="hidden" name="action" value="save_cookie">
-        @    <label for="cookie_value">Your name:</label><br/>
-        @    <input type="text" name="cookie_value" value=""><br/>
-        @    <br/> 
-        @    <input type="submit" value="Submit">
-        @</form>
-
-    else-task "save_cookie"
-        
-        // Submittal of form: save the cookie through response to the browser
-        input-param cookie_value
-        get-time to define cookie_expiration year 1 timezone "GMT"
-        set-cookie "customer_name" = cookie_value  expires cookie_expiration  path "/"
-        out-header default
-        @Cookie sent to browser!
-        @<hr/>
-
-    else-task "query_cookie"
-
-        // Web request that delivers cookie value back here (to server); display it.
-        get-cookie define name="customer_name"  
-        out-header default
-        @Customer name is <<p-web name>>
-        @<hr/>
-
-    else-task other
-        out-header default
-        @Unrecognized action<hr/>
-    end-task
-
-}
-
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -354,6 +285,73 @@ http://127.0.0.1/cookies/cookies?action=query_cookie
 .RE
 
 Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Working with cookies (cookies.vely)
+
+Usage of cookies is simple - \fBget-cookie\fP is used to obtain the cookie from a web client (i.e. a browser), and \fBset-cookie\fP to set the cookie in the browser when the response is sent back.
+
+Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter a value that is sent back to the server (see "enter_cookie" as the "action" parameter), which the server then sends back to the browser in response (see "save_cookie"), and finally with "query_cookie" this value can be obtained and displayed again. This demonstrates how server-side software uses cookies to manipulate and obtain the client state. 
+
+.RS 4
+.EX
+
+
+
+\[char35]include "vely.h" 
+
+void cookies()
+{
+
+    task-param action
+
+    if-task "enter_cookie"
+
+        // Display a form to get cookie value
+        out-header default
+        @<h2>Enter your name</h2>
+        @<form action="<<p-path>>/cookies" method="POST">
+        @    <input type="hidden" name="action" value="save_cookie">
+        @    <label for="cookie_value">Your name:</label><br/>
+        @    <input type="text" name="cookie_value" value=""><br/>
+        @    <br/> 
+        @    <input type="submit" value="Submit">
+        @</form>
+
+    else-task "save_cookie"
+        
+        // Submittal of form: save the cookie through response to the browser
+        input-param cookie_value
+        get-time to define cookie_expiration year 1 timezone "GMT"
+        set-cookie "customer_name" = cookie_value  expires cookie_expiration  path "/"
+        out-header default
+        @Cookie sent to browser!
+        @<hr/>
+
+    else-task "query_cookie"
+
+        // Web request that delivers cookie value back here (to server); display it.
+        get-cookie define name="customer_name"  
+        out-header default
+        @Customer name is <<p-web name>>
+        @<hr/>
+
+    else-task other
+        out-header default
+        @Unrecognized action<hr/>
+    end-task
+
+}
+
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Examples

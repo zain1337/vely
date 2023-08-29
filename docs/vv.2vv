@@ -179,8 +179,18 @@ Display CHANGELOG (i.e. release notes) for the current release.
 
 .RS 4
 \[bu]    
--r [ --req="/<request name><url payload>" ] [ --method="<request method>" ]
-Display bash code to run a command-line program. You must be in the source code directory. You can use "--req" option to specify the request name and URL payload (see \fBrequest_URL\fP), for example it may be:
+-r [ --req="/<request name>[<url payload>]" [ --app="application path" ] [ --server [ --remote="server:port" ] [ --socket="socket path" ] ] [ --exec ] [ --method="<request method>" ] [ --content="<input file>" --content-type="<content type>" ]
+Display or execute bash code to run a command-line program. If you are not in application's source directory (see \fBhow_vely_works\fP), then you must specify "--app" option to supply the application path (typically "/<application name>", see \fBrequest_URL\fP). You can use "--req" option to specify the request name and an optional URL payload (see \fBrequest_URL\fP), for example it may be:
+
+.RS 4
+.EX
+
+vv -r --req="/encrypt"
+
+.EE
+.RE
+
+to execute request "encrypt", or
 
 .RS 4
 .EX
@@ -190,7 +200,7 @@ vv -r --req="/encrypt/data/somedata?method=aes256"
 .EE
 .RE
 
-where "/encrypt" gives the request name, and "/data/somedata?method=aes256" represents the URL payload. Or it could be for instance:
+where "/encrypt" is the request name, and "/data/somedata?method=aes256" represents the URL payload. Or it could be for instance:
 
 .RS 4
 .EX
@@ -200,7 +210,7 @@ vv -r --req="/encrypt?data=somedata&method=aes256"
 .EE
 .RE
 
-where "/encrypt" gives the request name, and "?data=somedata&method=aes256" represents the URL payload. 
+where "/encrypt" is the request name, and "?data=somedata&method=aes256" represents the URL payload. 
 
 Use --method to specify the HTTP request method, for instance:
 
@@ -212,7 +222,31 @@ vv -r --req="/encrypt/data/somedata?method=aes256" --method=POST
 .EE
 .RE
 
-If not specified, the default method is "GET". Either way, the output may look like:
+If not specified, the default method is "GET". 
+
+If "--server" is not used, then bash code will invoke a \fBcommand_line\fP program. If "--server" is used, then \fBFastCGI_command_line_client\fP will call a \fBFastCGI\fP application server; in this case if "--remote" is not specified, a local Unix socket is used to contact the server, otherwise "server:port" specified in "--remote" is the IP/name and port of the server to call, separated by a colon (":"). In case of a local Unix socket, the socket path is by default "/var/lib/vv/<app name>/sock/sock", where "/<app name>" is given by the last path segment in "--app" option, or if not specified it is derived from the name of a Vely application built in the current directory; otherwise the socket path is given by "--socket" option.
+
+If "--content" is used, then file <input file> is either piped to the standard input of a command-line program (if "--server" is not used), or sent as a content to the application server (if "--server" is used). You can also specify content type with "--content-type". For example:
+
+.RS 4
+.EX
+
+vv -r -app="/my_app" --req="/some_request?par1=val1&par2=20&par3=4" --method=PATCH --content=something.json --content-type=application/json --exec
+
+.EE
+.RE
+
+To execute the request (instead of displaying the bash code), use "--exec" together with "--req" - in this case no bash code is displayed:
+
+.RS 4
+.EX
+
+vv -r --req="/encrypt" --exec
+
+.EE
+.RE
+
+The output may look like (when --exec is not used):
 
 .RS 4
 .EX
@@ -226,7 +260,28 @@ export QUERY_STRING="method=aes256"
 .EE
 .RE
 
-Running the above executes the command line program which handles the request specified. Note that SCRIPT_NAME will be set to whatever application path you use (i.e. the default or if set with "--path" option when making the application), see \fBrequest_URL\fP.
+If you copy the above and paste into bash shell, it will execute the command line program which handles the request specified. Note that SCRIPT_NAME will be set to whatever application path you use (i.e. the default or if set with "--path" option when making the application; or with "--app" option here), see \fBrequest_URL\fP. If you use "--exec", then the above output will not show and that same code will automatically execute; this is useful to conveniently execute command-line programs or to call your application servers directly, for instance. It can also be used to call any FastCGI server, like PHP FPM. Examples of using "--exec":
+
+.RS 4
+.EX
+
+\[char35]Execute current application, request "json"
+vv -r --req="/json" --exec
+
+\[char35]Execute application "app_name", request "json" by calling the application server running with a Unix socket
+vv -r --req="/json" --app="/app_name" --server  --exec
+
+\[char35]Execute application "app_name", request "json" by calling the application server running with a Unix socket (specified explicitly)
+\[char35]Request has input parameter "act" with value "perf"
+vv -r --req="/json?act=perf" --app="/app_name" --server --socket="/sock_path/sock"  --exec
+
+\[char35]Execute application "app_name", request "json" by calling the application server running with a TCP socket on port 2301
+\[char35]Request has input parameter "act" with value "perf"
+vv -r --req="/json/act/perf" --app="/app_name" --server --remote="192.168.0.21:2301"  --exec
+
+.EE
+.RE
+
 
 .RE
 
@@ -312,6 +367,7 @@ vv -q
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

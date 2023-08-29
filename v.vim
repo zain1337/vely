@@ -478,6 +478,9 @@ syn region vv_r_construct_pf_url start="^[[:space:]]*pf-url" skip="\\[[:space:]]
     syn match vv_h_clause_pf_url " bytes-written \@=" contained containedin=vv_r_construct_pf_url
     syn match vv_h_print_inline_pf_url " bytes-written \@=" contained containedin=vv_r_inline_pf_url
     syn match vv_h_print_inline_pf_url " define \@=" contained containedin=vv_r_inline_pf_url
+    syn match vv_h_clause_pf_url " format \@=" contained containedin=vv_r_construct_pf_url
+    syn match vv_h_print_inline_pf_url " format \@=" contained containedin=vv_r_inline_pf_url
+    syn match vv_h_print_inline_pf_url " define \@=" contained containedin=vv_r_inline_pf_url
     syn match vv_h_clause_pf_url " to \@=" contained containedin=vv_r_construct_pf_url
     syn match vv_h_print_inline_pf_url " to \@=" contained containedin=vv_r_inline_pf_url
     syn match vv_h_print_inline_pf_url " define \@=" contained containedin=vv_r_inline_pf_url
@@ -500,6 +503,9 @@ syn region vv_r_construct_pf_web start="^[[:space:]]*pf-web" skip="\\[[:space:]]
     syn match vv_h_construct_pf_web "^[[:space:]]*pf-web" contained containedin=vv_r_construct_pf_web
     syn match vv_h_clause_pf_web " bytes-written \@=" contained containedin=vv_r_construct_pf_web
     syn match vv_h_print_inline_pf_web " bytes-written \@=" contained containedin=vv_r_inline_pf_web
+    syn match vv_h_print_inline_pf_web " define \@=" contained containedin=vv_r_inline_pf_web
+    syn match vv_h_clause_pf_web " format \@=" contained containedin=vv_r_construct_pf_web
+    syn match vv_h_print_inline_pf_web " format \@=" contained containedin=vv_r_inline_pf_web
     syn match vv_h_print_inline_pf_web " define \@=" contained containedin=vv_r_inline_pf_web
     syn match vv_h_clause_pf_web " to \@=" contained containedin=vv_r_construct_pf_web
     syn match vv_h_print_inline_pf_web " to \@=" contained containedin=vv_r_inline_pf_web
@@ -527,6 +533,9 @@ syn region vv_r_construct_pf_out start="^[[:space:]]*pf-out" skip="\\[[:space:]]
     syn match vv_h_construct_pf_out "^[[:space:]]*pf-out" contained containedin=vv_r_construct_pf_out
     syn match vv_h_clause_pf_out " bytes-written \@=" contained containedin=vv_r_construct_pf_out
     syn match vv_h_print_inline_pf_out " bytes-written \@=" contained containedin=vv_r_inline_pf_out
+    syn match vv_h_print_inline_pf_out " define \@=" contained containedin=vv_r_inline_pf_out
+    syn match vv_h_clause_pf_out " format \@=" contained containedin=vv_r_construct_pf_out
+    syn match vv_h_print_inline_pf_out " format \@=" contained containedin=vv_r_inline_pf_out
     syn match vv_h_print_inline_pf_out " define \@=" contained containedin=vv_r_inline_pf_out
     syn match vv_h_clause_pf_out " to \@=" contained containedin=vv_r_construct_pf_out
     syn match vv_h_print_inline_pf_out " to \@=" contained containedin=vv_r_inline_pf_out
@@ -638,6 +647,8 @@ syn region vv_r_construct_get_app start="^[[:space:]]*get-app" skip="\\[[:space:
 syn region vv_r_construct_get_sys start="^[[:space:]]*get-sys" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_get_sys,vv_r_inline_get_sys,vv_r_at
     syn match vv_h_construct_get_sys "^[[:space:]]*get-sys" contained containedin=vv_r_construct_get_sys
+    syn match vv_h_clause_get_sys " directory \@=" contained containedin=vv_r_construct_get_sys
+    syn match vv_h_clause_get_sys " directory$" contained containedin=vv_r_construct_get_sys
     syn match vv_h_clause_get_sys " environment \@=" contained containedin=vv_r_construct_get_sys
     syn match vv_h_clause_get_sys " os-name \@=" contained containedin=vv_r_construct_get_sys
     syn match vv_h_clause_get_sys " os-name$" contained containedin=vv_r_construct_get_sys
@@ -807,8 +818,11 @@ syn region vv_r_construct_new_json start="^[[:space:]]*new-json" skip="\\[[:spac
     syn match vv_h_clause_new_json " from \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " length \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " max-hash-size \@=" contained containedin=vv_r_construct_new_json
+    syn match vv_h_clause_new_json " node-handler \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " noencode \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " noencode$" contained containedin=vv_r_construct_new_json
+    syn match vv_h_clause_new_json " no-hash \@=" contained containedin=vv_r_construct_new_json
+    syn match vv_h_clause_new_json " no-hash$" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " status \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json "[=]\@<=define \@=" contained containedin=vv_r_construct_new_json
     syn match vv_h_clause_new_json " define \@=" contained containedin=vv_r_construct_new_json
@@ -851,6 +865,7 @@ syn region vv_r_construct_read_json start="^[[:space:]]*read-json" skip="\\[[:sp
     syn match vv_h_clause_read_json " begin \@=" contained containedin=vv_r_construct_read_json
     syn match vv_h_clause_read_json " begin$" contained containedin=vv_r_construct_read_json
     syn match vv_h_clause_read_json " key \@=" contained containedin=vv_r_construct_read_json
+    syn match vv_h_clause_read_json " key-list \@=" contained containedin=vv_r_construct_read_json
     syn match vv_h_clause_read_json " status \@=" contained containedin=vv_r_construct_read_json
     syn match vv_h_clause_read_json " traverse \@=" contained containedin=vv_r_construct_read_json
     syn match vv_h_clause_read_json " traverse$" contained containedin=vv_r_construct_read_json

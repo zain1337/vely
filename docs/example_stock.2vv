@@ -7,8 +7,6 @@ Stock ticker example will create a new ticker (stock name and its price) or upda
 
 In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -17,100 +15,6 @@ Stock value is updated:
 (Image stock_update.png not available in man page, see web page documentation)
 Showing the stock:
 (Image stock_show.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Database objects (setup.sql)
-
-Table "stock" with stock name and price is created for this example:
-
-.RS 4
-.EX
-
-create table if not exists stock (stock_name varchar(100) primary key, stock_price bigint);
-
-.EE
-.RE
-
-
-.B - Add stock ticker (add_stock.vely)
-
-This requests (/add-stock) saves the names of stock tickers and their prices. It will obtain the stock name and price from the web client via \fBinput-param\fP statement, and then use INSERT SQL to store this data in the database. 
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h"
-
-void add_stock()
-{
-    out-header default
-    @<html>
-        @<body>
-        input-param name
-        input-param price
-        // Add data to stock table, update if the stock exists
-        run-query @db_stock = "insert into stock (stock_name, stock_price) values ('%s', '%s') on duplicate key update stock_price='%s'" : name, price, price error define err no-loop
-        if (strcmp (err, "0")) {
-            report-error "Cannot update stock price, error [%s]", err
-        }
-        @<div>
-            @Stock price updated!
-        @</div>
-        @</body>
-    @</html>
-}
-
-
-.EE
-.RE
-
-
-.B - Show stock tickers (show_stock.vely)
-
-You can view stock tickers in a list. SELECT SQL is used to get all the stocks saved so far, and display them in a table using \fBrun-query\fP and then \fBquery-result\fP to get the query results.
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h"
-
-void show_stock()
-{
-    out-header default
-    @<html>
-        @<body>
-        // Show stock names and values
-            @<table>
-                @<tr>
-                    @<td>Stock name</td>
-                    @<td>Stock price</td>
-                @</tr>
-                run-query @db_stock = "select stock_name, stock_price from stock" output stock_name, stock_price
-                    @<tr>
-                        @<td>
-                        query-result  stock_name
-                        @</td>
-                        @<td>
-                        query-result  stock_price
-                        @</td>
-                    @</tr>
-                end-query
-            @</table>
-        @</body>
-    @</html>
-}
-
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -411,6 +315,100 @@ export VV_SILENT_HEADER=yes
 .RE
 
 Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Database objects (setup.sql)
+
+Table "stock" with stock name and price is created for this example:
+
+.RS 4
+.EX
+
+create table if not exists stock (stock_name varchar(100) primary key, stock_price bigint);
+
+.EE
+.RE
+
+
+.B - Add stock ticker (add_stock.vely)
+
+This requests (/add-stock) saves the names of stock tickers and their prices. It will obtain the stock name and price from the web client via \fBinput-param\fP statement, and then use INSERT SQL to store this data in the database. 
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h"
+
+void add_stock()
+{
+    out-header default
+    @<html>
+        @<body>
+        input-param name
+        input-param price
+        // Add data to stock table, update if the stock exists
+        run-query @db_stock = "insert into stock (stock_name, stock_price) values ('%s', '%s') on duplicate key update stock_price='%s'" : name, price, price error define err no-loop
+        if (strcmp (err, "0")) {
+            report-error "Cannot update stock price, error [%s]", err
+        }
+        @<div>
+            @Stock price updated!
+        @</div>
+        @</body>
+    @</html>
+}
+
+
+.EE
+.RE
+
+
+.B - Show stock tickers (show_stock.vely)
+
+You can view stock tickers in a list. SELECT SQL is used to get all the stocks saved so far, and display them in a table using \fBrun-query\fP and then \fBquery-result\fP to get the query results.
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h"
+
+void show_stock()
+{
+    out-header default
+    @<html>
+        @<body>
+        // Show stock names and values
+            @<table>
+                @<tr>
+                    @<td>Stock name</td>
+                    @<td>Stock price</td>
+                @</tr>
+                run-query @db_stock = "select stock_name, stock_price from stock" output stock_name, stock_price
+                    @<tr>
+                        @<td>
+                        query-result  stock_name
+                        @</td>
+                        @<td>
+                        query-result  stock_price
+                        @</td>
+                    @</tr>
+                end-query
+            @</table>
+        @</body>
+    @</html>
+}
+
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Examples

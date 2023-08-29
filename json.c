@@ -24,33 +24,29 @@ static char tb;
 // end temporary string binding
 //
 
-//
-// A normalized path in json file being traversed
-//
-typedef struct vely_s_jslist
-{
-    char *name; // name of node
-    num array; // index of node if array, otherwise -1
-} jslist;
-
 
 // default number of json nodes allocated, incremented by
 #define VV_JSON_NODES 32
-// max length of normalized name
-#define VV_JSON_MAX_NAME 1024
 // max depth of normalized name
 #define VV_JSON_MAX_NESTED 32
+// Add json node to list of nodes, if hash is used
+// *i is the location of where this element was found, so ec is the location, and if cannot allocate memory, go to endj, which must
+// be visible from where VV_ADD_JSON is used. j_tp is the type of node, j_str value, lc is the count in the list of nodes prior to
+// this node, l is the list of nodes (normalized name). 'n' here is calculated if needed, which isn't needed if no-hash is used.
+// So no-hash performs ultra-fast JSON parsing, with virtually no memory allocated.
+// A node after the last has empty name.
+#define VV_ADD_JSON(j_tp, j_str, lc, l) if (jloc->usehash) { vely_add_json(); char *n = vely_json_fullname (l, lc); if (n == NULL) { ec = *i; goto endj; } nodes[node_c].name = n; nodes[node_c].type = j_tp; nodes[node_c].str =  j_str; node_c++; }; if (jloc->node_handler != NULL) { l[lc].name = NULL; if ((*jloc->node_handler)(lc, l, j_str, j_tp) != VV_OKAY) { ec=*i; VERR0; errm = VV_ERR_JSON_INTERRUPTED; goto endj;} }
 
 // Prototypes
-static char *vely_json_fullname (jslist *list, num list_c);
+static char *vely_json_fullname (json_node *list, num list_c);
 static char *vely_json_num(char *val, num *rv);
 static void vely_add_json ();
 static num32 vely_get_hex(char *v, char **err);
 static void vely_add_json_hash (vely_json *j);
 
 // Variables used by json parser (recursive)
-static jslist list[VV_JSON_MAX_NESTED]; // max depth of nested names, used to construct them
-static num list_c = -1; // index of current node being traversed, it's index into array of jslist type, increments with {
+static json_node list[VV_JSON_MAX_NESTED]; // max depth of nested names, used to construct them
+static num list_c = -1; // index of current node being traversed, it's index into array of json_node type, increments with {
 static num node_tot = 0; //node total alloc'd
 static num node_c = 0; //node counter (current)
 static vely_jsonn *nodes = NULL; // nodes of normalized json (name, type, value)
@@ -64,37 +60,77 @@ static num depth = 0; // depth of recursion
 //
 // Get the normalized name of a leaf
 // "list" is the array of names leading up to here, list_c is the index of the final name
+// val is the value of leaf, type is its type
 // returns normalized name for a leaf name in name:value, or NULL if too long a name, this is
-// returned as a static value, so each value must be processed right away.
+// returned as an allocated value
 // this accounts for any arrays
 //
-char *vely_json_fullname (jslist *list, num list_c)
+char *vely_json_fullname (json_node *list, num list_c)
 {
     VV_TRACE("");
-    static char fulln[VV_JSON_MAX_NAME]; // max length of normalized name (of any depth)
-    num fullnc = 0; // curr length of normalized name
-    if (list_c == 0) strcpy (fulln, ".\"\""); // in case json doc is just a string or number and nothing else, so list_c is 0
+
+
+    if (list_c == 0) 
+    { 
+        char *fulln = vely_malloc (3); //  2 for "" + null 
+        strcpy (fulln, "\"\""); 
+        return fulln; 
+    } // in case json doc is just a string or number and nothing else, so list_c is 0
+
     num i;
+    num nlen = 0; // length of normalized name
+    // first calculate the memory needed to hold normalized name
     for (i = 0; i < list_c; i++)
     {
-        num mlen = sizeof(fulln) - fullnc;
-        num w;
-        if (list[i].array == -1) 
+        if (list[i].index == -1) 
         {
-            w = snprintf (fulln + fullnc, mlen, ".\"%s\"", list[i].name);
+            nlen += 1 + 2 + list[i].name_len; /* 1 for dot, 2 for ", plus length of name (we ignore i==0 and just allocate one byte extra)*/
         }
         else
         {
-            w = snprintf (fulln + fullnc, mlen, ".\"%s\"[%lld]", list[i].name, list[i].array);
+            num a = list[i].index;
+            num alen; // length of digits in array index
+            if (a == 0) alen = 1; else { for (alen = 0; a != 0; alen++, a = a / 10){} }
+            list[i].index_len = alen;
+            nlen += 1 + 2 + list[i].name_len + 2 + list[i].index_len; /* 1 for dot, 2 for ", 2 for [], plus length of array index*/
         }
-        if (w >= mlen)
-        {
-            VERR0;
-            errm = VV_ERR_JSON_PATH_LENGTH;
-            return NULL;
-        }
-        fullnc += w;
     }
+    char *fulln = vely_malloc (nlen + 1); // +1 for null
+    num fullnc = 0; // curr length of normalized name
+    for (i = 0; i < list_c; i++)
+    {
+        // construct normalized name "x"[..]."y"...
+        // first ."x" or "x" if first
+        if (i != 0) { memcpy (fulln + fullnc, ".\"", 2); fullnc += 2; } // do not include leading dot, just 
+                                                                        // in between nodes
+        else { memcpy (fulln + fullnc, "\"", 1); fullnc += 1; }
+        memcpy (fulln + fullnc, list[i].name, list[i].name_len); fullnc += list[i].name_len;
+        memcpy (fulln + fullnc, "\"", 1); fullnc += 1;
+        // then if array, add [xxx]
+        if (list[i].index != -1) 
+        {
+            memcpy (fulln + fullnc, "[", 1); fullnc += 1;
+            // output index number, first check for 0
+            num al = list[i].index;
+            if (al == 0) { fulln[fullnc] = '0'; fullnc += 1; }
+            else
+            {
+                // here, get all digits, fill last first, since we're doing moduo 10
+                num k = 0;
+                while (al != 0)
+                {
+                    int r = '0' + (al % 10);
+                    fulln[fullnc + list[i].index_len - 1 - k] = r;
+                    k++;
+                    al = al/10;
+                }
+                fullnc += k;
+            }
+            // finish with ]
+            memcpy (fulln + fullnc, "]", 1); fullnc += 1;
+        }
+    }
+    fulln[fullnc] = 0;
     return fulln;
 }
 
@@ -102,8 +138,10 @@ char *vely_json_fullname (jslist *list, num list_c)
 // Set the end result of json parsing. 'j' is the json object, maxhash is the maximum size of
 // hash table - by default it's 10000. It means hash table size will not be bigger than this, not
 // that this many will be actually allocated!
+// if usehash is true, do store in hash
+// nodeh is a node-handler, i.e. pointer to function that handles nodes, NULL if none.
 //
-void vely_set_json (vely_json **j, num maxhash)
+void vely_set_json (vely_json **j, num maxhash, char usehash, vely_json_node_handler nodeh)
 {
     VV_TRACE("");
     // get json object
@@ -117,6 +155,8 @@ void vely_set_json (vely_json **j, num maxhash)
     jloc->maxhash = maxhash;
     jloc->dnext = 0; // index for traversing the whole document one by one
     jloc->hash = NULL; // hash for fast direct access
+    jloc->usehash = usehash; // true if hash
+    jloc->node_handler = nodeh; // node handler or NULL
 }
 
 //
@@ -131,7 +171,7 @@ void vely_del_json (vely_json *j)
         vely_free (j->nodes[i].name);
     }
     if (j->node_c != 0) vely_free (j->nodes);
-    vely_delete_hash (&(j->hash), 0); // delete hash actually purges, but with 0 as second param, total deletion
+    if (j->usehash) vely_delete_hash (&(j->hash), 0); // delete hash actually purges, but with 0 as second param, total deletion
                                 // if new-json is called again, it will create new hash
     j->node_c = 0;
     vely_free (j); // delete the entire json structure
@@ -141,12 +181,14 @@ void vely_del_json (vely_json *j)
 // Get JSON value from json "j" associated with "key" into "to". "type" is the type (VV_JSON_...), can be NULL. 
 // Returns VV_OKAY on success, VV_ERR_EXIST on failure.
 //
-num vely_read_json (vely_json *j, char *key, char **to, num *type)
+num vely_read_json (vely_json *j, char *key, char **keylist, char **to, num *type)
 {
     VV_TRACE("");
 
+    if (!j->usehash) return VV_ERR_EXIST; // no hash, no data
+                                             //
     num st;
-    vely_jsonn *n = (vely_jsonn*)vely_find_hash (j->hash, key, 0, &st, NULL);
+    vely_jsonn *n = (vely_jsonn*)vely_find_hash (j->hash, key, keylist, 0, &st, NULL);
     if (st == VV_ERR_EXIST) return VV_ERR_EXIST; // VERR0 done in vely_find_hash
     else 
     {
@@ -174,6 +216,8 @@ num vely_next_json (vely_json *j, char **key, char **to, num *type)
 {
     VV_TRACE("");
 
+    if (!j->usehash) return VV_ERR_EXIST; // no hash, no data
+                                             //
     if (j->dnext >= j->node_c) {VERR0;return VV_ERR_EXIST;}
     *key = j->nodes[j->dnext].name;
     *to = j->nodes[j->dnext].str;
@@ -191,7 +235,7 @@ void vely_add_json_hash (vely_json *j)
     VV_TRACE("");
     num st;
     // create hash to add keys to, size it to match the document size, so close to 1 hit to get the key/value
-    vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c);
+    if (j->usehash) vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c);
     // go through all and add to hash
     num i;
     for (i = 0; i < j->node_c; i++)
@@ -199,7 +243,7 @@ void vely_add_json_hash (vely_json *j)
         // not checking for old value, always gets replaced
         // do not check for old key in hash, because we do not allocate the key (it's part of the document passed in)
         // so no need to free a duplicate key
-        vely_add_hash (j->hash, j->nodes[i].name, (void*)&(j->nodes[i]), &(st), NULL);
+        vely_add_hash (j->hash, j->nodes[i].name, NULL, (void*)&(j->nodes[i]), &(st), NULL);
         // generally should be one or the other, but should always succeed
         // if (st != VV_OKAY && st != VV_ERR_EXIST) vely_report_error ("Cannot add JSON text to internal hash");
     }
@@ -269,14 +313,14 @@ num vely_json_new (char *val, num *curr, num len, char dec)
         num j;
         for (j = 0; j < VV_JSON_MAX_NESTED; j++) 
         {
-            list[j].array = -1; // array adds 1, so -1 means no array at this level
+            list[j].index = -1; // array adds 1, so -1 means no array at this level
             list[j].name = NULL;
         }
 
         // create initial block of normalized nodes
         node_c = 0;
         node_tot = 0; // both node_c and node_tot must be 0 for allocation to work properly, see vely_add_json
-        vely_add_json();
+        if (jloc->usehash) vely_add_json();
 
     } else i = curr; // inherit byte counter from a recursive parent
 
@@ -298,7 +342,9 @@ num vely_json_new (char *val, num *curr, num len, char dec)
     //
     if (len == -1) len = (num) strlen(val); // len is -1 only in root invocation
     list_c++; // every time value is about to be found, go one level up (and when found, one down)
-    if (list_c >= VV_JSON_MAX_NESTED) { ec = *i; VERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
+    // the limit for list_c is VV_JSON_MAX_NESTED -1 so there is always one empty after the last with empty name
+    // to mark the end if key-count in read-json isn't used
+    if (list_c >= VV_JSON_MAX_NESTED - 1) { ec = *i; VERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
 
     char nchar = 0;
     while (*i < len) // initial value of i is determined at the beginning of this function, which is recursive
@@ -340,7 +386,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 (*i)++; // get passed [ to find the value that follows
                 // use previous element because array applies to it
                 list_c--;
-                list[list_c].array++; // if array was -1, now it's 0 (first element in array), otherwise increments it
+                list[list_c].index++; // if index was -1, now it's 0 (first element in array), otherwise increments it
                 if (vely_json_new (val, i, len,dec ) != -1) { goto endj; }  
                 // no incrementing *i because it's done in vely_json_new()
                 expected_comma_or_end_array = 1;
@@ -354,7 +400,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 isarr = 0;
                 (*i)++; // get passed ] to find the value that follows
-                list[list_c].array = -1; // no longer array at this level
+                list[list_c].index = -1; // no longer array at this level
                 list_c++; // increase to put it back where it was before we decreased it in [
                 list_c --; 
                 { goto endj; }
@@ -385,7 +431,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 // must be within object or array
                 if (isobj ==1) { expected_name = 1; continue;} // if we're in name:value list of pairs, continue to next name
                 // if we're in array of values, find the next value
-                else if (isarr == 1) list[list_c].array++; // this is next array element, advance the index
+                else if (isarr == 1) list[list_c].index++; // this is next array element, advance the index
                 else { ec = *i; VERR0; errm = VV_ERR_JSON_UNRECOGNIZED; goto endj; }
                 if (vely_json_new (val, i, len ,dec) != -1) { goto endj; }  // return value if failed
                 // no incrementing *i because it's done in vely_json_new()
@@ -422,21 +468,15 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 {
                     // this is name in an array of names leading up to name:value
                     list[list_c].name = str;
+                    list[list_c].name_len = lstr - 1;
                     (*i)++;
                     expected_name = 0;
                     expected_colon = 1;
                 }
                 else
                 {
-                    // this is value in name:value and value is a string here
-                    char *n = vely_strdup(vely_json_fullname (list, list_c)+1);
-                    if (n == NULL) { ec = *i; goto endj; }
                     //set node with value
-                    vely_add_json();
-                    nodes[node_c].name = n;
-                    nodes[node_c].type = VV_JSON_TYPE_STRING;
-                    nodes[node_c].str = str;
-                    node_c++;
+                    VV_ADD_JSON(VV_JSON_TYPE_STRING, str, list_c, list);
 
                     (*i)++; // increase to get passed 0 byte when it returns
                     list_c --; 
@@ -458,28 +498,18 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 char *str = val + *i;
                 BINDV(r); // put 0 at the end
                 nulled = tb;
-                (*i) += (r - val-*i); 
-                char *nm = vely_strdup(vely_json_fullname (list, list_c)+1);
-                if (nm == NULL) { ec = *i; goto endj; } // errm set i n vely_json_fullname()
                 if (rv == 1) 
                 {
                     //set node with value
-                    vely_add_json();
-                    nodes[node_c].name = nm;
-                    nodes[node_c].type = VV_JSON_TYPE_REAL;
-                    nodes[node_c].str = str;
-                    node_c++;
+                    VV_ADD_JSON(VV_JSON_TYPE_REAL, str, list_c, list);
                 }
                 else if (rv == 0) 
                 {
                     //set node with value
-                    vely_add_json();
-                    nodes[node_c].name = nm;
-                    nodes[node_c].type = VV_JSON_TYPE_NUMBER;
-                    nodes[node_c].str = str;
-                    node_c++;
+                    VV_ADD_JSON(VV_JSON_TYPE_NUMBER, str, list_c, list);
                 }
                 else { { ec = *i; VERR0; errm = VV_ERR_JSON_NUMBER; goto endj; }}
+                (*i) += (r - val-*i); 
                 list_c --; 
                 { goto endj; }
 
@@ -496,13 +526,8 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 char *str = val+*i;
                 BINDV(val+*i+strlen("true")); // put 0 at the end
                 nulled = tb;
-                char *nm = vely_strdup(vely_json_fullname (list, list_c)+1);
                 //set node with value
-                vely_add_json();
-                nodes[node_c].name = nm;
-                nodes[node_c].type = VV_JSON_TYPE_BOOL;
-                nodes[node_c].str = str;
-                node_c++;
+                VV_ADD_JSON(VV_JSON_TYPE_BOOL, str, list_c, list);
 
                 (*i) += strlen("true"); // get passed value 
                 list_c --; 
@@ -521,13 +546,8 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 char *str = val+*i;
                 BINDV(val+*i+strlen("false")); // put 0 at the end
                 nulled = tb;
-                char *nm = vely_strdup(vely_json_fullname (list, list_c)+1);
                 //set node with value
-                vely_add_json();
-                nodes[node_c].name = nm;
-                nodes[node_c].type = VV_JSON_TYPE_BOOL;
-                nodes[node_c].str =  str;
-                node_c++;
+                VV_ADD_JSON(VV_JSON_TYPE_BOOL, str, list_c, list);
 
                 (*i) += strlen("false"); // get passed value 
                 list_c --; 
@@ -545,13 +565,8 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                 char *str = val+*i;
                 BINDV(val+*i+strlen("null")); // put 0 at the end
                 nulled = tb;
-                char *nm = vely_strdup(vely_json_fullname (list, list_c)+1);
                 //set node with value
-                vely_add_json();
-                nodes[node_c].name = nm;
-                nodes[node_c].type = VV_JSON_TYPE_NULL;
-                nodes[node_c].str = str;
-                node_c++;
+                VV_ADD_JSON(VV_JSON_TYPE_NULL, str, list_c, list);
 
                 (*i) += strlen("null"); // get passed value 
                 list_c --; 
@@ -576,7 +591,7 @@ endj:
         jloc->node_c = node_c;
         // add all elements to the hash - must be done now because adding pointers to nodes[] doesn't work
         // as nodes[] gets reallocated during parsing, and pointers are becoming invalid
-        vely_add_json_hash (jloc);
+        if (jloc->usehash) vely_add_json_hash (jloc);
 
         // parser always get json value, and there can be whitespace afterwards. After cleaning it up,
         // it must amount to the full document; otherwise there's something left-over that's not json.

@@ -90,6 +90,7 @@ Each application owner (i.e. the user used in application creation with -u flag,
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

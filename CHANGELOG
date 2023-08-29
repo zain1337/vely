@@ -1,8 +1,14 @@
-Vely release notes for 17.3.0
+Vely release notes for 18.0.0
 
-- Notes: Debian 12 apt installation package is now available in this release (consequently, Debian 10 package is no longer available, as only two most recent releases are generally carried). In addition, pf-out statement can now output directly into a string, which is properly allocated to hold the result - this is a very convenient method to safely build strings, in addition to write-string. In match-regex, you can now obtain the byte length of the replacement result. In run-query, input clause is now synonymous with ':' for added clarity in writing and reading code.
-- Minor: added result-length clause to match-regex statement.
-- Minor: pf-out now has 'to' clause to store its output.
-- Release: Debian 12 apt package now available.
-- Minor: added input clause to run-query statement to be used as a synonym in addition to semicolon.
+- Notes: There are several notable new features in this release. You can now use new --exec option in vv to test any request handler via command line, including REST APIs, by means of specifying the application path, URL path and content from a file (along with content-type, while content-length is automatically computed). You can also call any remote FastCGI server (such as Vely or PHP FPM) by means of --server option, along with --remote (to specify IP:port) or --socket (for local Unix sockets). For command line programs, directory clause in get-sys lets you use the current execution directory in code. Notable enhancements are present in JSON parsing. You can use key-list clause in addition to key clause in order to specify a list of key fragments. This is useful to build keys without creating a key, just by using hierarchical fragments; this increases performance of searching keys in a built-in JSON hash table because it avoids string copying. new-json now has no-hash clause (if you only wish to validate JSON) and node-handler clause for getting each value node along with full node hierarchy in a C event-function handler. The node-handler allows for extremely fast parsing and handling of JSON, and allows you to stop parsing once you've gotten all the data of interest. Unrelated to this, JSON parsing performance has increased by 50% by a number of internal optimizations. pf-out now has format clause, when output format (the same as for printf) is not a constant string. Finally, prior versions searched JSON via keys that did not have to be quoted; now each key must be a valid C string - this is the only fix here that may require minor code change in a Vely application that uses JSON, so it is marked as Major.
+- Minor: added --exec options to vv with -r.
+- Minor: added --app, --server, --remote, --socket, --content and --content-type in vv utility for -r option.
+- Minor: added directory clause to get-sys for command line programs.
+- Minor: added key-list clause in read-json.
+- Minor: added no-hash and node-handler clauses in new-json.
+- Minor: added format clause in pf-out for use with non-constant format expressions.
+- Minor: JSON parsing performance increased by 50%.
+- Release: added 34 new functional tests.
+- Release: simpler JSON example due to new features.
+- Major: fixed issue with improper quoting of JSON normalized keys.
 

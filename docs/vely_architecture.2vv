@@ -147,6 +147,7 @@ Vely programs are built in a single command-line step, and ready to use immediat
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

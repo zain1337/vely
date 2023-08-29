@@ -5,9 +5,7 @@ example_json \- Vely documentation (examples)
 JSON parsing and searching
 This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
 
-In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
-
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
+In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 140 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -21,6 +19,240 @@ To get started right away with step-by-step instructions on how to run this exam
 (Image json_list.png not available in man page, see web page documentation)
  You can call Vely code from Javascript fetch() - this is the output from post.html (see Access application... on how to run it):
 (Image json_javascript_vely.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because it is used in this example, you will need to install \fBNginx\fP as a web server.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/json.tar.gz
+cd json
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "json", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) json
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/json") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q 
+
+.EE
+.RE
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 json
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf json
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+If you want to stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit json
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
+
+
+.B - Step 1
+:
+You will need to edit the Nginx configuration file. For Ubuntu and similar:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/sites-enabled/default
+
+.EE
+.RE
+
+while on Fedora and other systems it might be at:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/nginx.conf
+
+.EE
+.RE
+
+
+Add the following in the "server {}" section ("/json" is the application path (see \fBrequest_URL\fP) and "json" is your application name):
+
+.RS 4
+.EX
+
+location /json { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/json/sock/sock; }
+
+.EE
+.RE
+
+
+.B - Step 2
+:
+Finally, restart Nginx:
+
+.RS 4
+.EX
+
+sudo systemctl restart nginx
+
+.EE
+.RE
+
+Note: you must not have any other URL resource that starts with "/json" (such as for example "/json.html" or "/json_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/json", see \fBrequest_URL\fP.
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35] Enter JSON and send for parsing 
+http://127.0.0.1/json/json_form
+
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+Copy the contents of file cities.json (see under Source files) to a text area in the form.
+
+
+.B - Run from Javascript via fetch method
+
+You can also test JSON parsing via Javascript/fetch mechanism. First, copy the file to your web server in a separate directory:
+
+.RS 4
+\[bu]    
+For Apache or older versions of Nginx:
+
+.RS 4
+.EX
+
+sudo mkdir /var/www/html/velytest
+sudo cp post.html /var/www/html/velytest
+
+.EE
+.RE
+
+Test it (use your web address instead of 127.0.0.1 if not testing locally):
+
+.RS 4
+.EX
+
+http://127.0.0.1/velytest/post.html
+
+.EE
+.RE
+
+
+.RE
+
+.RS 4
+\[bu]    
+For newer versions of Nginx:
+
+.RS 4
+.EX
+
+sudo mkdir /usr/share/nginx/html/velytest
+sudo cp post.html /usr/share/nginx/html/velytest
+
+.EE
+.RE
+
+Test it (use your web address instead of 127.0.0.1 if not testing locally):
+
+.RS 4
+.EX
+
+http://127.0.0.1/velytest/post.html
+
+.EE
+.RE
+
+
+.RE
+
+
 
 .LP
 .B SOURCE FILES
@@ -266,7 +498,7 @@ void json_all() {
 
 .B - Parse JSON by looking up specific elements (json_process.vely)
 
-Parse the JSON document. This shows parsing the document that you know a structure of, but does not have a fixed structure, so each element is retrieved based on its normalized name (see \fBread-json\fP).
+Parse the JSON document. This shows parsing the document that you know a structure of, but does not have a fixed structure, so each element is retrieved based on its normalized name (see \fBread-json\fP). Note the usage of "key-list" clause in order to build a key from key fragments, which is especially useful in hierarchical structures; it's also extremely fast because there is no copying of keys.
 
 .RS 4
 .EX
@@ -307,17 +539,12 @@ void json_process() {
     for (country_count = 0; ; country_count++) {
 
         // First, build key prefix for a country
-        (( define json_key_country
+        (( define country
         @"country"[<<p-num country_count>>]
         ))
 
-        // Search for a country name
-        (( define json_key_country_name
-        @<<p-out json_key_country>>."name"
-        ))
-
         // Search for a country name under index [country_count]
-        read-json json key json_key_country_name value define country_name  status st
+        read-json json key-list country, ".\[char92]"name\[char92]"" value define country_name  status st
         if (st != VV_OKAY) break;
 
         // Country found
@@ -328,17 +555,12 @@ void json_process() {
         for (state_count = 0; ; state_count++) {
 
             // Build key prefix for a state
-            (( define json_key_state
-            @<<p-out json_key_country>>."state"[<<p-num state_count>>]
-            ))
-
-            // Search for state name
-            (( define json_key_state_name
-            @<<p-out json_key_state>>."name"
+            (( define state
+            @."state"[<<p-num state_count>>]
             ))
 
             // Search for a state name as: country[countr_count].state[state_count]
-            read-json json key json_key_state_name value define state_name  status st
+            read-json json key-list country, state, ".\[char92]"name\[char92]"" value define state_name  status st
             if (st != VV_OKAY) break;
 
             // State found
@@ -349,26 +571,16 @@ void json_process() {
             for (city_count = 0; ; city_count++) {
 
                 // Build key prefix for city
-                (( define json_key_city
-                @<<p-out json_key_state>>."city"[<<p-num city_count>>]
-                ))
-
-                // Search for city name
-                (( define json_key_city_name
-                @<<p-out json_key_city>>."name"
+                (( define city
+                @."city"[<<p-num city_count>>]
                 ))
 
                 // Search for a city name as: country[countr_count].state[state_count].city[city_count]
-                read-json json key json_key_city_name value define city_name  status st
+                read-json json key-list country, state, city, ".\[char92]"name\[char92]"" value define city_name  status st
                 if (st != VV_OKAY) break;
 
-                // Found city, get its population by building a key for it
-                (( define json_key_city_population
-                @<<p-out json_key_city>>."population"
-                ))
-
                 // Get city population
-                read-json json key json_key_city_population value define city_population  status st
+                read-json json key-list country, state, city, ".\[char92]"population\[char92]"" value define city_population  status st
                 if (st != VV_OKAY) city_population="unknown";
 
                 // Display city name and its population
@@ -385,239 +597,6 @@ void json_process() {
 }
 
 .EE
-.RE
-
-
-.LP
-.B SETUP PREREQUISITES
-.LP
-
-\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
-
-Because it is used in this example, you will need to install \fBNginx\fP as a web server.
-
-After installing Vely, turn on syntax highlighting in vim if you're using it:
-
-.RS 4
-.EX
-
-vv -m
-
-.EE
-.RE
-
-
-.LP
-.B GET THE SOURCE CODE
-.LP
-
-The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
-
-.RS 4
-.EX
-
-tar xvf $(vv -o)/examples/json.tar.gz
-cd json
-
-.EE
-.RE
-
-.LP
-.B SETUP APPLICATION
-.LP
-
-The very first step is to create an application. The application will be named "json", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
-
-.RS 4
-.EX
-
-sudo vf -i -u $(whoami) json
-
-.EE
-.RE
-
-This will create a new application home (which is "/var/lib/vv/json") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
-
-.LP
-.B BUILD APPLICATION
-.LP
-
-Use \fBvv\fP utility to make the application:
-
-.RS 4
-.EX
-
-vv -q 
-
-.EE
-.RE
-
-.LP
-.B START YOUR APPLICATION SERVER
-.LP
-
-To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
-
-.RS 4
-.EX
-
-vf -w 3 json
-
-.EE
-.RE
-
-This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
-
-.RS 4
-.EX
-
-vf json
-
-.EE
-.RE
-
-See \fBvf\fP for more options to help you achieve best performance.
-
-If you want to stop your application server:
-
-.RS 4
-.EX
-
-vf -m quit json
-
-.EE
-.RE
-
-
-.LP
-.B SETUP WEB SERVER
-.LP
-
-This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
-
-
-.B - Step 1
-:
-You will need to edit the Nginx configuration file. For Ubuntu and similar:
-
-.RS 4
-.EX
-
-sudo vi /etc/nginx/sites-enabled/default
-
-.EE
-.RE
-
-while on Fedora and other systems it might be at:
-
-.RS 4
-.EX
-
-sudo vi /etc/nginx/nginx.conf
-
-.EE
-.RE
-
-
-Add the following in the "server {}" section ("/json" is the application path (see \fBrequest_URL\fP) and "json" is your application name):
-
-.RS 4
-.EX
-
-location /json { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/json/sock/sock; }
-
-.EE
-.RE
-
-
-.B - Step 2
-:
-Finally, restart Nginx:
-
-.RS 4
-.EX
-
-sudo systemctl restart nginx
-
-.EE
-.RE
-
-Note: you must not have any other URL resource that starts with "/json" (such as for example "/json.html" or "/json_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/json", see \fBrequest_URL\fP.
-
-.LP
-.B ACCESS APPLICATION SERVER FROM THE BROWSER
-.LP
-
-Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
-
-.RS 4
-.EX
-
-\[char35] Enter JSON and send for parsing 
-http://127.0.0.1/json/json_form
-
-
-.EE
-.RE
-
-Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
-Copy the contents of file cities.json (see under FILES) to a text area in the form.
-
-
-.B - Run from Javascript via fetch method
-
-You can also test JSON parsing via Javascript/fetch mechanism. First, copy the file to your web server in a separate directory:
-
-.RS 4
-\[bu]    
-For Apache or older versions of Nginx:
-
-.RS 4
-.EX
-
-sudo mkdir /var/www/html/velytest
-sudo cp post.html /var/www/html/velytest
-
-.EE
-.RE
-
-Test it (use your web address instead of 127.0.0.1 if not testing locally):
-
-.RS 4
-.EX
-
-http://127.0.0.1/velytest/post.html
-
-.EE
-.RE
-
-
-.RE
-
-.RS 4
-\[bu]    
-For newer versions of Nginx:
-
-.RS 4
-.EX
-
-sudo mkdir /usr/share/nginx/html/velytest
-sudo cp post.html /usr/share/nginx/html/velytest
-
-.EE
-.RE
-
-Test it (use your web address instead of 127.0.0.1 if not testing locally):
-
-.RS 4
-.EX
-
-http://127.0.0.1/velytest/post.html
-
-.EE
-.RE
-
-
 .RE
 
 .SH SEE ALSO

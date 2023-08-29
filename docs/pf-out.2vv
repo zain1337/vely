@@ -9,7 +9,7 @@ Outputs a formatted string without encoding.
 .RS 4
 .EX
 
-pf-out <format> <expression> [ , <expression> ]... \\
+pf-out [ format ] <format> <expression> [ , <expression> ]... \\
     [ bytes-written [ define ] <bytes> ] \\
     [ to-error ] \\
     [ to [ define ] <string> ]
@@ -21,6 +21,8 @@ pf-out <format> <expression> [ , <expression> ]... \\
 pf-out formats a string according to the <format> string and a list of variable-type <expression>s (in the same way C's "printf()" does) and then outputs the result without any encoding (meaning a string is output exactly as it is, and the client may interpret such text in any way it sees fit). The result is sent to a client that made the request. If another string is built by using \fBwrite-string\fP, then the result is output into the buffer that builds a new string.
 
 <format> string must be present. If you'd like to know the number of bytes written out, use the optional "bytes-written" clause, in which case <bytes> holds the number of bytes written; use "define" clause to create it within the statement. There must be at least one <expression> (it means if you want to print out a simple string literal you still have to use "%s" as format).
+
+If <format> is a string constant (eg. "%s %d"), you can omit "format" clause in front of it; however if it is not a string constant (eg. a variable), then you must use "format" clause in front of <format>. 
 
 If the optional "to-error" clause is used, the output is sent to "stderr", or standard output stream.
 
@@ -37,12 +39,13 @@ pf-out bytes-written define bwritten "%s is %d", "the number", 20
 .EE
 .RE
 
-The following is writing to client, outputting text for which the browser will interpret tags "<br/>" and "<hr/>" as a line break and a horizontal line and display them as such:
+The following is writing to client, outputting text for which the browser will interpret tags "<br/>" and "<hr/>" as a line break and a horizontal line and display them as such. It also demonstrates use of "format" clause when <format> is not a constant:
 
 .RS 4
 .EX
 
-pf-out "<hr/> %s <br/>", "This is a non-encoded output"
+char *fmt = "<hr/> %s <br/>";
+pf-out format fmt, "This is a non-encoded output"
 
 .EE
 .RE

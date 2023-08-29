@@ -3601,6 +3601,11 @@ void vely_get_runtime_options()
     snprintf (dir_name, sizeof(dir_name), "/var/lib/vv/%s/app/trace", vely_app_name);
     pc->app.trace_dir = strdup(dir_name);
 
+    if (pc->app.dbconf_dir == NULL || pc->app.home_dir == NULL || pc->app.file_dir == NULL || pc->app.trace_dir == NULL)
+    {
+        VV_FATAL ("Cannot allocate application context memory");
+    }
+
     pc->app.max_upload_size  = vely_max_upload;
     pc->debug.trace_level = vely_is_trace;
 
@@ -3613,9 +3618,13 @@ void vely_get_runtime_options()
         VV_FATAL ("Program can never run as effective user ID of root");
     }
 
+    // Get working directory when the process has started
+    if ((pc->app.run_dir = getcwd(NULL, 0)) == NULL) 
+    {
+        VV_FATAL ("Cannot allocate memory for run directory, error [%m]");
+    }
+
     // We can now set directories, and use ~ based on user to get home directory, if available 
-
-
     if (chdir (pc->app.home_dir) != 0) // set current directory to be HOME_DIR
     {
         VV_FATAL ("Cannot change directory to [%s], error [%m]", pc->app.home_dir);

@@ -7,8 +7,6 @@ Example of manipulating tables via SQL. Table is dropped, created, data inserted
 
 In a nutshell: PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 source files, 44 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -17,79 +15,6 @@ The web output from creating a table, inserting data, selecting and dropping it:
 (Image create_table_web.png not available in man page, see web page documentation)
 The same output, only when the program runs from the command line. Set VV_SILENT_HEADER to yes to skip the header output:
 (Image create_table_command.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Setup database objects (setup.sql)
-
-Create a table used in the example:
-
-.RS 4
-.EX
-
-create table if not exists my_table (col1 bigint);
-
-.EE
-.RE
-
-
-.B - Creating, using and dropping a table (create_table.vely)
-
-DDL (Data Definition Language), DML (Data Definition Language) and SELECT SQL is used in this example. A table is dropped (if it exists), created, data inserted, queried, and then table is dropped again:
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h" 
-
-void create_table()
-{
-
-    out-header default
-
-    // Drop existing table
-    run-query @db_create_table = "drop table if exists my_table"  error define err error-text define err_text no-loop
-    if (strcmp (err, "0")) {
-        report-error "Trouble dropping table, error [%s], error text [%s]", err, err_text
-    }
-    @Table dropped!<br/>
-
-    // Create table
-    run-query @db_create_table =  "create table if not exists my_table (my_number bigint)"  error err error-text err_text no-loop
-    if (strcmp (err, "0")) {
-        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
-    }
-    @Table created!<br/>
-
-    // Insert data into table
-    run-query @db_create_table="insert into my_table (my_number) values ('%s'), ('%s'), ('%s')" : "100", "200", "400" affected-rows define nrows
-    end-query
-    @Added <<pf-out "%lld", nrows>> rows!<br/>
-
-    // Select data we just inserted
-    @Getting data we inserted:<br/>
-    run-query @db_create_table="select my_number from my_table" output my_number
-        @I got number <<query-result my_number>>!<br/>
-    end-query
-
-    // Drop the table again
-    run-query @db_create_table =  "drop table if exists my_table" error err error-text err_text no-loop
-    if (strcmp (err, "0")) {
-        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
-    }
-    @Table dropped!<br/>
-    
-}
-
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -376,6 +301,79 @@ export VV_SILENT_HEADER=yes
 .RE
 
 Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Setup database objects (setup.sql)
+
+Create a table used in the example:
+
+.RS 4
+.EX
+
+create table if not exists my_table (col1 bigint);
+
+.EE
+.RE
+
+
+.B - Creating, using and dropping a table (create_table.vely)
+
+DDL (Data Definition Language), DML (Data Definition Language) and SELECT SQL is used in this example. A table is dropped (if it exists), created, data inserted, queried, and then table is dropped again:
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h" 
+
+void create_table()
+{
+
+    out-header default
+
+    // Drop existing table
+    run-query @db_create_table = "drop table if exists my_table"  error define err error-text define err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble dropping table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+
+    // Create table
+    run-query @db_create_table =  "create table if not exists my_table (my_number bigint)"  error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table created!<br/>
+
+    // Insert data into table
+    run-query @db_create_table="insert into my_table (my_number) values ('%s'), ('%s'), ('%s')" : "100", "200", "400" affected-rows define nrows
+    end-query
+    @Added <<pf-out "%lld", nrows>> rows!<br/>
+
+    // Select data we just inserted
+    @Getting data we inserted:<br/>
+    run-query @db_create_table="select my_number from my_table" output my_number
+        @I got number <<query-result my_number>>!<br/>
+    end-query
+
+    // Drop the table again
+    run-query @db_create_table =  "drop table if exists my_table" error err error-text err_text no-loop
+    if (strcmp (err, "0")) {
+        report-error "Trouble creating table, error [%s], error text [%s]", err, err_text
+    }
+    @Table dropped!<br/>
+    
+}
+
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Examples

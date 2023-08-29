@@ -339,6 +339,7 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

@@ -36,9 +36,9 @@ Either way, as far as your application is concerned, you are looking at a local 
 .B PREREQUISITES
 .LP
 
-To begin with, \fBinstall Vely\fP, which will be used to create application servers. Note that you can use similar code to call remote PHP FPM services, as it also uses FastCGI protocol!
+To begin with, \fBinstall Vely\fP (minimum version 17.3), which will be used to create application servers. Note that you can use similar code to call remote PHP FPM services, as it also uses FastCGI protocol!
 
-Next, you in theory you should have two servers, however in this example both servers will be on the same localhost (i.e. "127.0.0.1"). This is just for simplicity; the code is exactly the same if you have two different servers on a local network - simply use another IP (such as "192.168.0.15" for instance) for your "remote" server instead of local "127.0.0.1". The two servers do not even necessarily need to be physically two different computers. You can start a Virtual Machine (VM) on your computer and host another virtual computer there. Popular free software like VirtualBox or KVM Hypervisor can help you do that. 
+Next, in theory you should have two servers, however in this example both servers will be on the same localhost (i.e. "127.0.0.1"). This is just for simplicity; the code is exactly the same if you have two different servers on a local network - simply use another IP (such as "192.168.0.15" for instance) for your "remote" server instead of local "127.0.0.1". The two servers do not even necessarily need to be physically two different computers. You can start a Virtual Machine (VM) on your computer and host another virtual computer there. Popular free software like VirtualBox or KVM Hypervisor can help you do that. 
 
 In any case, in this example you will start two simple application servers; they will communicate with one another. The first one will be called "local" and the other one "remote" server. The local application server will make a request to the remote one.
 
@@ -74,22 +74,20 @@ void status() {
 
     // Create URL payload for remote server
     // such as "/days/18" to get status for 18 days
-    (( define payload
-    @/days/<<p-out days>>
-    ))
+    pf-out "/days/%s", days to define payload
     // Create a string describing the remote server
     // so if "server" is "192.168.0.15", then it would
     // be 192.168.0.15:3800, meaning it runs on TCP port 3800
-    (( define srv_location
-    @<<p-out server>>:3800
-    ))
+    pf-out "%s:3800", server to define srv_location
+
     // Create a remote server connection
     new-server define srv location srv_location \\
         method "GET" app-path "/server" \\
         request-path "/remote_status" \\
         url-payload payload \\
         timeout 30
-    // Call the remote server 
+
+    // Call the remote server
     call-server srv
     // Get the results from remote server
     read-server srv data define dt
@@ -266,9 +264,6 @@ Output is: [Status in the past 18 days is okay]
 .RE
 
 where the part in between "[..]" comes from the remote server, and the "Output is: " part comes from the command line Vely program you executed.
-
-.EE
-.RE
 
 .RE
 

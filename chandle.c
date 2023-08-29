@@ -293,13 +293,15 @@ void set_signal_handler()
     struct sigaction psa;
     memset (&psa, 0, sizeof (psa));
     psa.sa_handler = signal_handler;
-    sigaction(SIGABRT, &psa, NULL);
-    sigaction(SIGFPE,  &psa, NULL);
-    sigaction(SIGILL,  &psa, NULL);
-    sigaction(SIGSEGV, &psa, NULL);
-    sigaction(SIGBUS, &psa, NULL);
-    sigaction(SIGTERM, &psa, NULL);
-    sigaction(SIGHUP, &psa, NULL);
+    // We do not set psa.sa_flags to SA_RESTART because vf -d process management depends on
+    // properly interrupting the read() and such
+    if (sigaction(SIGABRT, &psa, NULL) == -1) VV_FATAL ("Cannot set ABRT signal handler");
+    if (sigaction(SIGFPE,  &psa, NULL) == -1) VV_FATAL ("Cannot set FPE signal handler");
+    if (sigaction(SIGILL,  &psa, NULL) == -1) VV_FATAL ("Cannot set ILL signal handler");
+    if (sigaction(SIGSEGV, &psa, NULL) == -1) VV_FATAL ("Cannot set SEGV signal handler");
+    if (sigaction(SIGBUS, &psa, NULL) == -1) VV_FATAL ("Cannot set BUS signal handler");
+    if (sigaction(SIGTERM, &psa, NULL) == -1) VV_FATAL ("Cannot set TERM signal handler");
+    if (sigaction(SIGHUP, &psa, NULL) == -1) VV_FATAL ("Cannot set HUP signal handler");
     // ignore these
     signal(SIGPIPE, SIG_IGN); // ignore broken pipe
     signal(SIGINT, SIG_IGN); // ignore ctrl c and such

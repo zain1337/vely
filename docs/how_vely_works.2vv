@@ -257,6 +257,7 @@ Vely provides enhanced \fBdiagnostic_messages\fP; here is an example:
  
 .B - General
 
+\fBabout_Vely\fP  
 \fBapplication_architecture\fP  
 \fBdeploying_application\fP  
 \fBhow_vely_works\fP  

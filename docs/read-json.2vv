@@ -11,9 +11,10 @@ Parse JSON text and get values.
 
 // Random access to JSON data:
 
-read-json <json> key <key> \\
+read-json <json> \\
+    ( key <key> ) | ( key-list <key fragment> [ , <key fragment> ] ) \\
     value [ define ] <value> \\
-    [ status [ define ] <status> ]
+    [ status [ define ] <status> ] \\
     [ type [ define ] <type> ]
 
 // Sequential access to JSON data:
@@ -36,7 +37,11 @@ read-json will obtain the values from <json> variable that was produced by parsi
 .B WITHOUT "TRAVERSE" CLAUSE
 .LP
 
-key/value pairs are accessed with "key" clause specifying a normalized key name, which is the value's name preceded with the names of all objects and array members leading up to it, separated by a comma, with each name quoted. The actual <value> is obtained with "value" clause, and the <type> of value can be obtained with optional "type" clause.
+key/value pairs are accessed with "key" clause specifying a quoted normalized key name, which is the value's name preceded with the names of all objects and array members leading up to it, separated by a dot ("."), with each name quoted. The actual <value> is obtained with "value" clause, and the <type> of value can be obtained with optional "type" clause.
+
+Instead of "key" clause, you can also use "key-list" clause which specifies a list of string <key fragment>s. Those fragments, when concatenated, should form the same value as <key> if "key" clause were used. If any of <key fragment>s is a NULL value, then the key ends with it. Note that a key with NULL as the very first key fragment is an invalid key.
+
+Note that node names in JSON are always quoted, so their quotes must be escaped within a key (or a key fragment), which itself is a string between quotes. For instance, JSON key "some key" must be specified as "\[char92]"some key\[char92]"" to be a proper string. An empty key would be "\[char92]"\[char92]"".
 
 The <status> variable in "status" clause is either VV_OKAY on success (meaning value is obtained) or VV_ERR_EXIST if not found. The value is stored in string variable <value> specified in "value" clause.  
 
@@ -136,7 +141,7 @@ if (st != VV_OKAY) {
 }
 
 // Get value based on key
-read-json json_var key "menu"."popup"."menuitem"[1]."onclick" value define val status st
+read-json json_var key "\[char92]"menu\[char92]".\[char92]"popup\[char92]".\[char92]"menuitem\[char92]"[1].\[char92]"onclick\[char92]"" value define val status st
 if (st != VV_OKAY) {
     @Could not find json key
 } else {
@@ -202,11 +207,22 @@ while (1)
 
 
 .SH EXAMPLES
+Obtaining a value with "key" clause:
 
 .RS 4
 .EX
 
-read-json jv key "glossary"."title" value d
+read-json jv key "\[char92]"glossary\[char92]".\[char92]"title\[char92]"" value d
+
+.EE
+.RE
+
+The same with "key-list" - the key can be split in any way that works for your application:
+
+.RS 4
+.EX
+
+read-json jv key-list "\[char92]"glossary\[char92]"" , ".\[char92]"title\[char92]"" value d
 
 .EE
 .RE

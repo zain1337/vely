@@ -67,6 +67,7 @@
 #define VV_KEYGET "get "
 #define VV_KEYSET "set "
 #define VV_KEYKEY "key "
+#define VV_KEYKEYLIST "key-list "
 #define VV_KEYVALUE "value "
 #define VV_KEYREWIND "rewind "
 #define VV_KEYPASSWORD "password "
@@ -90,6 +91,8 @@
 #define VV_KEYOLDVALUE "old-value "
 #define VV_KEYOLDKEY "old-key "
 #define VV_KEYMAXHASHSIZE "max-hash-size "
+#define VV_KEYNOHASH "no-hash"
+#define VV_KEYNODEHANDLER "node-handler "
 #define VV_KEYCIPHER "cipher "
 #define VV_KEYDIGEST "digest "
 #define VV_KEYSKIPDATA "skip-data"
@@ -753,6 +756,7 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
     }
 }
 
+
 //
 // Generate code for 1) name=value,... statement, for example in call-web or 2) something,... statement
 // for example in exec-program. args is the actual text of what's parsed in the statement.
@@ -765,7 +769,7 @@ void process_http_header (char *statement, char *header, char *temp_header, num 
 // So type is the type of these elements.
 // Returns the index of the last element in array, the one that has NULL in it (in the code generated for the array).
 //
-num outargs(char *args, char *outname, char *type, num startwith, char pair) 
+num outargs(char *args, char *outname, char *type, num startwith, char pair)
 {
 
 
@@ -3704,6 +3708,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *val = find_keyword (mtext, VV_KEYVALUE, 1);
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
                         char *key = find_keyword (mtext, VV_KEYKEY, 1);
+                        char *keylist = find_keyword (mtext, VV_KEYKEYLIST, 1);
                         char *type = find_keyword (mtext, VV_KEYTYPE, 1);
                         char *trav = find_keyword (mtext, VV_KEYTRAVERSE, 1);
                         char *beg = NULL;
@@ -3718,14 +3723,29 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             carve_statement (&val, "read-json", VV_KEYVALUE, 0, 1);
                             carve_statement (&beg, "read-json", VV_KEYBEGIN, 0, 0);
                             carve_statement (&trav, "read-json", VV_KEYTRAVERSE, 0, 0);
+                            if (keylist != NULL) _vely_report_error( "Cannot use 'key-list' here");
                         }
                         else
                         {
-                            carve_statement (&key, "read-json", VV_KEYKEY, 1, 1);
+                            carve_statement (&key, "read-json", VV_KEYKEY, 0, 1);
+                            carve_statement (&keylist, "read-json", VV_KEYKEYLIST, 0, 1);
                             carve_statement (&val, "read-json", VV_KEYVALUE, 1, 1);
+                            if (key != NULL && keylist != NULL) _vely_report_error( "Use either 'key' and 'key-list', cannot use both");
+                            if (key == NULL && keylist == NULL) _vely_report_error( "You must specify either 'key' or 'key-list'");
+
                         }
                         carve_statement (&type, "read-json", VV_KEYTYPE, 0, 1);
                         carve_statement (&status, "read-json", VV_KEYSTATUS, 0, 1);
+
+
+                        char key_var[100];
+                        if (keylist != NULL)
+                        {
+                            static num tot_json_key = 0;
+                            snprintf (key_var, sizeof (key_var), "_vv_json_key_arr%lld", tot_json_key);
+                            outargs(keylist, key_var, "char *", 0, 0);
+                            tot_json_key++;
+                        } else strcpy (key_var, "NULL");
 
 
                         if (trav != NULL) define_statement (&key, VV_DEFSTRING); 
@@ -3737,20 +3757,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             // if key is a "".""..., i.e. string literal, treat all of it as string
                             char *fkey = NULL;
-                            // trim key, must be on both sides to get the right result ".." 
-                            num lkey = strlen (key);
-                            key = vely_trim_ptr(key,  &lkey);
-                            // if string, make it a proper string with escaped "
-                            if (key[0] == '"')
-                            {
-                                num fsize = 2*strlen(key)+1+2; // enough for many quotes inside
-                                fkey = vely_malloc(fsize);
-                                strcpy (fkey+1, key);
-                                vely_replace_string (fkey+1, fsize-1, "\"", "\\\"", 1, NULL, 0);
-                                fkey[0] = '"';
-                                strcpy (fkey+strlen(fkey), "\"");
-                            } else fkey = key;
-                            oprintf ("%s%svely_read_json (%s, %s, &(%s), %s%s%s);\n", status == NULL ? "":status, status == NULL ? "":"=", mtext, fkey, val, type==NULL?"":"&(", type==NULL?"NULL":type, type==NULL?"":")");
+                            if (key == NULL) fkey = "NULL"; else fkey = key;
+                            oprintf ("%s%svely_read_json (%s, %s, %s, &(%s), %s%s%s);\n", status == NULL ? "":status, status == NULL ? "":"=", mtext, fkey, key_var, val, type==NULL?"":"&(", type==NULL?"NULL":type, type==NULL?"":")");
                         }
                         else
                         {
@@ -3827,6 +3835,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         i = newI;
 
                         char *nodec = find_keyword (mtext, VV_KEYNOENCODE, 1);
+                        char *nohash = find_keyword (mtext, VV_KEYNOHASH, 1);
+                        char *nodeh = find_keyword (mtext, VV_KEYNODEHANDLER, 1);
                         char *maxhash = find_keyword (mtext, VV_KEYMAXHASHSIZE, 1);
                         char *from = find_keyword (mtext, VV_KEYFROM, 1);
                         char *errp = find_keyword (mtext, VV_KEYERRORPOSITION, 1);
@@ -3834,7 +3844,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *errt = find_keyword (mtext, VV_KEYERRORTEXT, 1);
                         char *len = find_keyword (mtext, VV_KEYLENGTH, 1);
 
+                        carve_statement (&nohash, "new-json", VV_KEYNOHASH, 0, 0);
                         carve_statement (&nodec, "new-json", VV_KEYNOENCODE, 0, 0);
+                        carve_statement (&nodeh, "new-json", VV_KEYNODEHANDLER, 0, 1);
                         carve_statement (&status, "new-json", VV_KEYSTATUS, 0, 1);
                         carve_statement (&errp, "new-json", VV_KEYERRORPOSITION, 0, 1);
                         carve_statement (&errt, "new-json", VV_KEYERRORTEXT, 0, 1);
@@ -3850,7 +3862,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         //
                         // Look for each option and collect relevant info
                         //
-                        oprintf ("vely_set_json (&(%s), %s);\n", mtext, maxhash == NULL ? "-1" : maxhash);
+                        oprintf ("vely_set_json (&(%s), %s, %s, %s);\n", mtext, maxhash == NULL ? "-1" : maxhash, nohash == NULL? "true":"false", nodeh == NULL? "NULL":nodeh);
                         oprintf ("num vely_json_status_%lld = %s%svely_json_new (%s, NULL, (%s), %s);\n", json_id, errp == NULL ? "":errp, errp == NULL ? "":"=", from, len == NULL ? "-1" : len, nodec == NULL?"1":"0");
                         if (status != NULL)
                         {
@@ -4357,6 +4369,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *osname = find_keyword (mtext, VV_KEYOSNAME, 1);
                         char *osver = find_keyword (mtext, VV_KEYOSVERSION, 1);
                         char *to = find_keyword (mtext, VV_KEYTO, 1);
+                        char *dir = find_keyword (mtext, VV_KEYDIRECTORY, 1);
 
                         //
                         // After all options positions have been found, we must get the options 
@@ -4367,11 +4380,12 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&osname, "get-sys", VV_KEYOSNAME, 0, 0);
                         carve_statement (&osver, "get-sys", VV_KEYOSVERSION, 0, 0);
                         carve_statement (&to, "get-sys", VV_KEYTO, 1, 1);
+                        carve_statement (&dir, "get-sys", VV_KEYDIRECTORY, 0, 0);
 
                         // result can be defined
                         define_statement (&to, VV_DEFSTRING);
 
-                        num tot_opt = (webenv!=NULL?1:0)+(env!=NULL?1:0)+(osname!=NULL?1:0)+(osver!=NULL?1:0);
+                        num tot_opt = (webenv!=NULL?1:0)+(env!=NULL?1:0)+(osname!=NULL?1:0)+(osver!=NULL?1:0)+(dir!=NULL?1:0);
                         if (tot_opt != 1)
                         {
                             _vely_report_error( "Exactly one option must be in get-sys statement");
@@ -4381,6 +4395,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         if (webenv !=NULL) oprintf ("%s=vely_getenv(%s);\n", to,webenv);
                         if (osname !=NULL) oprintf ("%s=vely_os_name();\n", to);
                         if (osver !=NULL) oprintf ("%s=vely_os_version();\n", to);
+                        if (dir !=NULL) oprintf ("%s=vely_get_config()->app.run_dir;\n", to);
 
 
                         continue;
@@ -4603,35 +4618,35 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         //to avoid hard to track bugs
                         //look also for format (starting with unquoted quote), to know where the printf part starts
                         char *comma = find_keyword (mtext, ",", 0);
-                        char *format = find_keyword (mtext, "\"", 0);
+                        char *format = find_keyword (mtext, "\"", 0); // cannot be carved
+                        char *formatkey = find_keyword (mtext, VV_KEYFORMAT, 0);
                         char *written = find_keyword (mtext, VV_KEYBYTESWRITTEN, 0);
                         char *toerr = find_keyword (mtext, VV_KEYTOERROR, 0);
                         char *to = find_keyword (mtext, VV_KEYTO, 0);
 
+                        carve_statement (&formatkey, "pf-*", VV_KEYFORMAT, 0, 1);
                         carve_statement (&toerr, "pf-*", VV_KEYTOERROR, 0, 0);
                         carve_statement (&to, "pf-*", VV_KEYTO, 0, 1);
                         //carve out bytes-written to get its value 
                         carve_statement (&written, "pf-*", VV_KEYBYTESWRITTEN, 0, 1);
 
+                        if (formatkey != NULL) format = formatkey;
 
                         if (format == NULL)
                         {
-                            _vely_report_error( "format must be specified in pf-* statement");
+                            _vely_report_error( "format must be specified in pf-* statement, either starting with a format string literal or with 'format' clause");
                         }
                         else
                         {
-                            *(format-1)=0; // to carve out written clause
+                            if (formatkey == NULL) *(format-1)=0; // to carve out written clause if going just by "%s..." format string
+                            else comma = find_keyword (formatkey, ",", 0); // find comma under format clause
                         }
 
 
                         if (comma == NULL || (comma-mtext) < (format-mtext))
                         {
-                            _vely_report_error( "format must be followed by a comma and a list of arguments in pf-* statement");
+                            _vely_report_error( "format string literal must be followed by a comma and a list of arguments in pf-* statement");
                         }
-                        /*if (written != NULL && (written-mtext > comma-mtext))
-                        {
-                            _vely_report_error( "bytes-written must be before format in pf-* statement");
-                        }*/
                         if (toerr != NULL && to != NULL) _vely_report_error( "cannot use both to-error and 'to' clause; use one or the other");
                         // bytes-written may be define'd
                         define_statement (&written, VV_DEFNUM);
@@ -5171,7 +5186,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         define_statement (&oldk, VV_DEFSTRING);
                         define_statement (&st, VV_DEFNUM);
 
-                        oprintf("%s%svely_add_hash (%s, %s, %s, %s%s%s, %s%s%s);\n", oldd==NULL?"":oldd, oldd==NULL?"":"=",mtext, key, val, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
+                        oprintf("%s%svely_add_hash (%s, %s, NULL, %s, %s%s%s, %s%s%s);\n", oldd==NULL?"":oldd, oldd==NULL?"":"=",mtext, key, val, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "read-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5232,7 +5247,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         if (trav == NULL)
                         {
-                            oprintf("%s=vely_find_hash (%s, %s, %s, %s%s%s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
+                            oprintf("%s=vely_find_hash (%s, %s, NULL, %s, %s%s%s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
                         }
                         else
                         {
@@ -5832,11 +5847,11 @@ int main (int argc, char* argv[])
     snprintf (vely_dbconf_dir, VV_FILE_NAME_LEN, "/var/lib/vv/%s/app/db", vely_app_name);
 
     // get home directory
-    char cwd[300];
+    char *cwd;
     //
     // Then we get current working directory
     //
-    if (getcwd (cwd, sizeof(cwd)) == NULL)
+    if ((cwd = getcwd (NULL, 0)) == NULL)
     {
         _vely_report_error ( "Cannot get current working directory, error [%s]", strerror(errno));
         exit (1);
@@ -5981,7 +5996,7 @@ int main (int argc, char* argv[])
         oprintf("if (!vv_done_init) {\n"); 
         // first memset base struct, then connections (not the other way around as conn would be wiped out)
         oprintf("   memset (&vely_dbs, 0, sizeof(vely_dbs));\n");
-        if (totconn == 0) oprintf("   vely_dbs.conn = NULL;\n"); else oprintf("   vely_dbs.conn = calloc (%lld, sizeof(one_db));\n", totconn);
+        if (totconn == 0) oprintf("   vely_dbs.conn = NULL;\n"); else oprintf("   vely_dbs.conn = calloc (%lld, sizeof(one_db));\n    if (vely_dbs.conn ==  NULL) VV_FATAL (\"Cannot allocate database array memory\");\n", totconn);
         oprintf("   vv_pc->ctx.db = &vely_dbs;\n");
         oprintf("   vv_pc->ctx.db->ind_current_db=-1;\n"); // no db used yet
         // Generate name of database connections

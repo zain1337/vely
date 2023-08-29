@@ -9,8 +9,6 @@ The "notes" is a multi-tenant web application that you can run on the Internet a
 
 In a nutshell: MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 315 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -29,6 +27,360 @@ Ask for confirmation to delete a note:
 (Image notes_delete.png not available in man page, see web page documentation)
 After user confirms, delete a note:
 (Image notes_deleted.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because they are used in this example, you will need to install \fBApache\fP as a web server and \fBMariaDB\fP as a database.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/multitenant_SaaS.tar.gz
+cd multitenant_SaaS
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "multitenant_SaaS", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) multitenant_SaaS
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/multitenant_SaaS") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Before any coding, you need some place to store the information used by the application. First, you will create MariaDB database "db_multitenant_SaaS" owned by user "vely" with password "your_password". You can change any of these names, but remember to change them everywhere here. And then, you will create database objects in the database.
+
+Execute the following logged in as root in \fBmysql utility\fP:
+
+.RS 4
+.EX
+
+--Create velydb database hosting application data (if it doesn't exist):
+create database if not exists db_multitenant_SaaS;
+create user if not exists vely identified by 'your_password';
+grant create,alter,drop,select,insert,delete,update on db_multitenant_SaaS.* to vely;
+-- Create database objects needed for the application (eg. tables, indexes):
+use db_multitenant_SaaS;
+source setup.sql;
+exit
+
+.EE
+.RE
+
+
+.LP
+.B CONNECT VELY TO A DATABASE
+.LP
+
+In order to let Vely know where your database is and how to log into it, you will create \fBdatabase_config_file\fP named "db_multitenant_SaaS". This name doesn't have to be "db_multitenant_SaaS", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
+
+.RS 4
+.EX
+
+echo '[client]
+user=vely
+password=your_password
+database=db_multitenant_SaaS
+protocol=TCP
+host=127.0.0.1
+port=3306' > db_multitenant_SaaS
+
+.EE
+.RE
+
+The above is a \fBstandard mariadb client options file\fP. Vely uses native MariaDB database connectivity, so you can specify any options that a given database lets you.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q --db=mariadb:db_multitenant_SaaS --path="/api/v2/multitenant_SaaS"
+
+.EE
+.RE
+
+Note usage of --db option to specify MariaDB database and the database configuration file name.
+
+--path is used to specify the application path, see \fBrequest_URL\fP.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 multitenant_SaaS
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf multitenant_SaaS
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+If you want to stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit multitenant_SaaS
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+
+.B - Step 1
+:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+
+.B - Step 2
+:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/api/v2/multitenant_SaaS" is the application path (see \fBrequest_URL\fP) and "multitenant_SaaS" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/api/v2/multitenant_SaaS" unix:///var/lib/vv/multitenant_SaaS/sock/sock|fcgi://localhost/multitenant_SaaS
+
+.EE
+.RE
+
+
+.B - Step 3
+:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+Note: you must not have any other URL resource that starts with "/api/v2/multitenant_SaaS" (such as for example "/api/v2/multitenant_SaaS.html" or "/api/v2/multitenant_SaaS_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/api/v2/multitenant_SaaS", see \fBrequest_URL\fP.
+
+
+.LP
+.B SETUP LOCAL MAIL
+.LP
+
+This example uses email as a part of its function. If your server already has capability to send email, you can skip this.
+
+Otherwise, you can use local mail, and that means email addresses such as "myuser@localhost". To do that, install postfix (or sendmail). On Debian systems (like Ubuntu):
+
+.RS 4
+.EX
+
+sudo apt install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+and on Fedora systems (like RedHat):
+
+.RS 4
+.EX
+
+sudo dnf install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+When the application sends an email to a local user, such as <OS user>@localhost, then you can see the email sent at:
+
+.RS 4
+.EX
+
+sudo vi /var/mail/<OS user>
+
+.EE
+.RE
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35] Get started 
+http://127.0.0.1/api/v2/multitenant_SaaS/notes/action/begin
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
 
 .LP
 .B SOURCE FILES
@@ -544,360 +896,6 @@ void notes () {
 .EE
 .RE
 
-
-.LP
-.B SETUP PREREQUISITES
-.LP
-
-\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
-
-Because they are used in this example, you will need to install \fBApache\fP as a web server and \fBMariaDB\fP as a database.
-
-After installing Vely, turn on syntax highlighting in vim if you're using it:
-
-.RS 4
-.EX
-
-vv -m
-
-.EE
-.RE
-
-
-.LP
-.B GET THE SOURCE CODE
-.LP
-
-The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
-
-.RS 4
-.EX
-
-tar xvf $(vv -o)/examples/multitenant_SaaS.tar.gz
-cd multitenant_SaaS
-
-.EE
-.RE
-
-.LP
-.B SETUP APPLICATION
-.LP
-
-The very first step is to create an application. The application will be named "multitenant_SaaS", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
-
-.RS 4
-.EX
-
-sudo vf -i -u $(whoami) multitenant_SaaS
-
-.EE
-.RE
-
-This will create a new application home (which is "/var/lib/vv/multitenant_SaaS") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
-
-.LP
-.B SETUP THE DATABASE
-.LP
-
-Before any coding, you need some place to store the information used by the application. First, you will create MariaDB database "db_multitenant_SaaS" owned by user "vely" with password "your_password". You can change any of these names, but remember to change them everywhere here. And then, you will create database objects in the database.
-
-Execute the following logged in as root in \fBmysql utility\fP:
-
-.RS 4
-.EX
-
---Create velydb database hosting application data (if it doesn't exist):
-create database if not exists db_multitenant_SaaS;
-create user if not exists vely identified by 'your_password';
-grant create,alter,drop,select,insert,delete,update on db_multitenant_SaaS.* to vely;
--- Create database objects needed for the application (eg. tables, indexes):
-use db_multitenant_SaaS;
-source setup.sql;
-exit
-
-.EE
-.RE
-
-
-.LP
-.B CONNECT VELY TO A DATABASE
-.LP
-
-In order to let Vely know where your database is and how to log into it, you will create \fBdatabase_config_file\fP named "db_multitenant_SaaS". This name doesn't have to be "db_multitenant_SaaS", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
-
-.RS 4
-.EX
-
-echo '[client]
-user=vely
-password=your_password
-database=db_multitenant_SaaS
-protocol=TCP
-host=127.0.0.1
-port=3306' > db_multitenant_SaaS
-
-.EE
-.RE
-
-The above is a \fBstandard mariadb client options file\fP. Vely uses native MariaDB database connectivity, so you can specify any options that a given database lets you.
-
-.LP
-.B BUILD APPLICATION
-.LP
-
-Use \fBvv\fP utility to make the application:
-
-.RS 4
-.EX
-
-vv -q --db=mariadb:db_multitenant_SaaS --path="/api/v2/multitenant_SaaS"
-
-.EE
-.RE
-
-Note usage of --db option to specify MariaDB database and the database configuration file name.
-
---path is used to specify the application path, see \fBrequest_URL\fP.
-
-.LP
-.B START YOUR APPLICATION SERVER
-.LP
-
-To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
-
-.RS 4
-.EX
-
-vf -w 3 multitenant_SaaS
-
-.EE
-.RE
-
-This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
-
-.RS 4
-.EX
-
-vf multitenant_SaaS
-
-.EE
-.RE
-
-See \fBvf\fP for more options to help you achieve best performance.
-
-If you want to stop your application server:
-
-.RS 4
-.EX
-
-vf -m quit multitenant_SaaS
-
-.EE
-.RE
-
-
-.LP
-.B SETUP WEB SERVER
-.LP
-
-This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
-
-
-.B - Step 1
-:
-To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
-
-.RS 4
-\[bu]    
-For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
-
-.RS 4
-.EX
-
-sudo a2enmod proxy
-sudo a2enmod proxy_fcgi
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
-
-.RS 4
-.EX
-
-sudo vi /etc/httpd/conf/httpd.conf
-
-.EE
-.RE
-
-For OpenSUSE:
-
-.RS 4
-.EX
-
-sudo vi /etc/apache2/httpd.conf
-
-.EE
-.RE
-
-Add this to the end of the file:
-
-.RS 4
-.EX
-
-LoadModule proxy_module modules/mod_proxy.so
-LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
-
-.EE
-.RE
-
-.RE
-
-
-.B - Step 2
-:
-Edit the Apache configuration file:
-
-.RS 4
-\[bu]    
-For Debian (such as Ubuntu):
-
-.RS 4
-.EX
-
-sudo vi /etc/apache2/apache2.conf
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-for Fedora (such as RedHat), Archlinux:
-
-.RS 4
-.EX
-
-sudo vi /etc/httpd/conf/httpd.conf
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-and for OpenSUSE:
-
-.RS 4
-.EX
-
-sudo vi /etc/apache2/httpd.conf
-
-.EE
-.RE
-
-.RE
-
-Add this to the end of file ("/api/v2/multitenant_SaaS" is the application path (see \fBrequest_URL\fP) and "multitenant_SaaS" is your application name):
-
-.RS 4
-.EX
-
-ProxyPass "/api/v2/multitenant_SaaS" unix:///var/lib/vv/multitenant_SaaS/sock/sock|fcgi://localhost/multitenant_SaaS
-
-.EE
-.RE
-
-
-.B - Step 3
-:
-Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
-
-.RS 4
-.EX
-
-sudo systemctl restart apache2
-
-.EE
-.RE
-
-On Fedora systems (like RedHat) and Arch Linux:
-
-.RS 4
-.EX
-
-sudo systemctl restart httpd
-
-.EE
-.RE
-
-Note: you must not have any other URL resource that starts with "/api/v2/multitenant_SaaS" (such as for example "/api/v2/multitenant_SaaS.html" or "/api/v2/multitenant_SaaS_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/api/v2/multitenant_SaaS", see \fBrequest_URL\fP.
-
-
-.LP
-.B SETUP LOCAL MAIL
-.LP
-
-This example uses email as a part of its function. If your server already has capability to send email, you can skip this.
-
-Otherwise, you can use local mail, and that means email addresses such as "myuser@localhost". To do that, install postfix (or sendmail). On Debian systems (like Ubuntu):
-
-.RS 4
-.EX
-
-sudo apt install postfix
-sudo systemctl start postfix
-
-.EE
-.RE
-
-and on Fedora systems (like RedHat):
-
-.RS 4
-.EX
-
-sudo dnf install postfix
-sudo systemctl start postfix
-
-.EE
-.RE
-
-When the application sends an email to a local user, such as <OS user>@localhost, then you can see the email sent at:
-
-.RS 4
-.EX
-
-sudo vi /var/mail/<OS user>
-
-.EE
-.RE
-
-
-.LP
-.B ACCESS APPLICATION SERVER FROM THE BROWSER
-.LP
-
-Use the following URL(s) to access your application server from a client like browser (see \fBrequest_URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
-
-.RS 4
-.EX
-
-\[char35] Get started 
-http://127.0.0.1/api/v2/multitenant_SaaS/notes/action/begin
-
-.EE
-.RE
-
-Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
 .SH SEE ALSO
  
 .B - Examples

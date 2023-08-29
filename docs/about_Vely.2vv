@@ -1,0 +1,97 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+about_Vely \- Vely documentation (general)
+.SH DESCRIPTION
+
+.B - What is Vely
+
+Vely is a general-purpose framework for rapid development of high-performance software. It is especially well suited for web applications. It's Free \fBOpen Source\fP (under the business-friendly \fBEclipse Public License 2 (EPL-2)\fP). 
+
+Vely is declarative and functional, with single-line statements performing entire tasks. It's simple to design, write and maintain applications.
+
+Decades of adding energy-intensive abstractions on top of programming languages led to increase in complexity and decrease in performance. Vely applications are 100% native, high-performance and low-footprint without interpreters, virtual machines, or byte-code schemes. 
+
+.B - What's it for
+
+Vely is great for web applications, command-line programs, cloud applications, middleware, distributed systems, database applications, IOT or anything else. Create and manage application servers as quickly as command-line programs.
+
+Vely supports querying databases, file manipulation, network, string manipulation, outputting data, encryption, JSON, REST, distributed computing, time, memory structures like hash and FIFO, program execution, regex, memory management, SSL/TSL, encoding/decoding, error handling, web servers, request handling, daemonizing, web development like cookies, input parameters, uploading and downloading of files, URL parameter parsing etc. In short, lots of very common and useful tasks you need all the time.
+
+.B - Intuitive and practical
+
+Vely statements are easy to read and write, designed to immediately give you a clear idea about what they do, even if you've never seen Vely code. They are more like a natural language than typical programming code. This is important not just if you're starting with Vely, but also for maintenance, when someone works with the code years later. You write Vely statements inside skeleton C code so there is no need to learn anything new about the layer underneath; C is quite simple and well-known.
+
+The scope of Vely statements is typically narrow and the generated code is shallow and direct, similar to what an experienced C programmer would write, incurring virtually no loss of performance. The arguments are specified in any order by naming their purpose, which is important for teams where readability is of importance.
+
+.B - How it works
+
+Vely \fBstatements\fP are declarative, descriptive and short, designed with productivity in mind. They are precompiled into C code and then compiled and linked, resulting in a native executable. You don't have to be a C expert because Vely writes C code for you, though you can write as much (or as little) of your own code in C as you like.
+
+Read \fBhow Vely works\fP, \fBvely architecture\fP, \fBapplication architecture\fP, and see \fBexamples\fP.
+
+Vely uses well-known standard libraries like cURL, OpenSSL, crypto, FastCGI, PCRE2, native database libraries from MariaDB, PostgreSQL, SQLite, for compliance, performance and reliability. Use simple \fBAPI\fP to connect to a Vely application server from elsewhere, and use existing libraries in Vely applications.
+
+.B - Performance matters
+
+Many other back-end languages and frameworks are running as a virtual machine, interpreter or some other form of abstraction, or indirect execution. These layers of abstraction by far don't have the best performance, and are energy-inefficient, costing more electricity, water and computing equipment that relies on rare metals, ultimately affecting the environment in \fBa negative way\fP. And sluggish software never makes for good customer experience.
+
+C is the \fBfastest and most energy-efficient\fP programming language, which is the reason why it's widely used in system programming and infrastructure software. Performance is important everywhere, and especially in the Cloud, where smaller and faster means less CPU seconds, less RAM, less money spent, less energy used and less emissions. Vely is based entirely on C.
+
+.B - Safety
+
+When you use Vely statements, you do not need to allocate/free memory, or worry about buffer overruns or memory violations; you also get automatic memory freeing and automatic file closing. Vely is safer than pure C due to its \fBmemory handling\fP.
+
+After each request, Vely automatically releases any memory used by it. This makes programming easier and safer, and your application more stable and faster. You can also use \fBunmanaged memory\fP, which is the classic malloc/free.
+
+Aside from memory handling, Vely statements perform many syntax and semantic checks to make sure your thoughts get represented with code as close and as safe as possible. These checks are virtually always done during compile-time and do not affect performance.
+
+
+.B - Why generate C
+
+C is the shortest route to maximum performance and the smallest memory footprint. C is simple. It also allows usage of virtually any library in existence. And Vely statements are carefully crafted with the goal of generating fast and safe C code on their own. Vely itself is written in C.
+
+Vely's goal is not to write more C code, quite the opposite. By using Vely anywhere possible, C code can be used as a supporting mechanism for Vely statements, such as declaring variables, conditional statements, program flow and usage of external libraries. This means the important and difficult parts are done by single-line Vely statements.
+
+.B - Moore's law and C
+
+In the past several decades, less-efficient languages and frameworks have proliferated because of hardware advances, even to the point of negating those benefits (see \fBthis\fP). In other words, there's lots of bloated and slow languages and frameworks out there, relying on layer upon layer of abstractions to work.
+
+And while \fBMoore's law\fP may or may not be failing, it may take significantly more time and funding to keep these hardware advances going, and at some point it may no longer. C can help put any hardware to more efficient use.
+
+The reason why you wouldn't have used C in the past may have been buffer overwrites, memory management and low-level coding. Vely changes that by turning C into a rapid software development platform that's safer and easier.
+
+.B - Quality
+
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1838 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
+
+
+.B - Report bugs, request features, contact
+
+Contact at \fBvely@vely.dev\fP - send questions, bugs or suggest new features.
+
+
+.B - Download and install
+
+Download and install Vely \fBhere\fP from pre-built packages with apt, dnf, zypper or pacman; or install from source.
+
+
+.B - Author
+
+Vely's author is \fBSergio Mijatovic\fP.
+.SH SEE ALSO
+ 
+.B - General
+
+\fBabout_Vely\fP  
+\fBapplication_architecture\fP  
+\fBdeploying_application\fP  
+\fBhow_vely_works\fP  
+\fBquality_control\fP  
+\fBrename_files\fP  
+\fBSELinux\fP  
+\fBvely_architecture\fP  
+\fBvely_removal\fP  
+\fBvf\fP  
+\fBvv\fP    
+See all 
+\fBdocumentation\fP

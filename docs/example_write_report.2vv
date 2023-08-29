@@ -7,116 +7,12 @@ Builds a report of employees from a database. Creates a "reports" directory and 
 
 In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
 
 Database report is saved into a file (the path to which is displayed) and the report itself is shown in the web page:
 (Image write_report.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Database setup (setup.sql)
-
-For this example, table "employees" is created if it doesn't exist (all its data deleted if it does), and it is populated with some data:
-
-.RS 4
-.EX
-
-create table if not exists employees (name varchar(50), salary int);
-delete from employees;
-insert into employees (name, salary) values ('Mike', 50000), ('Joan', 60000), ('Kelly', 70000);
-
-.EE
-.RE
-
-
-.B - Database report (write_report.vely)
-
-A result set of a query is stored in a string using \fBwrite-string\fP with \fBrun-query\fP within in. \fBwrite-string\fP simply redirects any output (that would normally go to the client) into a string. This output is then written to a file using \fBwrite-file\fP and also sent back to the client.
-
-A few other things are demonstrated here, such as \fBget-req\fP to obtain the database vendor (i.e. which database is used, as any number of databases can be, such as MariaDB/MySQL, PostgreSQL, SQLite). Also getting current time (\fBget-time\fP) is shown to produce a timestamp for the file name, and \fBmatch-regex\fP to replace spaces with underscores.
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h" 
-
-void write_report()
-{
-
-    out-header default
-
-    get-app db-vendor db_write_report to define dbv
-    @Database vendor used is <<p-out dbv>><br/>
-
-    // Build report for a query and store it into variable outmsg
-
-    write-string define outmsg
-    @Employee report<hr/>        
-
-    // Get data from the database
-    run-query @db_write_report="select name, salary from employees order by name" output name, salary
-       @  -----<br/>
-       @  Name: <<query-result name>> 
-       @  Salary: <<query-result salary>><br/>
-    end-query
-    @-----<br/>
-
-    @End report.
-
-    end-write-string
-
-
-    // build time stamp for report file
-    get-time to define curr_time format "%A %B %d %Y %l %M %p %Z"
-    get-req process-id to define pid
-    match-regex " " in curr_time replace-with "_" result define tstamp
-
-    // get application home directory and build the path for reports directory
-    get-app directory to define home_dir
-    write-string define report_dir
-    @<<p-out home_dir>>/reports
-    end-write-string
-
-    // make directory, ignore error if it exists
-    exec-program "mkdir" args "-p", report_dir status define st
-    if (st != VV_OKAY  && st != VV_ERR_EXIST) {
-        @Error in creating reports directory
-        exit-request
-    }
-
-    // build the name of report file
-    write-string define report_file
-    @<<p-out home_dir>>/reports/report_<<pf-out "%lld", pid>><<p-out tstamp>>
-    end-write-string
-
-    // write report file
-
-    write-file report_file from outmsg status st
-    if (st<0) {
-        @Error in writing report file <<p-out report_file>> (<<pf-out "%lld", st>>)
-        exit-request
-    } else {
-        // if okay, display report file to the web
-        @Report file [<<p-out report_file>>] written.<br/>
-        @Report file content:<br/>
-        p-out outmsg
-    }
-
-}
-
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -400,6 +296,108 @@ export VV_SILENT_HEADER=yes
 .RE
 
 Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Database setup (setup.sql)
+
+For this example, table "employees" is created if it doesn't exist (all its data deleted if it does), and it is populated with some data:
+
+.RS 4
+.EX
+
+create table if not exists employees (name varchar(50), salary int);
+delete from employees;
+insert into employees (name, salary) values ('Mike', 50000), ('Joan', 60000), ('Kelly', 70000);
+
+.EE
+.RE
+
+
+.B - Database report (write_report.vely)
+
+A result set of a query is stored in a string using \fBwrite-string\fP with \fBrun-query\fP within in. \fBwrite-string\fP simply redirects any output (that would normally go to the client) into a string. This output is then written to a file using \fBwrite-file\fP and also sent back to the client.
+
+A few other things are demonstrated here, such as \fBget-req\fP to obtain the database vendor (i.e. which database is used, as any number of databases can be, such as MariaDB/MySQL, PostgreSQL, SQLite). Also getting current time (\fBget-time\fP) is shown to produce a timestamp for the file name, and \fBmatch-regex\fP to replace spaces with underscores.
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h" 
+
+void write_report()
+{
+
+    out-header default
+
+    get-app db-vendor db_write_report to define dbv
+    @Database vendor used is <<p-out dbv>><br/>
+
+    // Build report for a query and store it into variable outmsg
+
+    write-string define outmsg
+    @Employee report<hr/>        
+
+    // Get data from the database
+    run-query @db_write_report="select name, salary from employees order by name" output name, salary
+       @  -----<br/>
+       @  Name: <<query-result name>> 
+       @  Salary: <<query-result salary>><br/>
+    end-query
+    @-----<br/>
+
+    @End report.
+
+    end-write-string
+
+
+    // build time stamp for report file
+    get-time to define curr_time format "%A %B %d %Y %l %M %p %Z"
+    get-req process-id to define pid
+    match-regex " " in curr_time replace-with "_" result define tstamp
+
+    // get application home directory and build the path for reports directory
+    get-app directory to define home_dir
+    write-string define report_dir
+    @<<p-out home_dir>>/reports
+    end-write-string
+
+    // make directory, ignore error if it exists
+    exec-program "mkdir" args "-p", report_dir status define st
+    if (st != VV_OKAY  && st != VV_ERR_EXIST) {
+        @Error in creating reports directory
+        exit-request
+    }
+
+    // build the name of report file
+    write-string define report_file
+    @<<p-out home_dir>>/reports/report_<<pf-out "%lld", pid>><<p-out tstamp>>
+    end-write-string
+
+    // write report file
+
+    write-file report_file from outmsg status st
+    if (st<0) {
+        @Error in writing report file <<p-out report_file>> (<<pf-out "%lld", st>>)
+        exit-request
+    } else {
+        // if okay, display report file to the web
+        @Report file [<<p-out report_file>>] written.<br/>
+        @Report file content:<br/>
+        p-out outmsg
+    }
+
+}
+
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Examples

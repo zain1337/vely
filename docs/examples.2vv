@@ -174,7 +174,7 @@ This example demonstrates parsing JSON text. The text parsed contains informatio
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Nginx; Unix sockets; 5 source files, 160 lines of code.
+What's in it:  web browser; Nginx; Unix sockets; 5 source files, 140 lines of code.
 .RE
 
 .RE

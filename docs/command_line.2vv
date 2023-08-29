@@ -71,7 +71,7 @@ You can generate the shell code like the above by using "-r" option of \fBvv\fP 
 .RS 4
 .EX
 
-vv -r --req="/add-stock/name/ABC"
+vv -r --app="/stock" --req="/add-stock/name/ABC"
 
 .EE
 .RE
@@ -106,6 +106,16 @@ export REQUEST_METHOD=POST
 
 \[char35]provide request body as the standard input to the command-line program by piping a file into it
 cat prices.json | /var/lib/vv/bld/ordering/ordering
+
+.EE
+.RE
+
+You can generate the shell code like the above by using "-r" option of \fBvv\fP utility, for example here you'd specify:
+
+.RS 4
+.EX
+
+vv -r --app=/json --req='/process?act=get_total&period=YTD' --method=POST --content=prices.json --content-type=application/json
 
 .EE
 .RE

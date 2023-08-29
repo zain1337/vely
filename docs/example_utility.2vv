@@ -7,8 +7,6 @@ In this example, a temperature measuring device will periodically insert tempera
 
 In a nutshell: SQLite; command line; Unix sockets; 2 source files, 25 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -17,60 +15,6 @@ Adding a record to the database, for example to record a temperature reading of 
 (Image utility_show_insert.png not available in man page, see web page documentation)
 To view the current database in chronological order:
 (Image utility_list.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Recording temperature readings in a table (setup.sql)
-
-There is a "temp" column (temperature reading) and "timest" (time stamp of the reading). Table name is "temps" (temperatures).
-
-.RS 4
-.EX
-
-create table temps (temp integer, timest text primary key);
-
-.EE
-.RE
-
-
-.B - Utility for recording temperatures (temphist.vely)
-
-This application will record temperatures, as well as list them. The source code in "temphist.vely" file is fairly self-explanatory. If input parameter "action" is "record", store the temperature into table "temps" and check for any errors. If it is "list", just display all the temperature records in a historical order.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void temphist() {
-    out-header default
-
-    task-param action
-
-    if-task "record"
-        input-param temp
-        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp \\
-            affected-rows define rc error-text define er no-loop
-        if (rc != 1) {
-            @Could not insert temperature reading, error <<p-out er>>.
-        } else {
-            @Temperature reading stored.
-        }
-    else-task "list"
-        run-query @db_utility = "select temp, timest from temps order by timest" output temp, timest
-            @Date: <<query-result  timest>>
-            @Temperature: <<query-result  temp>>
-        end-query
-    end-task
-}
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -213,6 +157,61 @@ Note: to suppress output of HTTP headers, add this before running /var/lib/vv/bl
 .EX
 
 export VV_SILENT_HEADER=yes
+
+.EE
+.RE
+
+
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Recording temperature readings in a table (setup.sql)
+
+There is a "temp" column (temperature reading) and "timest" (time stamp of the reading). Table name is "temps" (temperatures).
+
+.RS 4
+.EX
+
+create table temps (temp integer, timest text primary key);
+
+.EE
+.RE
+
+
+.B - Utility for recording temperatures (temphist.vely)
+
+This application will record temperatures, as well as list them. The source code in "temphist.vely" file is fairly self-explanatory. If input parameter "action" is "record", store the temperature into table "temps" and check for any errors. If it is "list", just display all the temperature records in a historical order.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void temphist() {
+    out-header default
+
+    task-param action
+
+    if-task "record"
+        input-param temp
+        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp \\
+            affected-rows define rc error-text define er no-loop
+        if (rc != 1) {
+            @Could not insert temperature reading, error <<p-out er>>.
+        } else {
+            @Temperature reading stored.
+        }
+    else-task "list"
+        run-query @db_utility = "select temp, timest from temps order by timest" output temp, timest
+            @Date: <<query-result  timest>>
+            @Temperature: <<query-result  temp>>
+        end-query
+    end-task
+}
 
 .EE
 .RE

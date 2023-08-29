@@ -4,7 +4,7 @@
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    17.3.0
+Version:    18.0.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC
@@ -12,7 +12,6 @@ Vendor:     Dasoftver LLC
 Group:        Development/Tools
 License:    EPL-2.0
 Source0: http://nowebsite/vely/pkg/%{name}-%{version}-%{release}.tar.gz
-
 
 
 #Packages in runtime that are not in build time are tar, curl, openssl and 
@@ -77,13 +76,25 @@ Vely is a development platform for C programming language running on Web Servers
 %prep
 %setup -q -n %{name}-%{version}
 
+#For faster building on Fedora 38, you can define special_build to yes. In this case, a step prior to rpmbuild must
+#actually make Vely in $HOME/vely directory and build it in $HOME/vely/build directory. Otherwise, do not use this flag.
 %build
+%if "%{special_build}" == "yes"
+cp ~/vely/* . || true
+%else
 make clean
 make 
+%endif
 
 %install
+%if "%{special_build}" == "yes"
+rm -rf %{buildroot}
+mkdir -p %{buildroot}
+cp -rf ~/vely/build/* "%{buildroot}" || true
+%else
 rm -rf %{buildroot}
 make DESTDIR="%{buildroot}" VV_NO_SEL=1 install
+%endif
 
 #SELINUX
 #This must be after make install above; otherwise /var/lib/vv wouldn't exist yet (it exists in fakeroot, but that won't work for SELINUX)

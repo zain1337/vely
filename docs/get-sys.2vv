@@ -11,7 +11,7 @@ Obtain data that describes the system.
 
 get-sys \\
     environment <var name> | web-environment <var name> \\
-        | os-name | os-version \\
+        directory | os-name | os-version \\
     to [ define ] <variable>
 
 .EE
@@ -49,6 +49,12 @@ get-sys web-environment "QUERY_STRING" to define home_dir
 .RE
 
 Note that the same name can be used for both Operating System environment variable (the "environment" clause) and for Web Server environment variable ("web-environment" clause), hence two separate clauses for them.
+
+.RE
+
+.RS 4
+\[bu]    
+"directory" is the execution directory of the \fBcommand_line\fP program, i.e. the current working directory when the program was executed. Note that Vely will change the current working directory immediately afterwards to the application home directory (see \fBhow_vely_works\fP). You can use this clause to work with files in the directory where the program was started. If your program runs as an application server (see \fBFastCGI\fP), then "directory" clause always returns application home directory, regardless of which directory \fBvf\fP program manager started your application.
 
 .RE
 

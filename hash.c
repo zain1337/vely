@@ -11,7 +11,7 @@
 
 
 // prototypes
-static num vely_compute_hash (char* d, num size);
+static num vely_compute_hash (char* d, char **dlist, num size);
 static vely_hash_table *vely_new_hash_item (char *key, void *data);
 void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table *prev, num hashind);
 
@@ -90,7 +90,7 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
     if (prev == NULL) {
         // if bucket index is unknown, calculate it since we need it when deleting the first in the bucket
         // in order to set 'prev' which is the bucket itself (i.e. denoted as NULL)
-        if (hashind == -1) hashind = vely_compute_hash (todel->key, h->size);
+        if (hashind == -1) hashind = vely_compute_hash (todel->key, NULL, h->size);
         h->table[hashind] = next; // if first in bucket list deleted
                                                 // the next one is now the first
     }
@@ -111,11 +111,12 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
 
 //
 // Search / delete. Search hash 'h' for key 'key' and return data (or NULL if not found).
+// If keylist!=NULL, then iterate over keylist array until NULL.
 // If 'del' is 1, delete this element and return data (data is only linked). 'found' is 1
 // if something was found (say if delete was done) (found can be NULL).
 // oldkey is the same as with vely_add_hash, see comments there.
 //
-void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldkey)
+void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *found, char **oldkey)
 {
     VV_TRACE("");
 
@@ -123,7 +124,7 @@ void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldk
 
     char *ret = NULL;
     // get hash id of a key
-    num hashind = vely_compute_hash (key, h->size);
+    num hashind = vely_compute_hash (key, keylist, h->size);
 
     vely_hash_table *hresult = NULL;
     vely_hash_table *prev = NULL;
@@ -132,7 +133,31 @@ void *vely_find_hash (vely_hash *h, char *key, char del, num *found, char **oldk
     while (curr != NULL)
     {
         h->reads++;
-        if (!strcmp (key, curr->key))  { hresult = curr; break;}
+        bool is_match;
+        if (keylist == NULL) is_match = !strcmp (key, curr->key);
+        else
+        {
+            // Check if all elements in the list combined are the same as key
+            num di = 0; // data index
+            num lel; // length of element in key list
+            num tot_len = 0; // current length compared in key
+            char *el = keylist[di]; // element in key list
+            if (el != NULL) 
+            {
+                is_match = true; // default, will set to false if not
+                while (el != NULL) 
+                {
+                    // check if current element matches
+                    lel = strlen (el);
+                    if (memcmp (curr->key + tot_len, el, lel)) {is_match = false; break;}
+                    // advance the position in key and get next element to check
+                    tot_len += lel;
+                    di++;
+                    el = keylist[di];
+                }
+            } else is_match = false; // if first is NULL, no match
+        }
+        if (is_match)  { hresult = curr; break;}
         else
         {
             prev = curr;
@@ -179,7 +204,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
         void *data;
         char *key = vely_next_hash (*h, &data);
         if (key == NULL) break;
-        vely_add_hash (nh, key, data, NULL, NULL);
+        vely_add_hash (nh, key, NULL, data, NULL, NULL);
     }
     vely_delete_hash (h, 1); // remove old hash, it also creates new one with old size, but empty
     vely_free ((*h)->table); // remove table created by default in vely_delete_hash()
@@ -273,7 +298,7 @@ vely_hash_table *vely_new_hash_item (char *key, void *data)
 }
 
 // 
-// Add new string 'data' to hash 'h' with key 'key'
+// Add new string 'data' to hash 'h' with key 'key'. If keylist!=NULL, then key is all keys in keylist until NULL.
 // If this key existed, returns a pointer to old data, otherwise returns "" and st is VV_ERR_EXIST otherwise VV_OKAY
 // (st can be NULL)
 // oldkey returns the memory where the key actually stored in the hash is. While the value pointed to by this old key
@@ -281,12 +306,12 @@ vely_hash_table *vely_new_hash_item (char *key, void *data)
 // data and old key when replacing or deleting, because deleting hash entry means deleting hash constructs, not the actual data,
 // after all the data may or may not be allocated. oldkey can be NULL, it's to be filled only if not NULL.
 //
-char *vely_add_hash (vely_hash *h, char *key, void *data, num *st, char **oldkey)
+char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *st, char **oldkey)
 {
     VV_TRACE("");
 
     // compute hash id for key
-    num hashind = vely_compute_hash (key, h->size);
+    num hashind = vely_compute_hash (key, keylist, h->size);
 
     if (h->table[hashind] == NULL) { // nothing here, just add first list element 
         h->table[hashind] = vely_new_hash_item (key, data);
@@ -336,20 +361,44 @@ char *vely_add_hash (vely_hash *h, char *key, void *data, num *st, char **oldkey
 #define VV_FNVOFFSETBASIS 2166136261
 //
 // Compute hash value for string d. Size of hash table is size.
+// If dlist!=NULL, iterate over dlist array until NULL.
 // Return hash.
 // Based on FNV1a for 32 bit, which is in public domain (https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function)
 // Based on http://www.isthe.com/chongo/tech/comp/fnv/index.html, this algorithm is not patented
 // authors: fnvhash-mail@asthe.com
 //
-num vely_compute_hash (char* d, num size)
+#define VV_FNVCOMP(h,c) h ^= (c); h *= VV_FNVPRIME;
+num vely_compute_hash (char* d, char **dlist, num size)
 {
     VV_TRACE("");
     uint32_t h = VV_FNVOFFSETBASIS;
     num i;
-    for (i = 0 ; d[i] ; i++)
+    // either use single value d or the list of keys dlist
+    if (dlist == NULL) 
     {
-        h ^= d[i];
-        h *= VV_FNVPRIME;
+        for (i = 0 ; d[i] ; i++)
+        {
+            VV_FNVCOMP(h, d[i]);
+        }
+    }
+    else
+    {
+        // Go through key fragments to compute hash
+        num dindex = 0;
+        char *in;
+        in = dlist[dindex];
+        while (1)
+        {
+            if (in == NULL) break; // cut it short if key fragment is NULL
+                                   // account if it's the first key fragment
+                                   // this way
+            for (i = 0 ; in[i] ; i++)
+            {
+                VV_FNVCOMP(h, in[i]);
+            }
+            dindex++;
+            in = dlist[dindex]; 
+        }
     }
     return (num)(h % size);
 }

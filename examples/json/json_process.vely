@@ -34,17 +34,12 @@ void json_process() {
     for (country_count = 0; ; country_count++) {
 
         // First, build key prefix for a country
-        (( define json_key_country
+        (( define country
         @"country"[<<p-num country_count>>]
         ))
 
-        // Search for a country name
-        (( define json_key_country_name
-        @<<p-out json_key_country>>."name"
-        ))
-
         // Search for a country name under index [country_count]
-        read-json json key json_key_country_name value define country_name  status st
+        read-json json key-list country, ".\"name\"" value define country_name  status st
         if (st != VV_OKAY) break;
 
         // Country found
@@ -55,17 +50,12 @@ void json_process() {
         for (state_count = 0; ; state_count++) {
 
             // Build key prefix for a state
-            (( define json_key_state
-            @<<p-out json_key_country>>."state"[<<p-num state_count>>]
-            ))
-
-            // Search for state name
-            (( define json_key_state_name
-            @<<p-out json_key_state>>."name"
+            (( define state
+            @."state"[<<p-num state_count>>]
             ))
 
             // Search for a state name as: country[countr_count].state[state_count]
-            read-json json key json_key_state_name value define state_name  status st
+            read-json json key-list country, state, ".\"name\"" value define state_name  status st
             if (st != VV_OKAY) break;
 
             // State found
@@ -76,26 +66,16 @@ void json_process() {
             for (city_count = 0; ; city_count++) {
 
                 // Build key prefix for city
-                (( define json_key_city
-                @<<p-out json_key_state>>."city"[<<p-num city_count>>]
-                ))
-
-                // Search for city name
-                (( define json_key_city_name
-                @<<p-out json_key_city>>."name"
+                (( define city
+                @."city"[<<p-num city_count>>]
                 ))
 
                 // Search for a city name as: country[countr_count].state[state_count].city[city_count]
-                read-json json key json_key_city_name value define city_name  status st
+                read-json json key-list country, state, city, ".\"name\"" value define city_name  status st
                 if (st != VV_OKAY) break;
 
-                // Found city, get its population by building a key for it
-                (( define json_key_city_population
-                @<<p-out json_key_city>>."population"
-                ))
-
                 // Get city population
-                read-json json key json_key_city_population value define city_population  status st
+                read-json json key-list country, state, city, ".\"population\"" value define city_population  status st
                 if (st != VV_OKAY) city_population="unknown";
 
                 // Display city name and its population

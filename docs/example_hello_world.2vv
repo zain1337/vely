@@ -6,222 +6,12 @@ This is a simple Hello World example. It explains basics of making applications 
 
 In a nutshell:  command line; web browser; Nginx; Unix sockets; 2 source files, 7 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
 
 Hello World output:
 (Image hello_web.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Hello World (hello.vely)
-
-Hello World example outputs HTTP header and a simple message back to the browser.
-
-The file name ("hello.vely") must match the function name implemented in it, so the function's signature is "void hello()". Call it with a URL like:
-
-.RS 4
-.EX
-
-http://your-web-site/hello_world/hello
-
-.EE
-.RE
-
-Note "/hello_world" path segment - that's the application path and by default the same as application name (see \fBhow_vely_works\fP and \fBrequest_URL\fP). The following path segment is "/hello", which is the request name, and it must match the function name that implements it.
-
-Note the "@" is used to do the output, it's the \fBoutput_statement\fP. You'll probably use that one a lot.
-
-In this case there's only one request file. In a real world application, there'd likely be quite a few. Vely will pick up all .vely files and automatically make them into an application. While at it, it will generate a simple request dispatcher that routes an incoming request to the appropriate code; in this case a "hello" request will be routed to your "void hello()" function.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void hello()
-{
-   out-header default
-   @Hello World!
-}
-
-.EE
-.RE
-
-
-.LP
-.B CHANGING YOUR CODE
-.LP
-
-When you change your source code and recompile, vf will automatically pick up that the executable has changed and reload (see \fBvf\fP if you wish to change this behavior), making your web application live instantly. For example, change hello.vely to this:
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void hello()
-{
-   out-header default
-   @Hello World! And a good day to you too!
-}
-
-.EE
-.RE
-
-and then recompile:
-
-.RS 4
-.EX
-
-vv -q 
-
-.EE
-.RE
-
-Now try again from the browser:
-
-.RS 4
-.EX
-
-http://127.0.0.1/hello_world/hello
-
-.EE
-.RE
-
-The result:
-(Image hello_change.png not available in man page, see web page documentation)
-
-.LP
-.B GENERATED C CODE, ERRORS, TRACING AND DEBUGGING
-.LP
-
-Generated C code is located at:
-
-.RS 4
-.EX
-
-/var/lib/vv/bld/hello_world/__hello.o.c
-
-.EE
-.RE
-
-It's useful if you'd like to see it or debug your code. 
-
-If you are using your Vely application as a command line program, you can debug it simply by using \fBgdb\fP. 
-
-Note that in order to see the debugging symbols (such as variable names), you should compile your application with --debug flag:
-
-.RS 4
-.EX
-
-vv -q --debug 
-
-.EE
-.RE
-
-For FastCGI processes, you'd want to start your application as a single process, generally as few as possible, for example, stop your application first and then start as a single process:
-
-.RS 4
-.EX
-
-vf -m quit hello_world
-vf -w 1 hello_world
-
-.EE
-.RE
-
-First, find out the \fBPID\fP of your process:
-
-.RS 4
-.EX
-
-ps -ef|grep hello_world.fcgi
-
-.EE
-.RE
-
-Then you can load gdb with your application and attach to it - assuming the PID is 12345:
-
-.RS 4
-.EX
-
-sudo gdb /var/lib/vv/bld/hello_world/hello_world.fcgi
-\[char46].. att 12345
-
-.EE
-.RE
-
-To break in your code (in this case in function hello()), do this in gdb:
-
-.RS 4
-.EX
-
-br hello
-
-.EE
-.RE
-
-If you'd like to break in Vely's request dispatcher, i.e. just before any request is handled:
-
-.RS 4
-.EX
-
-br vely_dispatch_request
-
-.EE
-.RE
-
-From then on, you can set breakpoints, continue, stop and do anything else to debug your program.
-
-When you debug Vely applications in gdb, each Vely statement is a single execution unit. This is very useful when reporting errors, since they are reported referencing lines in .vely file, in this case hello.vely. Sometimes you'd want to use line numbers of the generated C file, in which case you'd compile with --c-lines flag:
-
-.RS 4
-.EX
-
-vv -q --c-lines 
-
-.EE
-.RE
-
-Another way to debug your application is to use tracing (see \fBtrace-run\fP). To enable tracing, compile your application with --trace flag:
-
-.RS 4
-.EX
-
-vv -q --debug --trace 
-
-.EE
-.RE
-
-Trace files are in the trace directory, see \fBhow_vely_works\fP. In our case, trace file would be in this directory:
-
-.RS 4
-.EX
-
-/var/lib/vv/hello_world/app/trace
-
-.EE
-.RE
-
-and trace file name for the process you're debugging would be (with timestamp being of the time it's written):
-
-.RS 4
-.EX
-
-trace-12345-2022-05-17-22-46-54
-
-.EE
-.RE
-
-In addition to this, learn more about \fBdebugging\fP Vely applications.
 
 .LP
 .B SETUP PREREQUISITES
@@ -457,6 +247,214 @@ export VV_SILENT_HEADER=yes
 .RE
 
 Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Hello World (hello.vely)
+
+Hello World example outputs HTTP header and a simple message back to the browser.
+
+The file name ("hello.vely") must match the function name implemented in it, so the function's signature is "void hello()". Call it with a URL like:
+
+.RS 4
+.EX
+
+http://your-web-site/hello_world/hello
+
+.EE
+.RE
+
+Note "/hello_world" path segment - that's the application path and by default the same as application name (see \fBhow_vely_works\fP and \fBrequest_URL\fP). The following path segment is "/hello", which is the request name, and it must match the function name that implements it.
+
+Note the "@" is used to do the output, it's the \fBoutput_statement\fP. You'll probably use that one a lot.
+
+In this case there's only one request file. In a real world application, there'd likely be quite a few. Vely will pick up all .vely files and automatically make them into an application. While at it, it will generate a simple request dispatcher that routes an incoming request to the appropriate code; in this case a "hello" request will be routed to your "void hello()" function.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void hello()
+{
+   out-header default
+   @Hello World!
+}
+
+.EE
+.RE
+
+
+.LP
+.B CHANGING YOUR CODE
+.LP
+
+When you change your source code and recompile, vf will automatically pick up that the executable has changed and reload (see \fBvf\fP if you wish to change this behavior), making your web application live instantly. For example, change hello.vely to this:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void hello()
+{
+   out-header default
+   @Hello World! And a good day to you too!
+}
+
+.EE
+.RE
+
+and then recompile:
+
+.RS 4
+.EX
+
+vv -q 
+
+.EE
+.RE
+
+Now try again from the browser:
+
+.RS 4
+.EX
+
+http://127.0.0.1/hello_world/hello
+
+.EE
+.RE
+
+The result:
+(Image hello_change.png not available in man page, see web page documentation)
+
+.LP
+.B GENERATED C CODE, ERRORS, TRACING AND DEBUGGING
+.LP
+
+Generated C code is located at:
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/hello_world/__hello.o.c
+
+.EE
+.RE
+
+It's useful if you'd like to see it or debug your code. 
+
+If you are using your Vely application as a command line program, you can debug it simply by using \fBgdb\fP. 
+
+Note that in order to see the debugging symbols (such as variable names), you should compile your application with --debug flag:
+
+.RS 4
+.EX
+
+vv -q --debug 
+
+.EE
+.RE
+
+For FastCGI processes, you'd want to start your application as a single process, generally as few as possible, for example, stop your application first and then start as a single process:
+
+.RS 4
+.EX
+
+vf -m quit hello_world
+vf -w 1 hello_world
+
+.EE
+.RE
+
+First, find out the \fBPID\fP of your process:
+
+.RS 4
+.EX
+
+ps -ef|grep hello_world.fcgi
+
+.EE
+.RE
+
+Then you can load gdb with your application and attach to it - assuming the PID is 12345:
+
+.RS 4
+.EX
+
+sudo gdb /var/lib/vv/bld/hello_world/hello_world.fcgi
+\[char46].. att 12345
+
+.EE
+.RE
+
+To break in your code (in this case in function hello()), do this in gdb:
+
+.RS 4
+.EX
+
+br hello
+
+.EE
+.RE
+
+If you'd like to break in Vely's request dispatcher, i.e. just before any request is handled:
+
+.RS 4
+.EX
+
+br vely_dispatch_request
+
+.EE
+.RE
+
+From then on, you can set breakpoints, continue, stop and do anything else to debug your program.
+
+When you debug Vely applications in gdb, each Vely statement is a single execution unit. This is very useful when reporting errors, since they are reported referencing lines in .vely file, in this case hello.vely. Sometimes you'd want to use line numbers of the generated C file, in which case you'd compile with --c-lines flag:
+
+.RS 4
+.EX
+
+vv -q --c-lines 
+
+.EE
+.RE
+
+Another way to debug your application is to use tracing (see \fBtrace-run\fP). To enable tracing, compile your application with --trace flag:
+
+.RS 4
+.EX
+
+vv -q --debug --trace 
+
+.EE
+.RE
+
+Trace files are in the trace directory, see \fBhow_vely_works\fP. In our case, trace file would be in this directory:
+
+.RS 4
+.EX
+
+/var/lib/vv/hello_world/app/trace
+
+.EE
+.RE
+
+and trace file name for the process you're debugging would be (with timestamp being of the time it's written):
+
+.RS 4
+.EX
+
+trace-12345-2022-05-17-22-46-54
+
+.EE
+.RE
+
+In addition to this, learn more about \fBdebugging\fP Vely applications.
 .SH SEE ALSO
  
 .B - Examples

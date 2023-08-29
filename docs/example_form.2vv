@@ -7,8 +7,6 @@ This application is a guest tracking database. The user can input first and last
 
 In a nutshell: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
 
-To get started right away with step-by-step instructions on how to run this example, go to "Setup prerequisites" chapter further down.
-
 .LP
 .B SCREENSHOTS OF APPLICATION
 .LP
@@ -19,141 +17,6 @@ When a Submit button is clicked, entered data is added to the guest book:
 (Image form_added.png not available in man page, see web page documentation)
 This shows the entire guest book:
 (Image form_show.png not available in man page, see web page documentation)
-
-.LP
-.B SOURCE FILES
-.LP
-
-The following are the source files in this project:
-
-.B - Setup database objects (setup.sql)
-
-Create table to hold the first and last name of the guest:
-
-.RS 4
-.EX
-
-create table if not exists names (firstName varchar(30), lastName varchar(40));
-
-.EE
-.RE
-
-
-.B - Web form (form_display.vely)
-
-This is a simple HTML web form where first and last name is collected and sent to the server via POST mechanism. Note the path segment after the application path (set with \fBp-path\fP), which is "/form_post", meaning this request will be handled in source file "form_post.vely":
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h" // must always be here
-
-
-// 
-// Display a web form
-//
-void form_display ()
-{
-
-     out-header default
-
-    @<h2>Enter your name</h2>
-
-    @<form action="<<p-path>>/form_post" method="POST">
-
-    @    <label for="first_name">First name:</label><br>
-    @    <input type="text" name="first_name" value=""><br>
-        
-    @    <label for="last_name">Last name:</label><br>
-    @    <input type="text" name="last_name" value=""><br><br>
-        
-    @    <input type="submit" value="Submit">
-    @ </form>
-}
-
-
-.EE
-.RE
-
-
-.B - Submitting web form (form_post.vely)
-
-\fBinput-param\fP is used to obtain input parameters sent here from the web form created in "form_display.vely". The data is inserted into the database and the status message output back to web client (i.e. browser):
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h" // must always be here
-
-
-// 
-// Post input from a web form
-//
-void form_post ()
-{
-
-    out-header default
-
-    input-param first_name
-    input-param last_name
-    run-query @db_form="insert into names(firstName, lastName) values ('%s','%s')" : first_name, last_name error define err
-    end-query
-
-    if (strcmp(err, "0")) {
-        @Could not add name, error [<<p-out err>>]
-        exit-request
-    }
-
-    @Name added to the database<hr/>
-}
-
-
-.EE
-.RE
-
-
-.B - Display database data in table format in browser (display_data.vely)
-
-This shows typical web output from querying a database. SELECT statement in \fBrun-query\fP produces a result set, which is displayed in a tabular format in the browser:
-
-.RS 4
-.EX
-
-
-\[char35]include "vely.h" 
-
-
-// 
-// Display table data
-//
-void display_data ()
-{
-
-    out-header default
-
-    @<h2>List of names</h2>
-
-    @<table>
-        run-query @db_form="select firstName, lastName from names order by lastName,firstName" output firstName,lastName
-    @        <tr>
-    @            <td>
-                    query-result lastName
-    @            </td>
-    @            <td>
-                    query-result firstName
-    @            </td>
-    @        </tr>
-        end-query
-    @</table>
-
-}
-
-
-.EE
-.RE
-
 
 .LP
 .B SETUP PREREQUISITES
@@ -473,6 +336,141 @@ http://127.0.0.1/form/display_data
 .RE
 
 Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this project:
+
+.B - Setup database objects (setup.sql)
+
+Create table to hold the first and last name of the guest:
+
+.RS 4
+.EX
+
+create table if not exists names (firstName varchar(30), lastName varchar(40));
+
+.EE
+.RE
+
+
+.B - Web form (form_display.vely)
+
+This is a simple HTML web form where first and last name is collected and sent to the server via POST mechanism. Note the path segment after the application path (set with \fBp-path\fP), which is "/form_post", meaning this request will be handled in source file "form_post.vely":
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h" // must always be here
+
+
+// 
+// Display a web form
+//
+void form_display ()
+{
+
+     out-header default
+
+    @<h2>Enter your name</h2>
+
+    @<form action="<<p-path>>/form_post" method="POST">
+
+    @    <label for="first_name">First name:</label><br>
+    @    <input type="text" name="first_name" value=""><br>
+        
+    @    <label for="last_name">Last name:</label><br>
+    @    <input type="text" name="last_name" value=""><br><br>
+        
+    @    <input type="submit" value="Submit">
+    @ </form>
+}
+
+
+.EE
+.RE
+
+
+.B - Submitting web form (form_post.vely)
+
+\fBinput-param\fP is used to obtain input parameters sent here from the web form created in "form_display.vely". The data is inserted into the database and the status message output back to web client (i.e. browser):
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h" // must always be here
+
+
+// 
+// Post input from a web form
+//
+void form_post ()
+{
+
+    out-header default
+
+    input-param first_name
+    input-param last_name
+    run-query @db_form="insert into names(firstName, lastName) values ('%s','%s')" : first_name, last_name error define err
+    end-query
+
+    if (strcmp(err, "0")) {
+        @Could not add name, error [<<p-out err>>]
+        exit-request
+    }
+
+    @Name added to the database<hr/>
+}
+
+
+.EE
+.RE
+
+
+.B - Display database data in table format in browser (display_data.vely)
+
+This shows typical web output from querying a database. SELECT statement in \fBrun-query\fP produces a result set, which is displayed in a tabular format in the browser:
+
+.RS 4
+.EX
+
+
+\[char35]include "vely.h" 
+
+
+// 
+// Display table data
+//
+void display_data ()
+{
+
+    out-header default
+
+    @<h2>List of names</h2>
+
+    @<table>
+        run-query @db_form="select firstName, lastName from names order by lastName,firstName" output firstName,lastName
+    @        <tr>
+    @            <td>
+                    query-result lastName
+    @            </td>
+    @            <td>
+                    query-result firstName
+    @            </td>
+    @        </tr>
+        end-query
+    @</table>
+
+}
+
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Examples
