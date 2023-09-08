@@ -7,7 +7,7 @@ quality_control \- Vely documentation (general)
 .B QUALITY CONTROL
 .LP
 
-Each candidate for a Vely release must build successfully for a given Linux distribution and on its native architecture, without simulators or cross-compilers. A suite of functional tests (including bug fixes to prevent regressions) must run without errors; currently, there are 1915 such tests. 
+Each candidate for a Vely release must build successfully for a given Linux distribution and on its native architecture, without simulators or cross-compilers. A suite of functional tests (including bug fixes to prevent regressions) must run without errors; currently, there are 1920 such tests. 
 
 Vely is tested on following distros: archlinux_rolling, debian_11, debian_12, fedora_37, fedora_38, mageia_8, opensuse_tumbleweed, redhat_8, redhat_9, ubuntu_18, ubuntu_20, ubuntu_22 however it may work on other distros derived from this list (see \fBinstallation page\fP). Both builds and tests are automated to prevent gaps in coverage.
 

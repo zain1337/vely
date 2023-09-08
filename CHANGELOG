@@ -1,4 +1,4 @@
-Vely release notes for 18.1.0
+Vely release notes for 18.2.0
 
 - Notes: this release is about performance and converting numbers to strings (a commonly asked feature) as well as other output statements. num-string statement is added, which is a high-performance and comprehensive way to convert any integer type (signed or unsigned) to a string in any base (2-36). Several other performance improvements were implemented, especially when outputting data and accepting requests. Building string (such as in write-string) and outputting them is now 20% faster due to optimizations implemented. Additionally p-* statements have added the ability to specify length of input and obtain the bytes written.
 - Release: increase performance of handling application path in request processing.
