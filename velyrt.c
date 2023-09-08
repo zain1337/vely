@@ -1522,33 +1522,41 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
     // construct the full path, often path_info is empty for FastCGI
     // according to rfc3875, script_name must start with / and cannot end with / , and 
     // path_info is the same. Thus concatinating them is safe.
+    // However, in some cases (like http://.../some/path/?x=2), script_name does end with / - this url
+    // likely isn't valid, but it's possible, especially from generated sources. So we handle that.
     // according to rfc2396, both hyphen and equal sign are allowed (among other chars) in the path,
     // however, hyphen is common and equal sign may confuse some clients/servers and they may ignore it, 
     // encode it, or even unpredictably change it. Thus hyphen is used, because *all* clients and servers
     // process it correctly, and Vely input parameter can NOT have a hyphen. That fits perfectly.
     // script_name is leading, path_info follows
     // Per rfc3875, PATH_INFO values MUST be URL-decoded by the caller, thus nothing there to be decoded.
-    // Also per same, PATH_INFO canNOT have "/" in it. SCRIPT_NAME must be a valid path, not URL-encoded, so nothing
+    // Also per same, PATH_INFO values canNOT have "/" in it. SCRIPT_NAME must be a valid path, not URL-encoded, so nothing
     // to decode either, per rfc3875.
+    // Result of vely_getenv() cannot be NULL, if returned as such, we get "".
     char *script_name = vely_getenv ("SCRIPT_NAME");
     char *path_info = vely_getenv ("PATH_INFO");
     static char full_path[VV_MAX_PATH]; // this static is fine, it's filled every time, and its purpose is to keep the 
                                            // memory for path_req so it will be valid throughout request.
-    // haven't seen this but just in case
-    if (script_name[0] == 0) script_name = "/";
-    if (path_info[0] == 0) path_info = "";
-    // make full path
-    snprintf (full_path, sizeof(full_path), "%s%s", script_name, path_info);
+    int sn_len = strlen (script_name);
+    // 
+    //
+    // if script_name ends with /, remove that / and update length of script_name (sn_len)
+    // NOTE that we're actually changing the environment variable here. So if Vely program obtains environment,
+    // it will get script_name WITHOUT trailing /. And that's fine. This trailing / should have never been there.
+    //
+    if (sn_len > 0 && script_name[sn_len - 1] == '/') { script_name[sn_len - 1] = 0; sn_len--; }
+    // make full path, use length of script_name to quickly print
+    snprintf (full_path, sizeof(full_path), "%*s%s", sn_len, script_name, path_info);
 
     //
     // URL path must start with application path which at minimum is application name
     //
 
     // Check if URL app path actually matches the leading portion of the URL path
-    int rlen = strlen (vely_app_path);
-    if (!strncasecmp (vely_app_path, full_path, rlen))
+
+    if (!strncasecmp (vely_app_path, full_path, vely_app_path_len))
     {
-        char *p = full_path+rlen;
+        char *p = full_path+vely_app_path_len;
         // find all path segments
         num iplen = req->ip.num_of_input_params; // currently how many name/value allocated
         num block_ip = 10; // how many input params to add to memory reserved, so it's not realloc-ed for each new one
@@ -1558,8 +1566,10 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
         // *p must be /
         // we check, app path NEVER ends with forward slash
         // *p must be / or there's no /request
-        // the exception is normalized path, which is /xyz?... or /xyz/?... both are valid
-        if (*p != '/' || (*p == '/' && *(p+1) == '?')) 
+        // the exception is normalized path, which is /xyz?... or /xyz/?... both are valid, and also path_name of just
+        // forward slash (/), with query string (? and after) removed. It is questionable what will web client
+        // (including major web servers) do here, so we account for all.
+        if (*p != '/' || (*p == '/' && (*(p+1) == 0 || *(p+1) == '?'))) 
         {
             // there is no request name
             // THIS IS TO BE REMOVED WHEN/IF "REQ" BACKWARD COMPATIBILITY ENDS
@@ -2110,7 +2120,7 @@ void vely_disable_output()
 
 // 
 // Output string 's'. 'enc_type' is either VV_WEB, VV_URL or 
-// VV_NOENC. Returns number of bytes written.
+// VV_NOENC. len (if not 0) is the length to output. Returns number of bytes written.
 // "Output" means either to the browser (web output) or to the string.
 // For example, if within write-string statement, it's to the string, 
 // otherwise to the web (unless HTML output is disabled).
@@ -2120,7 +2130,7 @@ void vely_disable_output()
 // else should call vely_puts_to_string.
 //
 //
-num vely_puts (num enc_type, char *s)
+num vely_puts (num enc_type, char *s, num len)
 {
     VV_TRACE ("");
 
@@ -2130,7 +2140,8 @@ num vely_puts (num enc_type, char *s)
 
     num buf_pos_start = VV_WRSTR_POS;
     VV_UNUSED(buf_pos_start); // used for tracing only
-    num vLen = strlen(s);
+    num vLen;
+    if (len != 0) vLen = len; else vLen = strlen(s);
     num res = 0;
     if (enc_type==VV_NOENC)
     { // no encoding
@@ -3838,4 +3849,59 @@ char *vely_getheader(char *h)
 }
 
 
+//
+// Convert number al to string. If alloc is true, a new string is allocated and returned.
+// If alloc is false, string out_res with storage of in_len bytes is available to do the job.
+// base is the base of a number (2-36). If alloc is false and not enough space, NULL is returned and
+// res_len is set to 0, otherwise the result is returned. *res_len is the length of the result. 
+// Also, if base is not between 2 and 36 (inclusive), NULL is returned and res_len is set to 0.
+// NOTE: For this (and others like it) function to be the fastest, it would have  to be in a header, i.e.
+// compiled with the source as static. If done so, the 100,000,000 executions of this functions take
+// only 2.5 secs, whereas as a library it takes nearly 7 seconds. This is just because gcc can optimize
+// the code using it as an inline. It has nothing to do with static/shared libraries, signals, before/after
+// events, dispatcher or anything else. This is the reason std:to_string (for instance) is so fast - it's a header function.
+// Of course, this makes code bigger, and in a large application made of many modules, it starts to
+// show. Thus, the performance taken at such face value may not be pertinent to real world applications.
+// This particular function is the new algorithm I wrote, that in my tests is faster than any other implementation
+// I tried. It also has the most functionality.
+//
+char *vely_num2str (num al, char *out_res, num in_len, num *res_len, bool alloc, int base)
+{
+    if (base < 2 || base > 36) { if (res_len != NULL) *res_len = 0; return NULL;}
+    num len; // length of result
+    char *res; // result
+    num a; // temp number
+    // for negative numbers start with length of 1, for "-"
+    // make temp number abs() of al
+    if (al < 0) { a=-al; len = 1; } else { a=al;len = 0;}
+    // mods is the array of moduos derived from temp number, in the reverse order
+    int mods[VV_NUMBER_LENGTH]; // largest 64 bit is 64 digits in binary base
+    int k;
+    // get the length of the rest of the number (as a string), calculate mods array
+    if (al == 0) len = 1; else { for (k = 0; a != 0; mods[k++] = (a%base), a/=base){} len += k; }
+    if (alloc) res = vely_malloc(len + 1); // if the result is to be allocated, do so
+    else 
+    { 
+        // otherwise check if buffer is big enough, if not, return NULL 
+        if (in_len <= len) 
+        {
+            if (res_len != NULL) *res_len = 0; 
+            return NULL;
+        } 
+        res = out_res; 
+    } 
+    res[len] = 0; // place null at the end of string that's about to be built
+    if (al == 0) { res[0] = '0'; if (res_len != NULL) *res_len = 1; return res; } // for zero, make it '0' and return
+    num wlen = len; // wlen is the length of actual digits, so for negatives, it's one less due to '-'
+    if (al < 0) { res[0] = '-'; al = -al; wlen--;} // place '-' for negatives
+    char *p = res + len - 1; // start filling in from the end; remember our mods are calculated
+                             // in reverse, so they fit in.
+    for (k = 0; k < wlen; k++) // go in reverse, and fill in string in a single pass
+    {
+        // fill in characters for bases 2-36 (10 digits + 26 chars)
+        *p-- = "0123456789abcdefghijklmnopqrstuvwxyz"[mods[k]];
+    }
+    if (res_len != NULL) *res_len = len;
+    return res; // result out
+}
 

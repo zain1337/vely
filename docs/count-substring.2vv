@@ -44,6 +44,7 @@ pf-out "Found %lld occurrences!\en", num_occ
 \fBcopy-string\fP  
 \fBcount-substring\fP  
 \fBlower-string\fP  
+\fBnum-string\fP  
 \fBsplit-string\fP  
 \fBtrim-string\fP  
 \fBupper-string\fP  

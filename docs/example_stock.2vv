@@ -244,29 +244,21 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B ACCESS APPLICATION SERVER FROM COMMAND LINE
 .LP
 
-To access your application server from command line (instead through web browser/web server), use "cgi-fcgi" to see the application response:
+To access your application server from command line (instead through web browser/web server), use this to see the application response:
 
 .RS 4
 .EX
 
 \[char35]Add stock ticker 'XYZ' with stock price 450 
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/stock'
-export PATH_INFO='/add-stock'
-export QUERY_STRING='name=XYZ&price=450'
-cgi-fcgi -connect /var/lib/vv/stock/sock/sock /
+vv -r --app='/stock' --req='/add-stock?name=XYZ&price=450' --method=GET -server --exec
 
 \[char35]Display list of stock tickers 
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/stock'
-export PATH_INFO='/show-stock'
-export QUERY_STRING=''
-cgi-fcgi -connect /var/lib/vv/stock/sock/sock /
+vv -r --app='/stock' --req='/show-stock?' --method=GET -server --exec
 
 .EE
 .RE
 
-Note: to suppress output of HTTP headers, add this before running "cgi-fcgi":
+You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX
@@ -288,23 +280,15 @@ Execute the following to run your application from command line (as a command-li
 .EX
 
 \[char35]Add stock ticker 'XYZ' with stock price 450 
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/stock'
-export PATH_INFO='/add-stock'
-export QUERY_STRING='name=XYZ&price=450'
-/var/lib/vv/bld/stock/stock
+vv -r --app='/stock' --req='/add-stock?name=XYZ&price=450' --method=GET --exec
 
 \[char35]Display list of stock tickers 
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/stock'
-export PATH_INFO='/show-stock'
-export QUERY_STRING=''
-/var/lib/vv/bld/stock/stock
+vv -r --app='/stock' --req='/show-stock?' --method=GET --exec
 
 .EE
 .RE
 
-Note: to suppress output of HTTP headers, add this before running /var/lib/vv/bld/stock/stock program:
+You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX

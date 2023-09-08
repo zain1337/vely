@@ -66,6 +66,7 @@
 #define VV_KEYPUT "put"
 #define VV_KEYGET "get "
 #define VV_KEYSET "set "
+#define VV_KEYBASE "base "
 #define VV_KEYKEY "key "
 #define VV_KEYKEYLIST "key-list "
 #define VV_KEYVALUE "value "
@@ -254,6 +255,8 @@
 #define VV_QRY_USED 1
 #define VV_QRY_INACTIVE 0
 #define VV_QRY_ACTIVE 1
+// used as a silly placeholder to replace with actual length in vely_puts to increase output performance
+#define VV_EMPTY_LONG_PLAIN_ZERO 0
 
 //guard against if (..) vely_statement, causes if (..) char ...; which is illegal
 #define VV_GUARD   oprintf("char _vely_statement_must_be_within_code_block_here_%lld; VV_UNUSED (_vely_statement_must_be_within_code_block_here_%lld);\n", vnone, vnone), vnone++;
@@ -467,6 +470,8 @@ void query_result (vely_gen_ctx *gen_ctx, char *mtext);
 char *opt_clause(char *clause, char *param, char *antiparam);
 void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
 void free_query (char *qryname, bool skip_data);
+void convert_puts(char *oline);
+void do_numstr (char *to, char *len, char *num0, char *olen, char *base);
 
 
 //
@@ -475,6 +480,101 @@ void free_query (char *qryname, bool skip_data);
 //
 //
 
+
+//
+// Print out a number or write it to a string. 'to' is a string where to write, can be NULL for printing out.
+// len is the length of 'to' buffer, or NULL if not specified, in which case 'to' is allocated (unless it's NULL).
+// num0 is the number to convert to string. olen is the output len of this conversion, or if NULL nothing. base is
+// the base, 2-36, default 10.
+//
+void do_numstr (char *to, char *len, char *num0, char *olen, char *base)
+{
+    // to == NULL means print it out. In this case, we supply "to" var, and output-length (unless supplied)
+    bool go_out = false;
+    static char lenbuf[5];
+    if (to == NULL)
+    {
+        // use single static num/buffer since num-string and p-num can never be used at the same time when outputting
+        // which happens one at a time going out in vely_puts() and vely constructs cannot be nested. This saves memory and
+        // works  in special cases like this where these are immediately consumed for output, otherwise for most cases it does NOT.
+        go_out = true;
+        to = "vv_numstr_buff";
+        snprintf (lenbuf, sizeof(lenbuf), "%d", VV_NUMBER_LENGTH); // max length of 64 bit number in binary
+        len = lenbuf;
+        if (olen == NULL) 
+        {
+            olen = "vv_numstr";
+        }
+    }
+
+    if (len == NULL) oprintf ("%s = ", to); // if not a fixed buffer, assign allocated result to memory point
+    oprintf ("vely_num2str (%s, %s, %s, %s%s%s, %s, %s);\n", num0, len!=NULL?to:"NULL", len!=NULL?len:"0", olen!=NULL?"&(":"", olen!=NULL?olen:"NULL", olen!=NULL?")":"", len!=NULL?"false":"true", base!=NULL?base:"10");
+    if (go_out) oprintf ("vely_puts (VV_NOENC, %s, %s);\n", to, olen);
+}
+
+//
+// Convert vely_puts (...) with only a string into vely_puts(..., length) for better output performance
+// Basically, all literals are strlen-ed at compile time so there's no strlen() at run-time
+// oline is the line to convert. This is done by replacing VV_EMPTY_LONG_PLAIN_ZERO with the actual 
+// number (plus some spaces), so there is never a question if there's enough memory (there is since this constant
+// is bigger than any number). Also, this constant is used here ONLY with "..." (string constants), so we know just before
+// this constant is a comma, and before that a string. This makes for easy replacement with constant's length.
+// The nice thing here is even if we miss some, it still works, though a bit slower.
+//
+void convert_puts(char *oline)
+{
+    char *zero;
+    static int elen = strlen ("VV_EMPTY_LONG_PLAIN_ZERO");
+
+    char *search = oline;
+    while (1) 
+    {
+        // look for next vv_puts placeholder for length
+        char *ozero = strstr (search, "VV_EMPTY_LONG_PLAIN_ZERO");
+        zero = ozero;
+        if (zero == NULL) break; // done, none found any more
+        search = ozero+elen; // setup for next search cycle
+        //
+        // first a comma first going back
+        //
+        while (zero-- != oline) if (isspace(*zero)) continue; else break;
+        if (*zero != ',')  continue; // must find comma first
+        if (zero == oline) return; // none found, stop
+        //
+        // first a quote next going back
+        // the next nonspace char behind must be quote
+        //
+        while (zero-- != oline) if (isspace(*zero)) continue; else break;
+        if (*zero != '"')  continue; // must find quote, not found (this is an expression), continue
+        if (zero == oline) return; // none found, stop
+        //
+        // go back, look for next quote, and process escaped chars
+        //
+        num totstr = 0;
+        char *i = zero - 1; // start with one before quote
+        while (*(i-1) != 0)  // look for one before, since we do
+                                 // look-behind with escape and don't want to go to
+                                 // memory before oline!
+        {
+            if (*(i-1) == '\\') { i-=2; totstr++; continue; } // just skip whatever's escaped
+            if (*i == '"') break;
+            i--;
+            totstr++;
+        }
+        // It's possible to have an expression like x[1]=='x'?"a":"b", which isn't a constant or even
+        // "abc"[x] == y ?"a":"b", which starts and ends with quote; so the only criteria is that after the 
+        // leading quote, we find vely_puts (XXX, 
+        while (i-- != oline) if (isspace(*i)) continue; else break;
+        // comma means we're done, because string literal by itself is NOT an expression, so this wouldn't be valid C
+        if (*i != ',')  continue; // must find comma, per above 
+        //
+        // put in the length
+        //
+        char after = ozero[elen];
+        sprintf (ozero, "%*lld", elen, totstr); 
+        ozero[elen] = after; // restore char after the length, since we put null char in sprintf
+    }
+}
 
 
 //
@@ -1241,7 +1341,7 @@ void generate_query_result (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
     // Print out actual column from db query, at runtime
     if (tovar == NULL)
     {
-        oprintf("vely_puts (%s, _vv_data_%s[_vv_iter_%s*_vv_ncol_%s+%lld]);\n", web_encode == 1 ? "VV_WEB" : (url_encode == 1 ? "VV_URL":"VV_NOENC"), gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name, column_id);
+        oprintf("vely_puts (%s, _vv_data_%s[_vv_iter_%s*_vv_ncol_%s+%lld], _vv_dlen_%s[_vv_iter_%s*_vv_ncol_%s+%lld]);\n", web_encode == 1 ? "VV_WEB" : (url_encode == 1 ? "VV_URL":"VV_NOENC"), gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name, column_id, gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name,gen_ctx->qry[query_id].name, column_id);
     }
     else 
     {
@@ -1969,9 +2069,11 @@ void oprintf (char *format, ...)
         {
             // remove empty printouts
             num len = strlen (oline);
-            vely_replace_string (oline, len+1, "vely_puts (VV_NOENC, \"\");\n", "", 1, NULL, 1); // remove idempotent printouts
+            vely_replace_string (oline, len+1, "vely_puts (VV_NOENC, \"\", VV_EMPTY_LONG_PLAIN_ZERO);\n", "", 1, NULL, 1); // remove idempotent printouts
                                                     // will always succeed because output is shorter 
-            vely_replace_string (oline, len+1, "vely_puts (VV_NOENC, \"\");", "", 1, NULL, 1); // replace with or without new line
+            vely_replace_string (oline, len+1, "vely_puts (VV_NOENC, \"\", VV_EMPTY_LONG_PLAIN_ZERO);", "", 1, NULL, 1); // replace with or without new line
+
+            convert_puts(oline);
 
             // The output goes to outf, i.e. the global file description tied to generated C code,
             // OR it goes to stdout, which would be if this is a command line program
@@ -2658,9 +2760,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                     usedVELY = 1;
                     if (print_mode == 1)
                     {
-                        // Print new line at the end, finish current portion of @ line, so that <<>> can do its thing
+                        // Finish current portion of @ line, so that <<>> can do its thing
                         // if not in @, then just execute
-                        oprintf("\");\n");
+                        oprintf("\", VV_EMPTY_LONG_PLAIN_ZERO);\n");
                     }
                 }
                 else
@@ -2996,23 +3098,51 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                     {
                         VV_GUARD
                         i = newI;
-                        oprintf("vely_puts (VV_NOENC, %s);\n", mtext); 
+                        char *length = find_keyword (mtext, VV_KEYLENGTH, 1);
+                        char *bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                        carve_statement (&length, "p-out", VV_KEYLENGTH, 0, 1);
+                        carve_statement (&bytes, "p-out", VV_KEYBYTESWRITTEN, 0, 1);
+                        define_statement (&bytes, VV_DEFNUM);
+
+                        if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
+
+                        if (bytes != NULL) oprintf ("%s = ", bytes);
+                        oprintf("vely_puts (VV_NOENC, %s, %s);\n", mtext, length); 
 
                         continue;
                     }
-                    else if ((newI=recog_statement(line, i, "p-dbl", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    else if ((newI=recog_statement(line, i, "p-dbl", &mtext, &msize, 0, &vely_is_inline)) != 0)
                     {
                         VV_GUARD
                         i = newI;
+                        char *bytes;
+                        bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                        carve_statement (&bytes, "p-dbl", VV_KEYBYTESWRITTEN, 0, 1);
+                        define_statement (&bytes, VV_DEFNUM);
+
+                        if (bytes != NULL) oprintf ("%s = ", bytes);
                         oprintf("vely_printf (false, VV_NOENC, \"%%f\", %s);\n", mtext); 
 
                         continue;
                     }
-                    else if ((newI=recog_statement(line, i, "p-path", &mtext, &msize, 1, &vely_is_inline)) != 0)  
+                    else if ((newI1=recog_statement(line, i, "p-path", &mtext, &msize, 1, &vely_is_inline)) != 0  || 
+                          (newI=recog_statement(line, i, "p-path", &mtext, &msize, 0, &vely_is_inline)) != 0)  
                     {
                         VV_GUARD
-                        i = newI;
-                        oprintf("vely_puts (VV_WEB, vely_app_path);\n");
+                        i = newI+newI1;
+                        char *bytes;
+                        if (newI != 0)
+                        {
+                            bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                            carve_statement (&bytes, "p-path", VV_KEYBYTESWRITTEN, 0, 1);
+                            define_statement (&bytes, VV_DEFNUM);
+                        } else bytes = NULL;
+
+                        if (bytes != NULL) oprintf ("%s = ", bytes);
+                        oprintf("vely_puts (VV_WEB, vely_app_path, vely_app_path_len);\n"); // optimized to compute strlen at compile time
 
                         continue;
                     }
@@ -3020,7 +3150,12 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                     {
                         VV_GUARD
                         i = newI;
-                        oprintf("vely_printf (false, VV_NOENC, \"%%lld\", %s);\n", mtext); 
+                        char *bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                        carve_statement (&bytes, "p-num", VV_KEYBYTESWRITTEN, 0, 1);
+                        define_statement (&bytes, VV_DEFNUM);
+
+                        do_numstr (NULL, NULL, mtext, bytes, NULL);
 
                         continue;
                     }
@@ -3028,7 +3163,17 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                     {
                         VV_GUARD
                         i = newI;
-                        oprintf("vely_puts (VV_URL, %s);\n", mtext); 
+                        char *length = find_keyword (mtext, VV_KEYLENGTH, 1);
+                        char *bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                        carve_statement (&bytes, "p-url", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_statement (&length, "p-url", VV_KEYLENGTH, 0, 1);
+                        define_statement (&bytes, VV_DEFNUM);
+
+                        if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
+
+                        if (bytes != NULL) oprintf ("%s = ", bytes);
+                        oprintf("vely_puts (VV_URL, %s, %s);\n", mtext, length); 
 
                         continue;
                     }
@@ -3036,7 +3181,17 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                     {
                         VV_GUARD
                         i = newI;
-                        oprintf("vely_puts (VV_WEB, %s);\n", mtext); 
+                        char *length = find_keyword (mtext, VV_KEYLENGTH, 1);
+                        char *bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+
+                        carve_statement (&bytes, "p-web", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_statement (&length, "p-web", VV_KEYLENGTH, 0, 1);
+                        define_statement (&bytes, VV_DEFNUM);
+
+                        if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
+
+                        if (bytes != NULL) oprintf ("%s = ", bytes);
+                        oprintf("vely_puts (VV_WEB, %s, %s);\n", mtext, length); 
 
                         continue;
                     }
@@ -4459,7 +4614,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             num dbi = find_connection (dbconfname);
                             oprintf ("%s=\"%s\";\n", to, vely_db_vendor(dbi));  // not alloced
                         }
-                        if (apath !=NULL) oprintf ("%s=vely_app_path;\n", to); // not alloced
+                        if (apath !=NULL) oprintf ("%s=vely_app_path;\n", to); // not alloced, const
 
                         continue;
                     }
@@ -4545,6 +4700,32 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         if (method !=NULL) oprintf ("%s=vely_get_config()->ctx.req->method;\n", to); // not alloced
                         if (name !=NULL) oprintf ("%s=vely_get_config()->ctx.req->name;\n", to); // not alloced
                         if (ctype !=NULL) oprintf ("%s=vely_getenv(\"CONTENT_TYPE\");\n", to); // not alloced
+
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "num-string", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *to = find_keyword (mtext, VV_KEYTO, 1);
+                        char *len = find_keyword (mtext, VV_KEYLENGTH, 1);
+                        char *olen = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
+                        char *base = find_keyword (mtext, VV_KEYBASE, 1);
+
+                        carve_statement (&to, "num-string", VV_KEYTO, 0, 1); 
+                        carve_statement (&len, "num-string", VV_KEYLENGTH, 0, 1); 
+                        carve_statement (&olen, "num-string", VV_KEYBYTESWRITTEN, 0, 1); 
+                        carve_statement (&base, "num-string", VV_KEYBASE, 0, 1); 
+                        define_statement (&to, VV_DEFSTRING);
+                        define_statement (&olen, VV_DEFNUM);
+
+                        char *num0 = mtext; // number to convert, cannot use num for var name as it is a type
+
+                        if (to == NULL && len != NULL) _vely_report_error( "Cannot use 'length' without 'to' in num-string");
+
+                        do_numstr (to, len, num0, olen, base);
 
 
                         continue;
@@ -5612,7 +5793,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
         if (print_mode == 1)
         {
             // Print new line at the end
-            oprintf("\\n\");\n");
+            oprintf("\\n\", VV_EMPTY_LONG_PLAIN_ZERO);\n");
         }
     
 
@@ -5957,7 +6138,8 @@ int main (int argc, char* argv[])
         oprintf("sigjmp_buf vely_err_jmp_buffer;\n");
         oprintf("char * vely_app_name=\"%s\";\n", vely_app_name);
         // default application path is /<app name>
-        oprintf("char * vely_app_path=\"%s\";\n", app_path);
+        oprintf("char * vely_app_path=\"%s\";\n", app_path); // app-path cannot have quotes
+        oprintf("unsigned long vely_app_path_len=%lu;\n", strlen(app_path)); 
         oprintf("num vely_is_trace=%lld;\n", vely_is_trace);
         oprintf("num vely_max_upload=%lld;\n", vely_max_upload);
         // The following are static variables, i.e. those that need not be seen outside this module
@@ -5965,6 +6147,8 @@ int main (int argc, char* argv[])
         oprintf("static num vv_done_init=0;\n");
         oprintf("static vely_input_req *vv_req;\n");
         oprintf("static vely_config *vv_pc;\n");
+        oprintf("num vv_numstr;\n"); // temp for numstr (num-string, p-num)
+        oprintf("char vv_numstr_buff[%d];\n", VV_NUMBER_LENGTH); // 64 for longest 64 bit number in binary, minus sign and null trailer
 
         oprintf("int main (int argc, char *argv[])\n");
         oprintf("{\n");

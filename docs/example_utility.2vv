@@ -135,23 +135,15 @@ Execute the following to run your application from command line (as a command-li
 .EX
 
 \[char35]Record a temperature to 91F
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/utility'
-export PATH_INFO='/temphist'
-export QUERY_STRING='action=record&temp=91'
-/var/lib/vv/bld/utility/utility
+vv -r --app='/utility' --req='/temphist?action=record&temp=91' --method=GET --exec
 
 \[char35]List recorded temperatures
-export REQUEST_METHOD=GET
-export SCRIPT_NAME='/utility'
-export PATH_INFO='/temphist'
-export QUERY_STRING='action=list'
-/var/lib/vv/bld/utility/utility
+vv -r --app='/utility' --req='/temphist?action=list' --method=GET --exec
 
 .EE
 .RE
 
-Note: to suppress output of HTTP headers, add this before running /var/lib/vv/bld/utility/utility program:
+You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX

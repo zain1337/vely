@@ -64,7 +64,7 @@ vv -q
 .EE
 .RE
 
-This gives you a command-line program, and a server executable. You can test with either one, and they both work exactly the same. This makes it easy to automate tests. The little code example and the tools shown here exemplify Vely philosophy: simple, declarative and highly functional Vely code, with just a skeleton C code. Of course, you can write any C code you like, but generally you don't need to. The result is easy to read, maintain, and of high performance. Same goes for Vely tools.
+This gives you a command-line program, and a server executable. You can test with either one, and they both work exactly the same. This makes it easy to automate tests. The little code example and the tools shown here exemplify Vely philosophy: simple, declarative and highly functional Vely code, with just a skeleton C. Of course, you can write any C code you like, but generally you don't need to. The result is easy to read, maintain, and of high performance. Same goes for Vely tools.
 
 .B - Using as a service
 
@@ -78,8 +78,7 @@ vf shopping
 .EE
 .RE
 
-You can talk to this server directly from another program or application (see \fBhere\fP or \fBhere\fP), with a \fButility\fP, or via standard web servers like Apache or Nginx, see \fBhere\fP for a complete example.
-Some examples of using this service RESTfully, or as a URL query:
+You can talk to this server directly from another program or application (see \fBhere\fP or \fBhere\fP), with a \fButility\fP, or via standard web servers like Apache or Nginx, see \fBhere\fP for a complete example. Check out examples of using this service RESTfully, or as a URL query:
 
 .RS 4
 .EX
@@ -102,7 +101,7 @@ https://.../add-customer?first-name=Roy&last-name=Delgado
 
 .B - From command-line
 
-A command line uses the same URL interface for input parameters, here's an example of executing it from command line:
+A command line uses the same URL interface for input parameters; here's an example of executing it from command line:
 
 .RS 4
 .EX

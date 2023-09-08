@@ -9,13 +9,15 @@ Outputs a web-encoded string.
 .RS 4
 .EX
 
-p-web <string>
+p-web <string> [ length <length> ] [ bytes-written [ define ] <bytes written> ]
 
 .EE
 .RE
 
 .SH DESCRIPTION
 p-web is the same as \fBp-out\fP, except that the output is web-encoded (or HTML-encoded). This means such output is suited for use in web pages - the text will be displayed verbatim without HTML-markup being interpreted.
+
+If "length" clause is used, then only <length> leading bytes of <string> are web-encoded and then output. If "bytes-written" clause is used, then the number of bytes output will be in <bytes written>, which can be created with an optional "define".
 
 .SH EXAMPLES
 Display "We use <hr/> markup" text, without "<hr/>" being displayed as a horizontal line:

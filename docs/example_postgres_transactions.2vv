@@ -54,7 +54,19 @@ Working with PostgreSQL is the fastest with a native C library. Here I will use 
 .B PREREQUISITES
 .LP
 
-To begin with, \fBinstall Postgres\fP. Also, \fBinstall Vely\fP, which will be used to create a native executable for this example.
+To begin with, \fBinstall Postgres\fP. Also, \fBinstall Vely\fP, which will be used to create a native executable for this example. 
+
+Create a new directory for this example:
+
+.RS 4
+.EX
+
+mkdir postgres
+cd postgres
+
+.EE
+.RE
+
 
 .LP
 .B SETUP THE DATABASE

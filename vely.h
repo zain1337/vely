@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "18.0.0"
+#define VV_VERSION "18.1.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -250,6 +250,11 @@ typedef double dbl;
 //types of memory
 #define VV_MEM_FREE 1
 #define VV_MEM_FILE 2
+
+// used as a silly placeholder to replace with actual length in vely_puts to increase output performance
+#define VV_EMPTY_LONG_PLAIN_ZERO 0
+// maximum length of a number written (64 bit, sign for binary)
+#define VV_NUMBER_LENGTH 70
 
 // types of json value
 #define VV_JSON_TYPE_STRING 0
@@ -737,7 +742,7 @@ void vely_dispatch_request();
 num vely_copy_data (char **data, char *value);
 num vely_puts_to_string (char *final_out, num final_len);
 char *vely_init_string(char *s);
-num vely_puts (num enc_type, char *s);
+num vely_puts (num enc_type, char *s, num len);
 num vely_copy_data_at_offset (char **data, num off, char *value);
 num vely_is_valid_param_name (char *name);
 void vely_write_to_string (char **str);
@@ -783,6 +788,7 @@ void vely_break_down (char *value, char *delim, vely_split_str **broken);
 void vely_delete_break_down (vely_split_str **broken_ptr);
 char * vely_get_tz ();
 vely_dbc *vely_execute_SQL (char *s,  num *rows, char **er, char **err_message, num returns_tuples, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract);
+char *vely_num2str (num al, char *out_res, num in_len, num *res_len, bool alloc, int base);
 char *vely_time (char *timezone, char *format, num year, num month, num day, num hour, num min, num sec);
 num vely_encode_base (num enc_type, char *v, num vLen, char **res, num allocate_new);
 void vely_make_random (char **rnd, num rnd_len, char type, bool crypto);
@@ -944,11 +950,14 @@ extern volatile num vely_in_fatal_exit;
 extern char * vely_app_name;
 extern char * vely_url_path;
 extern char * vely_app_path;
+extern unsigned long vely_app_path_len;
 extern num vely_max_upload;
 extern num vely_is_trace;
 extern int vely_errno;
 extern int vely_stmt_cached;
 extern bool vely_mem_os;
+extern num vv_numstr;
+extern char vv_numstr_buff[VV_NUMBER_LENGTH];
 
 
 // DO not include velyapp.h for Vely itself, only for applications at source build time

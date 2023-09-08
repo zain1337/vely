@@ -33,11 +33,13 @@ You will connect to a Vely server (and to PHP FPM too) using API, and run code o
 .B SETUP A VELY SERVER
 .LP
 
-In order to run a client example with a Vely server, you need to setup and run a server first. First, create Vely application named "example":
+In order to run a client example with a Vely server, you need to setup and run a server first. First, create Vely application named "example" in a new directory:
 
 .RS 4
 .EX
 
+mkdir client
+cd client
 sudo vf -i -u $(whoami) example
 
 .EE

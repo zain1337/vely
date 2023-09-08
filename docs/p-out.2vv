@@ -9,13 +9,15 @@ Outputs a string without encoding.
 .RS 4
 .EX
 
-p-out <string>
+p-out <string> [ length <length> ] [ bytes-written [ define ] <bytes written> ]
 
 .EE
 .RE
 
 .SH DESCRIPTION
 p-out outputs a string expression given by <string>, without any encoding (meaning a string is output exactly as it appears). The string is sent to a client that made the request. If this is within \fBwrite-string\fP, then <string> is output into the buffer that builds a new string.
+
+If "length" clause is used, then only <length> leading bytes of <string> are output. If "bytes-written" clause is used, then the number of bytes output will be in <bytes written>, which can be created with an optional "define".
 
 .SH EXAMPLES
 To output data verbatim to a client:
@@ -54,6 +56,20 @@ void get_table_data (const char *table_name)
    @select * from <<p-out table_name>>
    end-write-string
 }
+
+.EE
+.RE
+
+Getting the length of "table_name":
+
+.RS 4
+.EX
+
+   write-string define qry_txt
+   num bw;
+   @select * from <<p-out table_name bytes-written bw>>
+   end-write-string
+   @Length of table name is <<p-num bw>>
 
 .EE
 .RE

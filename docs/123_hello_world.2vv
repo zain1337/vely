@@ -14,7 +14,7 @@ First \fBinstall Vely\fP.
 .B STEP 2: BUILD IT
 .LP
 
-Create Hello World source file (hello.vely); note it's all one bash command:
+Create Hello World source file (hello.vely) in a new directory; note it's all one bash command:
 
 .RS 4
 .EX

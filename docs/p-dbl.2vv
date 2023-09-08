@@ -9,7 +9,7 @@ Outputs a floating point number.
 .RS 4
 .EX
 
-p-dbl <double number>
+p-dbl <double number> [ bytes-written [ define ] <bytes written> ]
 
 .EE
 .RE
@@ -18,6 +18,8 @@ p-dbl <double number>
 p-dbl outputs a floating point number expression given by <double number>. The output is sent to a client that made the request. If this is within \fBwrite-string\fP, then <double number> is output into the buffer that builds a new string.
 
 Note that number must be of "dbl" type (which is "double" C type).
+
+If "bytes-written" clause is used, then the number of bytes output will be in <bytes written>, which can be created with an optional "define".
 
 .SH EXAMPLES
 To output a number to a client:

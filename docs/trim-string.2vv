@@ -49,6 +49,7 @@ trim-string str length define new_len result define res
 \fBcopy-string\fP  
 \fBcount-substring\fP  
 \fBlower-string\fP  
+\fBnum-string\fP  
 \fBsplit-string\fP  
 \fBtrim-string\fP  
 \fBupper-string\fP  

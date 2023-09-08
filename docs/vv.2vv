@@ -2,7 +2,7 @@
 .SH NAME
 vv \-  (general)
 .SH PURPOSE
-Builds Vely applications.
+Builds and tests Vely applications.
 
 .SH SYNTAX
 
@@ -15,7 +15,6 @@ vv <options>
 .RE
 
 .SH DESCRIPTION
-vv is a Vely tool for application building. 
 
 .LP
 .B COMMAND-LINE OPTIONS

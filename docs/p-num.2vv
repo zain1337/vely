@@ -9,7 +9,7 @@ Outputs a number.
 .RS 4
 .EX
 
-p-num <number>
+p-num <number> [ bytes-written [ define ] <bytes written> ]
 
 .EE
 .RE
@@ -17,7 +17,9 @@ p-num <number>
 .SH DESCRIPTION
 p-num outputs a number expression given by <number>. The output is sent to a client that made the request. If this is within \fBwrite-string\fP, then <number> is output into the buffer that builds a new string.
 
-Note that number must be of "num" type (which is "long long" C type).
+Note that number can be of any integer type (such as "char", "int", "long" etc.) up to 64-bit signed number (i.e. of "num" type).
+
+If "bytes-written" clause is used, then the number of bytes output will be in <bytes written>, which can be created with an optional "define".
 
 .SH EXAMPLES
 To output a number to a client:

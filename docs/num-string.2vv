@@ -1,0 +1,83 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+num-string \-  (strings)
+.SH PURPOSE
+Convert number to string.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+num-string <number> [ to [ define ] <string> ] \\
+    [ length <length> ] \\
+    [ bytes-written [ define ] <bytes written> ] \\
+    [ base <base> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+<number> is converted to <string> in "to" clause, using <base> in "base" clause, where <base> is by default 10. <base> can be between 2 and 36, inclusive. <number> can be positive or negative (i.e. signed) and can be of any integer type up to 64-bit (char, int, long, long long etc.).  If "to" clause is omitted, then <number> is printed out.
+
+If <length> (in "length" clause) is specified, then <string> is an existing memory buffer of length <length>. If <length> is not specified, then <string> is \fBallocated memory\fP. "length" clause can be specified only if <string> in "to" clause is given.
+
+The length of <string> (or of output if "to" clause is omitted) can be obtained via "bytes-written" clause in <bytes written>.
+
+<string> and <bytes written> can be created with optional "define".
+
+Note that any letters in <string> (depending on the <base>) are always lower-case.
+
+If there is an error, such as if <base> is incorrect or if the optional <length> is specified but not sufficient to hold the result, then <bytes written> is 0.
+
+Use of num-string (and \fBp-num\fP which is based on it) for converting and outputting numbers is high-performance and recommended if your application needs to do that often. If num-string prints out a number (i.e. "to" clause is omitted), and this is within \fBwrite-string\fP, then <number> is output into the buffer that builds a new string.
+
+.SH EXAMPLES
+The following will allocate memory for string "x" to be "801" and variable "olen" will have a value of 3 (the length of "801"):
+
+.RS 4
+.EX
+
+num x = 801;
+num-string x to define res bytes-written define olen
+
+.EE
+.RE
+
+The following will store "-238f" to string "res" and variable "olen" will have a value of 5 (the length of "-238f"):
+
+.RS 4
+.EX
+
+int x = -9103;
+char res[10];
+num-string x to res length sizeof(res) bytes-written define olen base 16
+
+.EE
+.RE
+
+To print out a number:
+
+.RS 4
+.EX
+
+num x = -131;
+num-string x
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Strings
+
+\fBcopy-string\fP  
+\fBcount-substring\fP  
+\fBlower-string\fP  
+\fBnum-string\fP  
+\fBsplit-string\fP  
+\fBtrim-string\fP  
+\fBupper-string\fP  
+\fBwrite-string\fP    
+See all 
+\fBdocumentation\fP

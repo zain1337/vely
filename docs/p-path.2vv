@@ -9,7 +9,7 @@ Outputs URL application path.
 .RS 4
 .EX
 
-p-path
+p-path [ bytes-written [ define ] <bytes written> 
 
 .EE
 .RE
@@ -28,6 +28,8 @@ If no "--path" option in \fBvv\fP is used to specify URL application path, then 
 .RE
 
 p-path provides the leading part of a URL path after which request name and its parameters can be specified. It is used in HTML forms and URLs (either for HTML or API) to refer back to the same application.
+
+If "bytes-written" clause is used, then the number of bytes output will be in <bytes written>, which can be created with an optional "define".
 
 .SH EXAMPLES
 Create URL in web link:

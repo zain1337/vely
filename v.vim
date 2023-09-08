@@ -588,6 +588,18 @@ syn region vv_r_construct_flush_output start="^[[:space:]]*flush-output" skip="\
     hi def link vv_h_clause_flush_output    velyClause
     hi def link vv_h_construct_flush_output    velyConstruct
     hi def link vv_h_print_inline_flush_output    velyConstruct
+syn region vv_r_construct_num_string start="^[[:space:]]*num-string" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_num_string,vv_r_inline_num_string,vv_r_at
+    syn match vv_h_construct_num_string "^[[:space:]]*num-string" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string " base \@=" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string " bytes-written \@=" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string " length \@=" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string " to \@=" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string "[=]\@<=define \@=" contained containedin=vv_r_construct_num_string
+    syn match vv_h_clause_num_string " define \@=" contained containedin=vv_r_construct_num_string
+    hi def link vv_h_clause_num_string    velyClause
+    hi def link vv_h_construct_num_string    velyConstruct
+    hi def link vv_h_print_inline_num_string    velyConstruct
 syn region vv_r_construct_get_req start="^[[:space:]]*get-req" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_get_req,vv_r_inline_get_req,vv_r_at
     syn match vv_h_construct_get_req "^[[:space:]]*get-req" contained containedin=vv_r_construct_get_req
@@ -1224,6 +1236,12 @@ syn region vv_r_construct_exit_code start="^[[:space:]]*exit-code" skip="\\[[:sp
 syn region vv_r_construct_p_web start="^[[:space:]]*p-web" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_web,vv_r_inline_p_web,vv_r_at
     syn match vv_h_construct_p_web "^[[:space:]]*p-web" contained containedin=vv_r_construct_p_web
+    syn match vv_h_clause_p_web " bytes-written \@=" contained containedin=vv_r_construct_p_web
+    syn match vv_h_print_inline_p_web " bytes-written \@=" contained containedin=vv_r_inline_p_web
+    syn match vv_h_print_inline_p_web " define \@=" contained containedin=vv_r_inline_p_web
+    syn match vv_h_clause_p_web " length \@=" contained containedin=vv_r_construct_p_web
+    syn match vv_h_print_inline_p_web " length \@=" contained containedin=vv_r_inline_p_web
+    syn match vv_h_print_inline_p_web " define \@=" contained containedin=vv_r_inline_p_web
     syn match vv_h_clause_p_web "[=]\@<=define \@=" contained containedin=vv_r_construct_p_web
     syn match vv_h_clause_p_web " define \@=" contained containedin=vv_r_construct_p_web
     syn match vv_h_print_inline_p_web " define \@=" contained containedin=vv_r_inline_p_web
@@ -1237,6 +1255,12 @@ syn region vv_r_construct_p_web start="^[[:space:]]*p-web" skip="\\[[:space:]]*$
 syn region vv_r_construct_p_url start="^[[:space:]]*p-url" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_url,vv_r_inline_p_url,vv_r_at
     syn match vv_h_construct_p_url "^[[:space:]]*p-url" contained containedin=vv_r_construct_p_url
+    syn match vv_h_clause_p_url " bytes-written \@=" contained containedin=vv_r_construct_p_url
+    syn match vv_h_print_inline_p_url " bytes-written \@=" contained containedin=vv_r_inline_p_url
+    syn match vv_h_print_inline_p_url " define \@=" contained containedin=vv_r_inline_p_url
+    syn match vv_h_clause_p_url " length \@=" contained containedin=vv_r_construct_p_url
+    syn match vv_h_print_inline_p_url " length \@=" contained containedin=vv_r_inline_p_url
+    syn match vv_h_print_inline_p_url " define \@=" contained containedin=vv_r_inline_p_url
     syn match vv_h_clause_p_url "[=]\@<=define \@=" contained containedin=vv_r_construct_p_url
     syn match vv_h_clause_p_url " define \@=" contained containedin=vv_r_construct_p_url
     syn match vv_h_print_inline_p_url " define \@=" contained containedin=vv_r_inline_p_url
@@ -1250,6 +1274,9 @@ syn region vv_r_construct_p_url start="^[[:space:]]*p-url" skip="\\[[:space:]]*$
 syn region vv_r_construct_p_num start="^[[:space:]]*p-num" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_num,vv_r_inline_p_num,vv_r_at
     syn match vv_h_construct_p_num "^[[:space:]]*p-num" contained containedin=vv_r_construct_p_num
+    syn match vv_h_clause_p_num " bytes-written \@=" contained containedin=vv_r_construct_p_num
+    syn match vv_h_print_inline_p_num " bytes-written \@=" contained containedin=vv_r_inline_p_num
+    syn match vv_h_print_inline_p_num " define \@=" contained containedin=vv_r_inline_p_num
     syn match vv_h_clause_p_num "[=]\@<=define \@=" contained containedin=vv_r_construct_p_num
     syn match vv_h_clause_p_num " define \@=" contained containedin=vv_r_construct_p_num
     syn match vv_h_print_inline_p_num " define \@=" contained containedin=vv_r_inline_p_num
@@ -1263,6 +1290,9 @@ syn region vv_r_construct_p_num start="^[[:space:]]*p-num" skip="\\[[:space:]]*$
 syn region vv_r_construct_p_path start="^[[:space:]]*p-path" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_path,vv_r_inline_p_path,vv_r_at
     syn match vv_h_construct_p_path "^[[:space:]]*p-path" contained containedin=vv_r_construct_p_path
+    syn match vv_h_clause_p_path " bytes-written \@=" contained containedin=vv_r_construct_p_path
+    syn match vv_h_print_inline_p_path " bytes-written \@=" contained containedin=vv_r_inline_p_path
+    syn match vv_h_print_inline_p_path " define \@=" contained containedin=vv_r_inline_p_path
     syn match vv_h_clause_p_path "[=]\@<=define \@=" contained containedin=vv_r_construct_p_path
     syn match vv_h_clause_p_path " define \@=" contained containedin=vv_r_construct_p_path
     syn match vv_h_print_inline_p_path " define \@=" contained containedin=vv_r_inline_p_path
@@ -1276,6 +1306,9 @@ syn region vv_r_construct_p_path start="^[[:space:]]*p-path" skip="\\[[:space:]]
 syn region vv_r_construct_p_dbl start="^[[:space:]]*p-dbl" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_dbl,vv_r_inline_p_dbl,vv_r_at
     syn match vv_h_construct_p_dbl "^[[:space:]]*p-dbl" contained containedin=vv_r_construct_p_dbl
+    syn match vv_h_clause_p_dbl " bytes-written \@=" contained containedin=vv_r_construct_p_dbl
+    syn match vv_h_print_inline_p_dbl " bytes-written \@=" contained containedin=vv_r_inline_p_dbl
+    syn match vv_h_print_inline_p_dbl " define \@=" contained containedin=vv_r_inline_p_dbl
     syn match vv_h_clause_p_dbl "[=]\@<=define \@=" contained containedin=vv_r_construct_p_dbl
     syn match vv_h_clause_p_dbl " define \@=" contained containedin=vv_r_construct_p_dbl
     syn match vv_h_print_inline_p_dbl " define \@=" contained containedin=vv_r_inline_p_dbl
@@ -1289,6 +1322,12 @@ syn region vv_r_construct_p_dbl start="^[[:space:]]*p-dbl" skip="\\[[:space:]]*$
 syn region vv_r_construct_p_out start="^[[:space:]]*p-out" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_p_out,vv_r_inline_p_out,vv_r_at
     syn match vv_h_construct_p_out "^[[:space:]]*p-out" contained containedin=vv_r_construct_p_out
+    syn match vv_h_clause_p_out " bytes-written \@=" contained containedin=vv_r_construct_p_out
+    syn match vv_h_print_inline_p_out " bytes-written \@=" contained containedin=vv_r_inline_p_out
+    syn match vv_h_print_inline_p_out " define \@=" contained containedin=vv_r_inline_p_out
+    syn match vv_h_clause_p_out " length \@=" contained containedin=vv_r_construct_p_out
+    syn match vv_h_print_inline_p_out " length \@=" contained containedin=vv_r_inline_p_out
+    syn match vv_h_print_inline_p_out " define \@=" contained containedin=vv_r_inline_p_out
     syn match vv_h_clause_p_out "[=]\@<=define \@=" contained containedin=vv_r_construct_p_out
     syn match vv_h_clause_p_out " define \@=" contained containedin=vv_r_construct_p_out
     syn match vv_h_print_inline_p_out " define \@=" contained containedin=vv_r_inline_p_out
