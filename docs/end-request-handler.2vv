@@ -1,0 +1,32 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+end-request-handler \-  (requests)
+.SH PURPOSE
+end-request-handler ...
+
+.SH SYNTAX
+end-request-handler ...
+.SH DESCRIPTION
+end-request-handler ...
+
+.SH EXAMPLES
+end-request-handler ...
+.SH SEE ALSO
+ 
+.B - Requests
+
+\fBafter_request_handler\fP  
+\fBbefore_request_handler\fP  
+\fBbuilding_URL\fP  
+\fBend-request-handler\fP  
+\fBgetting_URL\fP  
+\fBglobal_request_data\fP  
+\fBnon_request\fP  
+\fBnormalized_URL\fP  
+\fBrequest\fP  
+\fBrequest-handler\fP  
+\fBrequest_URL\fP  
+\fBstartup_handler\fP  
+\fBvely_dispatch_request\fP    
+See all 
+\fBdocumentation\fP

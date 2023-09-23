@@ -64,7 +64,7 @@ and then create a new file "status.vely" with the following:
 
 \[char35]include "vely.h"
 
-void status() {
+request-handler /status
     silent-header
     out-header default
     // input parameter: the IP address of remote server
@@ -93,7 +93,7 @@ void status() {
     read-server srv data define dt
     // Print out the results
     @Output is: [<<p-out dt>>]
-}
+end-request-handler
 
 .EE
 .RE
@@ -158,13 +158,13 @@ Then create file "remote_status.vely" with this code:
 
 \[char35]include "vely.h"
 
-void remote_status() {
+request-handler /remote_status
     silent-header
     out-header default
     input-param days
 
     pf-out "Status in the past %s days is okay", days
-}
+end-request-handler
 
 .EE
 .RE
@@ -344,6 +344,7 @@ You have different options when designing your distributed systems, and this art
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

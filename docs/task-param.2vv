@@ -15,17 +15,13 @@ task-param <name>
 .RE
 
 .SH DESCRIPTION
-task-param is the same as \fBinput-param\fP, except that parameter <name> is set as a task selector, which means it can be used in a subsequent \fBif-task\fP to decide which task a request handler should perform.
-
-A request can perform any number of tasks; typically it performs a single task at a time, but it can perform more than one. Tasks are actions a request can take that help fulfill its purpose. For instance, a request named "customer" may have tasks "add", "update" and "delete", referring to actions that can be taken on a customer entity. 
-
-The way a requests and their tasks are structured is flexible and not prescribed, and may depend on a methodology used. For example, a request may refer to an entity (such as "customer") and tasks to actions taken on it (such as "add", "update" or "delete"). A request may, however, also refer to an action taken on an entity (such as "add"), and tasks may refer to an entity, such as a "customer", "item" or "order". Other methodologies are possible as well.
-
-task-param specifies that this particular input parameter will also serve as a task selector; its value has a meaning that will help the logic implemented in a request determine what to do; see \fBif-task\fP. While you can do this without task-param and if-task (by simply checking a value of any \fBinput-param\fP), if you do use it, then a given input parameter <name> has been semantically selected to be a task selector; this helps with ease of reading the code and its maintainability.
+task-param is the same as \fBinput-param\fP, except that parameter <name> is set as a task selector, which means it can be used in a subsequent \fBif-task\fP to decide which task a request handler should perform. While you can do this without task-param and if-task (by simply checking a value of any \fBinput-param\fP), if you do use it, then a given input parameter <name> has been semantically selected to be a task selector; this helps with ease of reading the code and its maintainability.
 
 You can have any number of task-param statements execute in a request handler. Each time a different parameter <name> can be selected as a task selector, and the subsequent execution of \fBif-task\fP will refer to it; this allows for subtasks (see \fBif-task\fP). In most cases though, a single task-param is used per request handler.
 
 Note that because task-param is set and can change at runtime, to work with \fBif-task\fP, it must be set prior to if-task, or if you are using \fBset-input\fP, then set-input must be also used prior to if-task.
+
+The way requests and their tasks are structured is flexible and not prescribed, and may depend on a methodology used. For example, a request may refer to an entity (such as "customer") and tasks to actions taken on it (such as "add", "update" or "delete"). A request may, however, also refer to an action taken on an entity (such as "add"), and tasks may refer to an entity, such as a "customer", "item" or "order". Another option is for a request to be a combination of the two, such as "add-customer" or "update-customer" - in this case tasks may refer to aspects of these actions (such as a region/legal jurisdiction of where the customer is, subscription status etc.). It is also common to forgo tasks and have each request represent an elementary task. Other methodologies are possible as well.
 
 .SH EXAMPLES
 An example of using task-param:
@@ -35,7 +31,7 @@ An example of using task-param:
 
 \[char35]include "vely.h"
 
-void customer() {
+request-handler /customer
     task-param action 
     input-param admin_id
     if-task "add"
@@ -50,7 +46,7 @@ void customer() {
         // List task
         ...
     end-task
-}
+end-request-handler
 
 .EE
 .RE

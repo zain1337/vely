@@ -52,6 +52,8 @@ static FCGX_Stream *vely_fcgi_in = NULL, *vely_fcgi_out = NULL, *vely_fcgi_err =
 static FCGX_ParamArray vely_fcgi_envp;
 #endif
 static char finished_output = 0;
+static num found_input_param = -1; // the id of found input param in vely_get_input_param (in ipars[]),
+                                   // we return char *, this set the id which is needed in set-input
 
 extern num vely_end_program;
 
@@ -78,8 +80,7 @@ void vely_init_input_req (vely_input_req *req)
     req->if_none_match = NULL;
     req->cookies = NULL;
     req->num_of_cookies = 0;
-    req->ip.names = NULL;
-    req->ip.values = NULL;
+    req->ip.ipars = NULL;
     req->ip.num_of_input_params = 0;
     req->sent_header = 0;
     req->data_was_output = 0;
@@ -579,14 +580,14 @@ void vely_write_ereport(char *errtext, vely_config *pc)
     VV_TRACE ("Writing PID");
     fprintf (fout, "%lld: %s: URL: [%s][%s][%s]\n", vely_getpid(), time, vely_getenv("SCRIPT_NAME"), vely_getenv("PATH_INFO"), vely_getenv("QUERY_STRING"));
     num i;
-    if (req != NULL && req->ip.names != NULL && req->ip.values != NULL)
+    if (req != NULL && req->ip.ipars != NULL)
     {
         VV_TRACE ("Writing input params");
         for (i = 0; i < req->ip.num_of_input_params; i++)
         {
             fprintf (fout, "%lld: %s:   Param #%lld, [%s]: [%s]\n", vely_getpid(), time, i, 
-                req->ip.names[i] == NULL ? "NULL" : req->ip.names[i], 
-                req->ip.values[i] == NULL ? "NULL" : req->ip.values[i]);
+                req->ip.ipars[i].name == NULL ? "NULL" : req->ip.ipars[i].name, 
+                req->ip.ipars[i].value == NULL ? "NULL" : req->ip.ipars[i].value);
         }
     }
     VV_TRACE ("Writing error information");
@@ -861,8 +862,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
 {
     VV_TRACE("");
     req->ip.num_of_input_params = 0;
-    req->ip.names = NULL;
-    req->ip.values = NULL;
+    req->ip.ipars = NULL;
 
     vely_config *pc = vely_get_config();
     char *req_method = NULL;
@@ -1148,7 +1148,8 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
                     if (el == NULL)  break;
                     el += boundary_len;
                     if (*(el + 1) == '-' && *(el + 2) == '-') break;
-                    char *c1 = "Content-Disposition:";
+#define VV_CONT_DISP_STR "Content-Disposition:"
+                    char *c1 = VV_CONT_DISP_STR;
                     char *prev = el;
                     el = strcasestr (el, c1); // pos of 'content-disposition'
                     if (el == NULL) break;
@@ -1156,7 +1157,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
                     char *end_of_element = strchr (el, '\n');
                     if (end_of_element != NULL) *end_of_element = 0; // mark the end of content-disp. line 
                                                 // so we don't go beyond it
-                    el += strlen (c1);
+                    el += strlen (VV_CONT_DISP_STR);
 
                     char *beg_of_line = el; // now we're past content-disposition
                     // Find name
@@ -1212,10 +1213,10 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
                     // after looking up name/filename, go to next line. If empty, the following
                     // line is value. If not it could be Content-Type or something else
                     char *cval = end_of_element + 1;
-                    char *end_of_val = strchr (cval, '\n');
-                    if (end_of_val == NULL) break;
+                    char *end_of_val = strchrnul (cval, '\n');
+                    if (*end_of_val == 0) break;
                     *end_of_val = 0;
-                    num len_cont_val = strlen (cval);
+                    num len_cont_val = end_of_val - cval;
                     vely_trim (cval, &len_cont_val);
                     if (cval[0] == 0)
                     {
@@ -1392,7 +1393,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
         else if (cont_len_byte != 0)
         {
             vely_bad_request();
-            vely_report_error ("Content-length found without Content-type");
+            vely_report_error ("Content-length found without Content-Type");
             return 0;
         }
     }
@@ -1485,8 +1486,9 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
     content[j] = 0;
 
 
-    req->ip.names = (char**)vely_calloc (req->ip.num_of_input_params, sizeof (char*));
-    req->ip.values = (char**)vely_calloc (req->ip.num_of_input_params, sizeof (char*));
+    // We don't do  calloc because it may memset (doesn't always do that, but still),
+    // we initialize everything below, including 'found' member. This is generally faster.
+    req->ip.ipars = (vely_ipar*)vely_malloc (req->ip.num_of_input_params * sizeof (vely_ipar));
 
     j = 0;
     num name_length;
@@ -1494,33 +1496,34 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
     for (i = 0; i < req->ip.num_of_input_params; i++)
     {
         name_length = strlen (content + j); 
-        (req->ip.names)[i] = content +j;
-        if (vely_is_valid_param_name (req->ip.names[i]) != 1)
+        (req->ip.ipars)[i].name = content +j;
+        (req->ip.ipars)[i].found = 0; // init since we're not doing calloc to allocate ipars
+        if (vely_is_valid_param_name (req->ip.ipars[i].name) != 1)
         {
             vely_bad_request();
-            vely_report_error ("Invalid input parameter name [%s], can contain alphanumeric characters or underscores only", req->ip.names[i]);
+            vely_report_error ("Invalid input parameter name [%s], can contain alphanumeric characters or underscores only", req->ip.ipars[i].name);
         }
         j += name_length+1;
         value_len = strlen (content + j); 
-        (req->ip.values)[i] = content +j;
+        (req->ip.ipars)[i].value = content +j;
         num trimmed_len = value_len;
-        (req->ip.values)[i] = vely_trim_ptr ((req->ip.values)[i], &trimmed_len);// trim the input parameter for whitespaces (both left and right)
+        (req->ip.ipars)[i].value = vely_trim_ptr ((req->ip.ipars)[i].value, &trimmed_len);// trim the input parameter for whitespaces (both left and right)
         j += value_len+1;
         // THIS IS TO BE REMOVED WHEN/IF BACKWARD COMPATIBILITY WITH "REQ" ENDS
-        if (!strcmp ((req->ip.names)[i], "req"))
+        if (!strcmp ((req->ip.ipars)[i].name, "req"))
         {
-            req->name = (req->ip.values)[i]; // request name
+            req->name = (req->ip.ipars)[i].value; // request name
         }
         // END OF WHAT'S TO BE REMOVED
 
-        VV_TRACE ("Index: %lld, Name: %s, Value: %s", i, (req->ip.names)[i], (req->ip.values)[i]);
+        VV_TRACE ("Index: %lld, Name: %s, Value: %s", i, (req->ip.ipars)[i].name, (req->ip.ipars)[i].value);
     }
 
     // 
     // Find out the full path used
     //
     // construct the full path, often path_info is empty for FastCGI
-    // according to rfc3875, script_name must start with / and cannot end with / , and 
+    // according to rfc3875/3986/3987, script_name must start with / and cannot end with / , and 
     // path_info is the same. Thus concatinating them is safe.
     // However, in some cases (like http://.../some/path/?x=2), script_name does end with / - this url
     // likely isn't valid, but it's possible, especially from generated sources. So we handle that.
@@ -1546,7 +1549,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
     //
     if (sn_len > 0 && script_name[sn_len - 1] == '/') { script_name[sn_len - 1] = 0; sn_len--; }
     // make full path, use length of script_name to quickly print
-    snprintf (full_path, sizeof(full_path), "%*s%s", sn_len, script_name, path_info);
+    num full_path_len = snprintf (full_path, sizeof(full_path), "%*s%s", sn_len, script_name, path_info);
 
     //
     // URL path must start with application path which at minimum is application name
@@ -1557,6 +1560,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
     if (!strncasecmp (vely_app_path, full_path, vely_app_path_len))
     {
         char *p = full_path+vely_app_path_len;
+        num p_len = full_path_len - vely_app_path_len;
         // find all path segments
         num iplen = req->ip.num_of_input_params; // currently how many name/value allocated
         num block_ip = 10; // how many input params to add to memory reserved, so it's not realloc-ed for each new one
@@ -1572,80 +1576,139 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
         if (*p != '/' || (*p == '/' && (*(p+1) == 0 || *(p+1) == '?'))) 
         {
             // there is no request name
-            // THIS IS TO BE REMOVED WHEN/IF "REQ" BACKWARD COMPATIBILITY ENDS
+            // The normalized path will remain as a feature, so it will not be removed
             if (req->name[0] != 0) // "req" specified in query string, so backwards compatibility
             {
                 p = NULL; // skip the while loop ahead
             }
-            // END TO BE REMOVED FOR "REQ" BACKWARDS COMPATIBILITY
-            else
+            else // if there is no request path after app path, there must have been a req=... in a normalized path
             {
                 vely_bad_request();
                 vely_report_error ("URL path [%s] is missing a request name", full_path);
             }
         }
         bool leading = true; // leading part is just request
-        while (p != NULL) 
+
+
+        // if p is NULL, we had a normalized path, this below is just if there is a request path after app path
+        if (p != NULL)
         {
-            num ipar_len = 0;
-            char *ipar = p + 1; // one after /
-            char *next_par = strchr (ipar, '/');
-            if (next_par != NULL) 
+            static char reqname[VV_MAX_REQ_NAME_LEN];
+            char decres = vely_decorate_path (reqname, sizeof(reqname), &p, p_len, true);
+            if (decres == 1) {
+                leading = false; // req name already found, do not try to get it below
+                req->name = reqname;
+            }
+            else if (decres == 3) 
             {
-                *next_par = 0;
+                // this really shouldn't happen. Since *p here always starts with /, and 3 is just reqname without any /
+                 vely_bad_request();
+                 vely_report_error ("URL path [%s] is incorrect", full_path);
+            }
+            else if (decres == 2) 
+            {
+                 vely_bad_request();
+                 vely_report_error ("URL path [%s] has opened hierarchical request path with /_ but has not closed with _/", full_path);
+            } // if 0, it's not found, so continue
+
+            while (p != NULL) 
+            {
+                num ipar_len = 0;
+                char *ipar = p + 1; // one after / (or nul char when returning to while from the bottom)
+                char *next_par = strchrnul (ipar, '/'); // pointer to either / or null at the end
+                bool next_slash_found = false;
                 ipar_len = (num)(next_par - ipar);
-                p = next_par;
-            } 
-            else 
-            {
-                p = NULL;
-                ipar_len = strlen (ipar);
-            }
-            char *name;
-            char *value;
-            if (leading)  // first /xyz/ is just a request, no value (i.e. value of "req" param)
-            {
-                leading = false;
-                req->name = ipar; // request name
-                num il;
-                for (il = 0; il < ipar_len; il++) if (req->name[il] == '-') req->name[il] = '_';
-                continue;
-            }
-            else
-            {
-                name = ipar;
-                // subst _ for - in name
-                num il;
-                for (il = 0; il < ipar_len; il++) if (name[il] == '-') name[il] = '_';
-                if (next_par == NULL)
+                if (*next_par != 0) 
                 {
-                    value = "true";
+                    next_slash_found = true;
+                    *next_par = 0; // found /
+                    p = next_par;
+                } 
+                else 
+                {
+                    p = NULL; // didn't find /, so this is the last parameter 
+                }
+                char *name;
+                char *value;
+                if (leading)  // first /xyz/ is just a request, no value (i.e. value of "req" param)
+                              // we may have already extracted a request path before this while loop, so leading would be false
+                {
+                    leading = false;
+                    req->name = ipar; // request name
+                    num il;
+                    for (il = 0; il < ipar_len; il++) if (req->name[il] == '-') req->name[il] = '_';
+                    continue;
                 }
                 else
                 {
-                    *next_par = 0; // end the name
-                    value = next_par + 1;
-                    char *next_par = strchr (value, '/');
-                    if (next_par != NULL) 
+                    name = ipar;
+                    // subst _ for - in name
+                    num il;
+                    value = NULL; // means not found
+                    num val_len;
+                    for (il = 0; il < ipar_len; il++) 
                     {
-                        *next_par = 0;
-                        p = next_par;
-                    } else p = NULL;
+                        if (name[il] == '-') name[il] = '_';
+                        // Per  RFC 3986, it's allowed to use name=value in path segments
+                        if (value == NULL && name[il] == '=') // find only first =
+                        {
+                            // first = in name means the value is following
+                            value = name + il + 1; // we got value from /name=value
+                            val_len = ipar_len - (il + 1); // length of value
+                            name[il] = 0; // finish off the name
+                            break; // we got the name and the value
+                        }
+                    }
+                    if (value == NULL)
+                    { // if we didn't find /name=value
+                        if (!next_slash_found)
+                        {
+                            // handle "true" constat for endpoints in URL path. It must be a variable, so no char *
+                            // because it goes through url decode below
+                            static char t[] = "true";
+                            value = t;
+                            val_len = 4;
+                        }
+                        else
+                        {
+                            // *next_par is 0 here, always, be it / or end of string because of strchrnul
+                            value = next_par + 1;
+                            char *next_par = strchrnul (value, '/');
+                            val_len = next_par - value;
+                            if (*next_par != 0) 
+                            {
+                                *next_par = 0;
+                                p = next_par;
+                            } else 
+                            {
+                                p = NULL;
+                            }
+                        }
+                    } 
                     // NO decoding value for any value in PATH_INFO and SCRIPT_NAME see above per rfc3875
+                    // if this is a command line program, then a value must be percent-decoded, since with web apps, the web server will do that,
+                    // but with command-line, we have to do it
+#ifdef VV_COMMAND 
+                    // Decode value no matter how we found it
+                    val_len = vely_decode (VV_URL, value, val_len);
+#else
+                    VV_UNUSED(val_len);
+#endif
                 }
+                // this is /param/val
+                req->ip.num_of_input_params++; // new param
+                if (iplen <= req->ip.num_of_input_params) // add memory if needed
+                {
+                    iplen += block_ip;
+                    block_ip += 4; // increase each new block by a fixed amount to avoid runaway realloc
+                    req->ip.ipars = (vely_ipar*)vely_realloc (req->ip.ipars, iplen*sizeof (vely_ipar));
+                }
+                // this name/value must be added
+                req->ip.ipars[req->ip.num_of_input_params-1].name = name;
+                req->ip.ipars[req->ip.num_of_input_params-1].value = value;
+                req->ip.ipars[req->ip.num_of_input_params-1].found = 0; // must set to 0 before the request starts,
+                                                                        // means name was not yet asked for in input-param
             }
-            // this is /param/val
-            req->ip.num_of_input_params++; // new param
-            if (iplen <= req->ip.num_of_input_params) // add memory if needed
-            {
-                iplen += block_ip;
-                block_ip += 4; // increase each new block by a fixed amount to avoid runaway realloc
-                req->ip.names = (char**)vely_realloc (req->ip.names, iplen*sizeof (char*));
-                req->ip.values = (char**)vely_realloc (req->ip.values, iplen*sizeof (char*));
-            }
-            // this name/value must be added
-            req->ip.names[req->ip.num_of_input_params-1] = name;
-            req->ip.values[req->ip.num_of_input_params-1] = value;
         }
     }
     else
@@ -1661,34 +1724,36 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
 // 
 // In URL list of inputs, set value for input name to val.
 // req is the request structure.
-// Returns >=0 index where it is in ip.values[] array 
+// Returns >=0 index where it is in ip.ipars[].value array 
 // Value is set, and no copy of it is made. Use copy-string to make a copy if needed.
 //
 num vely_set_input (vely_input_req *req, char *name, char *val)
 {
     VV_TRACE("");
 
-    num i;
     VV_TRACE ("Number of input data [%lld], looking for [%s]", req->ip.num_of_input_params, name);
-    for (i = 0; i < req->ip.num_of_input_params; i++)
+    vely_get_input_param (req, name, false); // we don't care about current value, just index found_input_param
+    if (found_input_param != -1)
     {
-        if (!strcmp (req->ip.names[i], name))
-        {
-            VV_TRACE ("Found input [%s] at [%lld]", req->ip.values[i], i);
-            req->ip.values[i] = val;
-            return i;
-        }
+        VV_TRACE ("Found input [%s] at [%lld]", req->ip.ipars[found_input_param].value, found_input_param);
+        req->ip.ipars[found_input_param].value = val;
+        req->ip.ipars[found_input_param].found = 0; // set to 0, because likely the whole purpose of set-input
+                                                    // is to find it again. This way it will be found much quicker.
+                                                    // this is because vely_get_input_param would set it to 1 when found.
+        return found_input_param;
     }
     VV_TRACE ("Did not find input, create new one");
     // increase storage for input-params
     req->ip.num_of_input_params++;
     vely_managed(); // needs to be used when managed memory from startup is changed, save current memory mode (managed or unmanaged)
-    req->ip.names = (char**)vely_realloc (req->ip.names, req->ip.num_of_input_params*sizeof (char*));
-    req->ip.values = (char**)vely_realloc (req->ip.values, req->ip.num_of_input_params*sizeof (char*));
+                    // input params are always managed
+                    // we could do num_of_input_params+... to reserve more if we expect more set-input?
+    req->ip.ipars = (vely_ipar*)vely_realloc (req->ip.ipars, req->ip.num_of_input_params*sizeof (vely_ipar));
     vely_mrestore(); // needs to be used when managed memory from startup is changed, restore current memory mode
     // add new input param
-    req->ip.names[req->ip.num_of_input_params-1] = name;
-    req->ip.values[req->ip.num_of_input_params-1] = val;
+    req->ip.ipars[req->ip.num_of_input_params-1].name = name;
+    req->ip.ipars[req->ip.num_of_input_params-1].value = val;
+    req->ip.ipars[req->ip.num_of_input_params-1].found = 0; // presumably not found yet or will be asked for in input-param soon
     return req->ip.num_of_input_params-1;
 }
 
@@ -1702,7 +1767,8 @@ num vely_set_input (vely_input_req *req, char *name, char *val)
 // if input-param not found, then task could be another one, i.e. if not found, it's not
 // enforced to be that one. Even if set-input is used, that parameter is still task if it was 
 // before, i.e. changing the value of input parameter doesn't affect it as a task.
-// Returns value of parameters, or "" if not found.
+// Returns value of parameters, or "" if not found. found_input_param global is set to -1
+// if not found, or index in ipars[] if found.
 //
 char *vely_get_input_param (vely_input_req *req, char *name, bool is_task)
 {
@@ -1710,19 +1776,52 @@ char *vely_get_input_param (vely_input_req *req, char *name, bool is_task)
 
     num i;
     VV_TRACE ("Number of input data [%lld], looking for [%s]", req->ip.num_of_input_params, name);
-    for (i = 0; i < req->ip.num_of_input_params; i++)
+    // 
+    // The following relies on an assumption that input-params will not often look for the same param
+    // But rather will keep searching for the ones not looked for yet. That's pretty reasonable optimization,
+    // and even if not true, the number of strcmp's remains constant even in a worst-case scenario.
+    // So first we look for those ipars[] where found is 0 (i.e. not looked at yet). Once found, set found to 1.
+    // Next time, assuming we look for a different input param, we skip the one we just found (since found is 1 
+    // for it), and thus avoid one strcmp. Going further, each following input-param searches one less string comparison.
+    // If we look for the one already found, then the inner for loop finishes, and now comp_found is 1. So now
+    // we look for those that have been found only. This way our second loop is now complementary to the first
+    // and we will find it (assuming it's there), but still do only the same number of strcmp's.
+    // If a param name isn't there at all, then we will go through both comp_found 0 and 1, and still do only the
+    // same number of strcmp's, with a valid result (i.e. not found). 
+    // When found, we just return from the inner loop, and next time start the process again. 
+    // There is no need to reset .found for the life of a request. Programmer should do input-param for one
+    // parameter just a single time (i.e. do not do input-param on the same one many times), as that causes the 
+    // looping every time. That's unlikely, and would be a bad practice.
+    // Number of strcmp's without this optimization is n times the average strcmp's per single input-param.
+    // In before case, it's (n+n+..+n)/2 (n-times), so n^2/2. In after case it's (n+(n-1)+(n-2)+...)/2 so n*(n-1)/2/2
+    // or (n^2-n)/4, which is less than half the strcmp's than before. So this should speed up input-param more than twice. 
+    //
+    char comp_found;
+    // try for found 0, then if not found, for 1
+    for (comp_found = 0; comp_found < 2; comp_found++)
     {
-        if (!strcmp (req->ip.names[i], name))
+        for (i = 0; i < req->ip.num_of_input_params; i++)
         {
-            VV_TRACE ("Found input [%s] at [%lld]", req->ip.values[i], i);
-            if (is_task) req->task = i; // we can set index because input-params are never deleted, rather
-                                      // they may be updated with set-param or added as well, but the index
-                                      // to input-param is always the same.
-            return req->ip.values[i];
+            // look for those found and then not found
+            if (req->ip.ipars[i].found == comp_found)
+            {
+                if (!strcmp (req->ip.ipars[i].name, name))
+                {
+                    VV_TRACE ("Found input [%s] at [%lld]", req->ip.ipars[i].value, i);
+                    if (is_task) req->task = i; // we can set index because input-params are never deleted, rather
+                                              // they may be updated with set-param or added as well, but the index
+                                              // to input-param is always the same.
+                    req->ip.ipars[i].found = 1; // input-param found it, likely not to be asked for again
+                                               // which makes the search space for future input-params one lesser
+                    found_input_param = i;
+                    return req->ip.ipars[i].value;
+                }
+            }
         }
     }
     VV_TRACE ("Did not find input");
     if (is_task) req->task = -1; // task param not set, if-task will match ""
+    found_input_param = -1; // meaning not found
     return VV_EMPTY_STRING;
 }
 
@@ -3064,9 +3163,9 @@ void vely_gen_set_content_type(char *v)
     VV_TRACE("");
     if (finished_output == 0 && vely_get_config()->ctx.req != NULL && vely_get_config()->ctx.req->silent == 0) 
 #ifndef VV_COMMAND
-        if (vely_fcgi_out != NULL) FCGX_FPrintF (vely_fcgi_out, "Content-type: %s\r\n", v);
+        if (vely_fcgi_out != NULL) FCGX_FPrintF (vely_fcgi_out, "Content-Type: %s\r\n", v);
 #else
-        fprintf (stdout, "Content-type: %s\r\n", v);
+        fprintf (stdout, "Content-Type: %s\r\n", v);
 #endif
 }
 

@@ -21,17 +21,24 @@ exit-request is useful when your request handler has called other functions (i.e
 
 In other words, exit-request jumps to the top-level request dispatcher, and the stack of functions called to get to exit-request will be bypassed, thus those functions will not get control back; and they will not perform any additional work, rather simply the next \fBrequest\fP will be processed immediately.
 
-Never user C's exit() function, as it will terminate the server process and prevent \fBexit-code\fP from functioning properly.
+Never use C's exit() function, as it will terminate the server process and prevent \fBexit-code\fP from functioning properly.
 
 .SH EXAMPLES
+In this example, a request handler "req_handler" calls function "my_function()" which exits the request:
 
 .RS 4
 .EX
 
 \[char35]include "vely.h"
 
-void req_handler()
-{
+request-handler /req_handler
+    ...
+    my_function();
+    // After exit-request in my_function(), the following code is never executed
+    ...
+end-request-handler
+
+void my_function () {
     ...
     exit-request
     ...

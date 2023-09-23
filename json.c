@@ -235,7 +235,7 @@ void vely_add_json_hash (vely_json *j)
     VV_TRACE("");
     num st;
     // create hash to add keys to, size it to match the document size, so close to 1 hit to get the key/value
-    if (j->usehash) vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c);
+    if (j->usehash) vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c, NULL);
     // go through all and add to hash
     num i;
     for (i = 0; i < j->node_c; i++)

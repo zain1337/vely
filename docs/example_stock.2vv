@@ -5,7 +5,7 @@ example_stock \- Vely documentation (examples)
 Stock ticker application
 Stock ticker example will create a new ticker (stock name and its price) or update an existing one, and display the stock ticker database.
 
-In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 55 lines of code.
+In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 3 source files, 53 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -250,15 +250,27 @@ To access your application server from command line (instead through web browser
 .EX
 
 \[char35]Add stock ticker 'XYZ' with stock price 450 
-vv -r --app='/stock' --req='/add-stock?name=XYZ&price=450' --method=GET -server --exec
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/stock'
+export PATH_INFO='/add-stock'
+export QUERY_STRING='name=XYZ&price=450'
+cgi-fcgi -connect /var/lib/vv/stock/sock/sock /
 
 \[char35]Display list of stock tickers 
-vv -r --app='/stock' --req='/show-stock?' --method=GET -server --exec
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/stock'
+export PATH_INFO='/show-stock'
+export QUERY_STRING=''
+cgi-fcgi -connect /var/lib/vv/stock/sock/sock /
 
 .EE
 .RE
 
-You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
+Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX
@@ -304,7 +316,7 @@ Note: if running your program as a command-line utility is all you want, you don
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Database objects (setup.sql)
 
@@ -321,7 +333,7 @@ create table if not exists stock (stock_name varchar(100) primary key, stock_pri
 
 .B - Add stock ticker (add_stock.vely)
 
-This requests (/add-stock) saves the names of stock tickers and their prices. It will obtain the stock name and price from the web client via \fBinput-param\fP statement, and then use INSERT SQL to store this data in the database. 
+This requests (/add-stock) saves the names of stock tickers and their prices. It will obtain the stock name and price from the web client via \fBinput-param\fP statement, and then use INSERT SQL to store this data in the database. Note the use of "%%", the short version of \fBrequest-handler\fP and end-request-handler statements.
 
 .RS 4
 .EX
@@ -329,8 +341,7 @@ This requests (/add-stock) saves the names of stock tickers and their prices. It
 
 \[char35]include "vely.h"
 
-void add_stock()
-{
+%% /add-stock
     out-header default
     @<html>
         @<body>
@@ -346,7 +357,7 @@ void add_stock()
         @</div>
         @</body>
     @</html>
-}
+%%
 
 
 .EE
@@ -363,8 +374,7 @@ You can view stock tickers in a list. SELECT SQL is used to get all the stocks s
 
 \[char35]include "vely.h"
 
-void show_stock()
-{
+%% /show-stock
     out-header default
     @<html>
         @<body>
@@ -387,7 +397,7 @@ void show_stock()
             @</table>
         @</body>
     @</html>
-}
+%%
 
 
 .EE
@@ -407,6 +417,7 @@ void show_stock()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

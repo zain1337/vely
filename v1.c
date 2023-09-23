@@ -370,6 +370,8 @@ typedef struct s_vely_db_parse {
 //
 //
 
+bool done_handler = false; // true if request-handler is found
+bool done_end_handler = false; // true if end-request-handler is found
 bool other_task_done[VV_MAX_OTHER_TASK+1] = {false};
 num vv_plain_diag = 0; // use color diagnostics
 num vnone = 0; // used in detecting if () vely_statement
@@ -457,7 +459,7 @@ void query_execution (vely_gen_ctx *gen_ctx,const num run_query, const num query
 void prepare_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
 void process_query (vely_gen_ctx *gen_ctx, const num query_result, const num run_query, char is_prep, vely_db_parse *vp);
 char *vely_db_vendor(num dbconn);
-void trimit(char *var);
+num trimit(char *var);
 void check_vely (char *c);
 char *id_from_file (char *file);
 num outargs(char *args, char *outname, char *type, num startwith, char pair);
@@ -472,6 +474,7 @@ void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
 void free_query (char *qryname, bool skip_data);
 void convert_puts(char *oline);
 void do_numstr (char *to, char *len, char *num0, char *olen, char *base);
+void setup_reqhash();
 
 
 //
@@ -480,6 +483,139 @@ void do_numstr (char *to, char *len, char *num0, char *olen, char *base);
 //
 //
 
+
+//
+// Generate code that loads pre-computed hash to memory. This hash allows near-instantaneous
+// request routing in Vely's dispatcher. The entire hash table is then in a data segment of the program,
+// being loaded with large memcpy, and then used. So there is no loading of hash, only querying. There is
+// also no deleting, resizing etc. - this method is for hash table that stay loaded and *unchanged* for
+// the life of the process.
+//
+void setup_reqhash()
+{
+    // Build request list file name. This file is built in vv -q prior to calling v1 for processing.
+    // The first line of this file is the number of request names that follow, each in a separate line.
+    char vely_req_file[300];
+    snprintf (vely_req_file, sizeof(vely_req_file), "%s/.reqlist", vely_bld_dir);
+
+    FILE *f = fopen (vely_req_file, "r");
+    if (f == NULL) _vely_report_error( "Error [%s] opening file [%s]", strerror (errno), vely_req_file);
+
+    char line[VV_MAX_REQ_NAME_LEN]; // line to read from .reqlist
+    vely_hash *vv_dispatch; // hash we will build at compile time, and then make a memory representation of it
+    bool done_count = false; // true when first line (count of requests) read
+                             //
+    while (1)
+    {
+        char *req = fgets (line, sizeof (line), f);
+        if (req == NULL) // either end or error
+        {
+            num err = ferror (f);
+            if (err) // if error, quit
+            {
+                _vely_report_error( "Error [%s] reading file [%s]", strerror (errno), vely_req_file);
+            }
+            break; // nothing read in, done with hash building
+        }
+        trimit (req);     
+        if (!done_count) 
+        {
+            done_count = true;
+            vely_create_hash (&vv_dispatch, atol (req), NULL); // create hash, first line is the
+                                                          // number of elements in the hash
+        }
+        else
+        {
+            // must use vely_strdup() so that each new element is new memory, otherwise
+            // new req would override all previous additions
+            vely_add_hash (vv_dispatch, vely_strdup(req), NULL, "", NULL, NULL);
+        }
+    }
+    // Now that we have the hash, we need to generate the code that unwinds this process into a 
+    // list of static buckets that get loaded in data text of the program.
+    // hash is deterministic; the buckets we get here is what gets computed at run time
+    // we're just saving time precomputing them at compile time, i.e. here.
+
+    // vv_dispatch is a global hash ptr variable, we declare a pointer to it as hash ops expect a pointer
+    oprintf ("vely_hash *vv_dispatch_ptr = &(vv_dispatch);\n");
+    num i;
+    // Calculate how many hash buckets are empty. We still need to have a representation for them, as they
+    // are part of the hash image we want to recreate in a running Vely program.
+    num empty = 0;
+    for (i = 0; i < vv_dispatch->num_buckets; i++)
+    {
+        if (vv_dispatch->table[i] == NULL) empty++;
+    }
+
+    // harr is the total number of entries we must declare. There's ->tot (total number of elements stored
+    // in the hash) plus the empty buckets, plus one for the ending.
+    num harr = vv_dispatch->tot+1+empty;
+
+    // Declare internal hash table. Normally, this is allocated at run-time for a hash, but Vely API allows
+    // for it to be provided as a fixed array. We generate the code for it with the initializator (not an assignment)
+    // so that it can be linked as a data segment and copied extremely fast into a running program for use.
+    oprintf ("vely_hash_table _vv_req_hash[%lld] = { ", harr);
+    // We do not allocate memory. Instead, any overflow bucket elements are stored as the trailing element in the 
+    // array, and we manipulate the ->next to point to them. So the hash structure is NOT exactly the same as it would
+    // have been with the normal hash. This is faster, since there's no allocation, and memory is in a single contiguous block.
+    num bottom = vv_dispatch->num_buckets; 
+    num nx;
+    // Go through all buckets
+    for (i = 0; i < vv_dispatch->num_buckets; i++)
+    {
+        char *next;
+        char next_s[300];
+        // Start with each leading bucket element
+        vely_hash_table *t = vv_dispatch->table[i];
+        num curr_i = i;
+        // Go through the list of next element with the same hash
+        while (t != NULL) 
+        {
+            if (t->next == NULL)
+            {
+                next = "NULL"; // nothing after it
+                nx = -1;
+            }
+            else
+            {
+                // all other buckets are in the same array, so memory copy into data segment will work on program load
+                // this way there is no pointer translation and memory fetching is very fast.
+                // nx is the ->next element. It is at the current bottom of the array, which we advance with each added ->next
+                // we will process that one (nx) next, by setting curr_i, and t=t->next, which refer to the same element.
+                snprintf (next_s, sizeof(next_s), "&(_vv_req_hash[%lld])", nx=bottom++);
+                next = next_s; // [].next for the current element
+            }
+            // initialize the current hash element
+            oprintf ("[%lld].key = \"%s\", [%lld].data=%s, [%lld].next = %s,\n", curr_i, t->key, curr_i, t->key, curr_i, next);
+            // set the -> element which is processed next, and nx and t refer to the same element. We do this until end of list,
+            // then move on to the next bucket
+            curr_i = nx;
+            t = t->next;
+        }
+        // after done, going to next bucket (advance i)
+    }
+    // add the final one as an end of list (not used for now)
+    oprintf ("[%lld].key = \"\", [%lld].data=NULL, [%lld].next = NULL\n", harr-1, harr-1, harr-1);
+    oprintf(" };\n"); // finish the list
+    // What we created so far is the entire hash bucket structure, including overflow elements
+    // What hash API expects is a list of pointers that point to buckets.
+    // That's what we initialize here, an array of pointers to buckets, and that's what we use
+    // to create a request hash, which then can be queried
+    oprintf ("vely_hash_table *_vv_req_hash_ptr[%lld] = { ", harr-1);
+    for (i = 0; i < vv_dispatch->num_buckets; i++) 
+    {
+        // for those buckets that are NULL, we must have NULL too in runtime hash table, or otherwise
+        // the key in such a non-NULL bucket would be NULL, causing Vely to crash in hash.c(142) when comparing a key
+        if (vv_dispatch->table[i] == NULL) oprintf ("%s NULL \n", i!=0?",":""); else oprintf ("%s &(_vv_req_hash[%lld]) \n", i!=0?",":"", i);
+    }
+    oprintf ("};\n");
+    // generate create hash
+    oprintf ("vely_create_hash (&vv_dispatch_ptr, %lld, _vv_req_hash_ptr);\n", vv_dispatch->tot); 
+    
+
+    // hash is typically a fairly small structure. We do not delete it here, as it would just slow down processing.
+    fclose (f);
+}
 
 //
 // Print out a number or write it to a string. 'to' is a string where to write, can be NULL for printing out.
@@ -961,12 +1097,13 @@ void check_vely (char *c)
 }
 
 //
-// Trim string var in-place
+// Trim string var in-place. Returns its length.
 //
-void trimit(char *var)
+num  trimit(char *var)
 {
     num var_len = strlen (var);
     vely_trim (var, &var_len);
+    return var_len;
 }
 
 //
@@ -4688,8 +4825,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         if (numinput !=NULL) oprintf ("%s=vely_get_config()->ctx.req->ip.num_of_input_params;\n", to); // not alloced
                         if (argval !=NULL) oprintf ("%s=vely_get_config()->ctx.req->args.args[%s];\n", to, argval); //not alloced
                         if (argnum !=NULL) oprintf ("%s=vely_get_config()->ctx.req->args.num_of_args;\n", to); // not alloced
-                        if (inputval !=NULL) oprintf ("%s=vely_get_config()->ctx.req->ip.values[%s];\n", to, inputval); // not alloced
-                        if (inputname !=NULL) oprintf ("%s=vely_get_config()->ctx.req->ip.names[%s];\n", to, inputname); // not alloced
+                        if (inputval !=NULL) oprintf ("%s=vely_get_config()->ctx.req->ip.ipars[%s].value;\n", to, inputval); // not alloced
+                        if (inputname !=NULL) oprintf ("%s=vely_get_config()->ctx.req->ip.ipars[%s].name;\n", to, inputname); // not alloced
                         if (ref !=NULL) oprintf ("%s=vely_get_config()->ctx.req->referring_url;\n", to); // not alloced
                         if (numcookie !=NULL) oprintf ("%s=vely_get_config()->ctx.req->num_of_cookies;\n", to); // not alloced
                         if (cookie !=NULL) oprintf ("%s=vely_get_config()->ctx.req->cookies[%s].data;\n", to, cookie); //not alloced
@@ -5041,6 +5178,52 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         continue;
                     }
+                    else if ((newI=recog_statement(line, i, "end-request-handler", &mtext, &msize, 1, &vely_is_inline)) != 0 ||
+                        (newI1=recog_statement(line, i, "%%", &mtext, &msize, 1, &vely_is_inline)) != 0)  
+                    {
+                        //No checking if this is within a block, since this is function ending
+                        //VV_GUARD
+                        i = newI + newI1;
+
+                        if (!done_handler)
+                        {
+                            _vely_report_error( "end-request-handler without request-handler found");
+                        }
+                        if (done_end_handler)
+                        {
+                            _vely_report_error( "end-request-handler found the second time");
+                        }
+                        done_end_handler = true;
+                        oprintf("}\n");
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "request-handler", &mtext, &msize, 0, &vely_is_inline)) != 0 || 
+                        (newI1=recog_statement(line, i, "%%", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        //No checking if this is within a block, since this is function ending
+                        //VV_GUARD
+                        i = newI+newI1;
+
+
+                        if (done_handler)
+                        {
+                            _vely_report_error( ".vely file can have only a single request-handler");
+                        }
+
+                        done_handler = true;
+                        num mlen = trimit (mtext);
+                        static char reqname[VV_MAX_REQ_NAME_LEN];
+
+                        char decres = vely_decorate_path (reqname, sizeof(reqname), &mtext, mlen, false);
+                        // 1 means good hierarchical path, reqname is it; or 3 means no /, so reqname is a copy of mtext
+                        if (decres != 1 && decres != 3) _vely_report_error( "request path in request-handler is not valid (does it start with forward slash?)");
+
+                        if (vely_is_valid_param_name(reqname) != 1) _vely_report_error( "request path in request-handler is not valid, it can have only alphanumeric characters, dashes, underscores and forward slashes, and cannot start with a digit");
+
+                        oprintf ("void %s () {\n", reqname);
+                        continue;
+                    }
                     else if (((newI=recog_statement (line, i, "if-task", &mtext, &msize, 0, &vely_is_inline)) != 0)
                         || ((newI1=recog_statement (line, i, "else-task", &mtext, &msize, 0, &vely_is_inline)) != 0))
                     {
@@ -5086,7 +5269,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         {
                             oprintf("%sif (", else_if == 1 ? "} else ":"");
                             char *curr = mtext;
-                            oprintf("!strcmp ((%s), vely_get_config()->ctx.req->task == -1 ? \"\":vely_get_config()->ctx.req->ip.values[vely_get_config()->ctx.req->task])", curr);
+                            oprintf("!strcmp ((%s), vely_get_config()->ctx.req->task == -1 ? \"\":vely_get_config()->ctx.req->ip.ipars[vely_get_config()->ctx.req->task].value)", curr);
                             oprintf(") {\n");
                         }
 
@@ -5345,7 +5528,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&size, "new-hash", VV_KEYSIZE, 1, 1);
                         define_statement (&mtext, VV_DEFHASH);
 
-                        oprintf("vely_create_hash (&(%s), %s);\n", mtext, size);
+                        oprintf("vely_create_hash (&(%s), %s, NULL);\n", mtext, size);
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "write-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -6141,6 +6324,7 @@ int main (int argc, char* argv[])
         oprintf("char * vely_app_path=\"%s\";\n", app_path); // app-path cannot have quotes
         oprintf("unsigned long vely_app_path_len=%lu;\n", strlen(app_path)); 
         oprintf("num vely_is_trace=%lld;\n", vely_is_trace);
+        oprintf ("vely_hash vv_dispatch;\n");
         oprintf("num vely_max_upload=%lld;\n", vely_max_upload);
         // The following are static variables, i.e. those that need not be seen outside this module
         oprintf ("static vely_db_connections vely_dbs;\n");
@@ -6162,6 +6346,7 @@ int main (int argc, char* argv[])
         //
         oprintf("if (vv_pc->debug.trace_level != 0) vely_open_trace();\n");
 
+        setup_reqhash(); // setup request hash for near-instant request routing
 
         oprintf ("while(vely_FCGI_Accept() >= 0) {\n");
         oprintf ("vely_in_request = 1;\n");

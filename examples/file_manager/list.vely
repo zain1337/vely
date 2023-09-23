@@ -3,8 +3,7 @@
 #include "vely.h" // must always be here
 
 // List files
-void list ()
-{
+request-handler list 
    // List current files in the database
    out-header default
    @<h2>List of files</h2>
@@ -28,4 +27,4 @@ void list ()
        @</tr>
    end-query
    @</table>
-}
+end-request-handler

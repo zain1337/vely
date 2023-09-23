@@ -30,11 +30,13 @@ get-sys web-environment "PATH_INFO" to define pinfo
 \fBafter_request_handler\fP  
 \fBbefore_request_handler\fP  
 \fBbuilding_URL\fP  
+\fBend-request-handler\fP  
 \fBgetting_URL\fP  
 \fBglobal_request_data\fP  
 \fBnon_request\fP  
 \fBnormalized_URL\fP  
 \fBrequest\fP  
+\fBrequest-handler\fP  
 \fBrequest_URL\fP  
 \fBstartup_handler\fP  
 \fBvely_dispatch_request\fP    

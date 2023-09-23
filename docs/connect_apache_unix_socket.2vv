@@ -114,7 +114,7 @@ Add this to the end of file ("/<app path>" is the application path (see \fBreque
 .RS 4
 .EX
 
-ProxyPass "/<app path>" unix:///var/lib/vv/<app name>/sock/sock|fcgi://localhost/<app name>
+ProxyPass "/<app path>" unix:///var/lib/vv/<app name>/sock/sock|fcgi://localhost/<app path>
 
 .EE
 .RE

@@ -62,7 +62,7 @@ The reason why you wouldn't have used C in the past may have been buffer overwri
 
 .B - Quality
 
-Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 1838 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
+Each Vely release must pass rigorous continuous tests on every platform where it's available before it's released. There are currently 2012 such tests, see \fBquality_control\fP. See \fBrelease_notes\fP for what's new in each release.
 
 
 .B - Report bugs, request features, contact
@@ -91,6 +91,7 @@ Vely's author is Sergio Mijatovic (\fBLinkedIn\fP, \fBTwitter\fP, \fBdev.to\fP, 
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

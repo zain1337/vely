@@ -2,6 +2,11 @@
 .SH NAME
 vely_dispatch_request \- Vely documentation (requests)
 .SH DESCRIPTION
+
+.LP
+.B REQUEST HANDLING
+.LP
+
 An incoming request is handled by a first available process:
 
 .RS 4
@@ -12,26 +17,35 @@ For a \fBcommand_line\fP application, there is only a single process, and it han
 
 .RS 4
 \[bu]    
-For server application (see \fBFastCGI\fP), there can be any number of processes running. A process is chosen to service a request if it is currently not serving other requests; this way there are no processes waiting idle unnecessarily.
+For a server application (see \fBFastCGI\fP), there can be any number of processes running. A process is chosen to service a request if it is currently not serving other requests; this way there are no processes waiting idle unnecessarily. Each process is identical and can serve any request, i.e. it has all request handlers available to it. Thus, when a process is chosen to serve a request, then this process will simply execute a function that handles a request.
 .RE
 
-Each process is identical and can serve any request, i.e. it has all request handlers available to it. Thus, when a process is chosen to serve a request, then this process will simply execute a function that handles a request. To do that, each process first calls "vely_dispatch_request()" function.
+
+.LP
+.B PROCESSING A REQUEST
+.LP
+
+To handle a request, a process first calls "vely_dispatch_request()" function.
 
 "void vely_dispatch_request()" is an automatically generated \fBrequest\fP-dispatching function in Vely. It uses request name (see \fBrequest_URL\fP) to call the appropriate request handler. 
 
 For example, if the request name is "myreq", then function with signature "void myreq()" will be called - such function must be implemented in "myreq.vely" source code file.
 
-You can implement two hooks into vely_dispatch_request(): one that executes before each request handling (\fBbefore_request_handler\fP) and one that executes afterwards (\fBafter_request_handler\fP).
+You can implement two hooks into vely_dispatch_request(): one that executes before each request handling (\fBbefore_request_handler\fP) and one that executes afterwards (\fBafter_request_handler\fP). 
 
-In terms of debugging, breaking in this function gives you a good starting point to debug the handling of any given request, for instance in gdb:
+At the end of the request, all request memory and all file handles allocated by Vely will be freed (see \fBmemory_handling\fP).
 
-.RS 4
-.EX
+You cannot change the implementation of vely_dispatch_request(), but you can see it in the build directory (see \fBvv\fP).
 
-br vely_dispatch_request
+.LP
+.B PERFORMANCE
+.LP
 
-.EE
-.RE
+Vely uses a hash table to match a request with a handler function. Typically, it takes only close to a single lookup to find the handler function, regardless of the number of possible request names a process may serve (be it 10 or 10,000 different request names). Vely pre-generates a hash table at compile time, so no run-time cycles are spent on creating it. Also, the hash table is created as a continuous block of memory in the program's data segment, which loads as a part of the program (likely as a single memory copy) and is very fast because accessing the data will likely need no pointer translations. As a result, Vely dispatcher is extremely fast.
+
+.LP
+.B UNRECOGNIZED REQUESTS
+.LP
 
 If no request has been recognized (i.e. request name does not match any request-handling .vely source file), then 
 
@@ -52,9 +66,21 @@ no request handler will execute,
 and a "Request not found" error will be reported via \fBreport-error\fP.
 .RE
 
-At the end of the request, all strings allocated by Vely will be freed.
 
-You cannot change the implementation of vely_dispatch_request(), but you can see it in the build directory (see \fBvv\fP).
+.LP
+.B DEBUGGING
+.LP
+
+In a debugger, breaking in this function gives you a good starting point to debug the handling of any given request, for instance in gdb:
+
+.RS 4
+.EX
+
+br vely_dispatch_request
+
+.EE
+.RE
+
 .SH SEE ALSO
  
 .B - Requests
@@ -62,11 +88,13 @@ You cannot change the implementation of vely_dispatch_request(), but you can see
 \fBafter_request_handler\fP  
 \fBbefore_request_handler\fP  
 \fBbuilding_URL\fP  
+\fBend-request-handler\fP  
 \fBgetting_URL\fP  
 \fBglobal_request_data\fP  
 \fBnon_request\fP  
 \fBnormalized_URL\fP  
 \fBrequest\fP  
+\fBrequest-handler\fP  
 \fBrequest_URL\fP  
 \fBstartup_handler\fP  
 \fBvely_dispatch_request\fP    

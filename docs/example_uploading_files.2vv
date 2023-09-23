@@ -91,7 +91,7 @@ Create file "upload_file.vely" and copy this to it:
 
 \[char35]include "vely.h"
 
-void upload_file () {
+request-handler /upload_file 
     input-param myfile_filename
     input-param myfile_location
     input-param myfile_ext
@@ -99,7 +99,7 @@ void upload_file () {
 
     out-header default
     @File <<p-out myfile_filename>> uploaded to <<p-out myfile_location>> (extension <<p-out myfile_ext>>, size <<p-out myfile_size>>).
-}
+end-request-handler
 
 .EE
 .RE
@@ -289,6 +289,7 @@ And there you have it. You can now upload files to the server. Of course, the ap
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

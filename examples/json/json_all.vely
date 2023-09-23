@@ -1,6 +1,6 @@
 #include "vely.h"
 
-void json_all() {
+request-handler /json-all
     out-header default
 
     input-param json_text
@@ -27,4 +27,4 @@ void json_all() {
     }
     @</table>
 
-}
+end-request-handler

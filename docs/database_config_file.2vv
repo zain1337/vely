@@ -4,7 +4,7 @@ database_config_file \- Vely documentation (database)
 .SH DESCRIPTION
 Vely application can use any number of databases, with each specified by a database configuration file. This file provides database name, login and connection settings and preferences.
 
-When making a Vely project, you specify a database vendor and the database configuration file for each database your application uses (see \fBvv\fP), for instance:
+When making a Vely application, you specify a database vendor and the database configuration file for each database your application uses (see \fBvv\fP), for instance:
 
 .RS 4
 .EX

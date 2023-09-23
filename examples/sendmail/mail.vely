@@ -7,8 +7,7 @@
 
 #include "vely.h" 
 
-void mail()
-{
+%% mail
 
     out-header default
 
@@ -75,5 +74,5 @@ void mail()
         @Unrecognized action!<hr/>
     end-task
 
-}
+%%
 

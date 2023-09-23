@@ -109,7 +109,6 @@ ldx
 
 \fBerror_code\fP  
 \fBerror_handling\fP  
-\fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP   
 .RE
@@ -128,6 +127,7 @@ ldx
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  
@@ -187,6 +187,7 @@ ldx
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP   
 .RE
@@ -323,11 +324,13 @@ ldx
 \fBafter_request_handler\fP  
 \fBbefore_request_handler\fP  
 \fBbuilding_URL\fP  
+\fBend-request-handler\fP  
 \fBgetting_URL\fP  
 \fBglobal_request_data\fP  
 \fBnon_request\fP  
 \fBnormalized_URL\fP  
 \fBrequest\fP  
+\fBrequest-handler\fP  
 \fBrequest_URL\fP  
 \fBstartup_handler\fP  
 \fBvely_dispatch_request\fP   

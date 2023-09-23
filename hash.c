@@ -17,20 +17,25 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
 
 //
 // Create new hash hres_ptr. size is the size of hash table. The actual object is created here, the caller handlers pointer only.
+// If in_h is provided, then vely_hash hres_ptr is not allocated, and neither is its vely_hash_table (which is set to in_h).
+// Normally in_h is NULL; it's only non-NULL internally when building Vely internal hash values to find string values 
+// quickly with just initialization of the table (see setup_reqhash() in v1.c).
 //
-void vely_create_hash (vely_hash **hres_ptr, num size)
+void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h)
 {
     VV_TRACE("");
     // get object
-    *hres_ptr = (vely_hash*)vely_malloc(sizeof(vely_hash));
+    if (in_h == NULL) *hres_ptr = (vely_hash*)vely_malloc(sizeof(vely_hash));
 
     vely_hash *hres = *hres_ptr;
 
     if (size < 10) size = 10; // minimum size 10
     // create hash array of lists
-    vely_hash_table **h = (vely_hash_table **)vely_calloc (size, sizeof(vely_hash_table*));
+    vely_hash_table **h;
+    if (in_h == NULL) h = (vely_hash_table **)vely_calloc (size, sizeof(vely_hash_table*)); else h = in_h;
+
     // create top structure
-    hres->size = size;
+    hres->num_buckets = size;
     hres->table = h; // set the table, each element is a linked list
     hres->tot = 0;
     hres->hits = 0;
@@ -50,7 +55,7 @@ void vely_delete_hash (vely_hash **h, char recreate)
     if (*h == NULL || (*h)->table == NULL) return; // object isn't created yet
     num i;
     // loop through the table of linked lists
-    for (i = 0; i < (*h)->size; i++) 
+    for (i = 0; i < (*h)->num_buckets; i++) 
     { 
         // free all linked list elements
         vely_hash_table *hnext = (*h)->table[i];
@@ -65,11 +70,11 @@ void vely_delete_hash (vely_hash **h, char recreate)
     // save stats
     num hits = (*h)->hits;
     num reads = (*h)->reads;
-    num size = (*h)->size;
+    num size = (*h)->num_buckets;
     vely_free (*h); // delete old hash structure
     if (recreate == 1)
     {
-        vely_create_hash (h, size); // create new hash
+        vely_create_hash (h, size, NULL); // create new hash
         // restore stats
         (*h)->hits = hits;
         (*h)->reads = reads;
@@ -90,7 +95,7 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
     if (prev == NULL) {
         // if bucket index is unknown, calculate it since we need it when deleting the first in the bucket
         // in order to set 'prev' which is the bucket itself (i.e. denoted as NULL)
-        if (hashind == -1) hashind = vely_compute_hash (todel->key, NULL, h->size);
+        if (hashind == -1) hashind = vely_compute_hash (todel->key, NULL, h->num_buckets);
         h->table[hashind] = next; // if first in bucket list deleted
                                                 // the next one is now the first
     }
@@ -124,7 +129,7 @@ void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *fo
 
     char *ret = NULL;
     // get hash id of a key
-    num hashind = vely_compute_hash (key, keylist, h->size);
+    num hashind = vely_compute_hash (key, keylist, h->num_buckets);
 
     vely_hash_table *hresult = NULL;
     vely_hash_table *prev = NULL;
@@ -195,7 +200,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
 
     // temp hash
     vely_hash *nh = NULL;
-    vely_create_hash (&nh, newsize);
+    vely_create_hash (&nh, newsize, NULL);
 
     // copy data from old to new one using fast rewind
     vely_rewind_hash (*h);
@@ -213,7 +218,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
     (*h)->tot = nh->tot;
     (*h)->hits = nh->hits;
     (*h)->reads = nh->reads;
-    (*h)->size = nh->size;
+    (*h)->num_buckets = nh->num_buckets;
 
     vely_free (nh); // release temp hash
 }
@@ -244,7 +249,7 @@ dbl vely_hash_reads (vely_hash *h)
 num vely_hash_size (vely_hash *h)
 {
     VV_TRACE("");
-    return h->size;
+    return h->num_buckets;
 }
 
 //
@@ -265,11 +270,11 @@ num vely_total_hash (vely_hash *h)
 char *vely_next_hash(vely_hash *h, void **data)
 {
     VV_TRACE("");
-    if (h->dnext == h->size) { return NULL; }
+    if (h->dnext == h->num_buckets) { return NULL; }
     while (h->dcurr == NULL)
     {
         h->dnext++;
-        if (h->dnext == h->size) { return NULL; }
+        if (h->dnext == h->num_buckets) { return NULL; }
         h->dcurr = h->table[h->dnext];
     }
 
@@ -311,7 +316,7 @@ char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *s
     VV_TRACE("");
 
     // compute hash id for key
-    num hashind = vely_compute_hash (key, keylist, h->size);
+    num hashind = vely_compute_hash (key, keylist, h->num_buckets);
 
     if (h->table[hashind] == NULL) { // nothing here, just add first list element 
         h->table[hashind] = vely_new_hash_item (key, data);

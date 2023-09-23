@@ -7,7 +7,7 @@ Uploading and downloading files is one of the most common tasks in web applicati
 
 Files such as JPG, PDF or other can be uploaded, and each file can have a description tag. A list of uploaded files can be displayed. Each file can be viewed or downloaded, and each file can be deleted. Files metadata is kept in the database (name, path, description, size, extension), while the files themselves are kept in Vely \fBfile_storage\fP.
 
-In a nutshell: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 169 lines of code.
+In a nutshell: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 164 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -356,7 +356,7 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Storing file information in the database (setup.sql)
 
@@ -383,8 +383,7 @@ This code displays the page where application user always goes first. One thing 
 \[char35]include "vely.h" // must always be here
 
 // Upload and list/download files
-void start ()
-{
+request-handler /start 
 
    out-header default
 
@@ -407,7 +406,7 @@ void start ()
    @    <input type="submit" value="Submit">
    @</form>
 
-}
+end-request-handler
 
 
 .EE
@@ -428,8 +427,7 @@ And finally, the message will be sent back to web client (such as a browser) tha
 \[char35]include "vely.h" // must always be here
 
 // Upload the file
-void upload ()
-{
+request-handler /upload 
    out-header default
 
    // file description from the upload form
@@ -451,7 +449,7 @@ void upload ()
    end-query
 
    @File <<p-web file_filename>> of size <<p-web file_size>> is stored on server at <<p-web file_location>>. File description is <<p-web filedesc>>.<hr/>
-}
+end-request-handler
 
 .EE
 .RE
@@ -467,8 +465,7 @@ For files that have been saved, this code shows them in a list. Next to each fil
 \[char35]include "vely.h" // must always be here
 
 // List files
-void list ()
-{
+request-handler list 
    // List current files in the database
    out-header default
    @<h2>List of files</h2>
@@ -492,7 +489,7 @@ void list ()
        @</tr>
    end-query
    @</table>
-}
+end-request-handler
 
 .EE
 .RE
@@ -508,8 +505,7 @@ When a link to download a file is clicked in the list of files, the following co
 \[char35]include "vely.h" // must always be here
 
 // Download a file
-void download ()
-{
+request-handler /download 
    // Show or download a file (its ID is in the database)
    input-param file_id
    char *local_path=NULL;
@@ -536,7 +532,7 @@ void download ()
    } else {
        send-file local_path headers content-type "application/octet-stream" download
    }
-}
+end-request-handler
 
 .EE
 .RE
@@ -558,8 +554,7 @@ Note that deletion is done as a transaction, only if both the record in table "f
 \[char35]include "vely.h" // must always be here
 
 // Delete the file
-void delete ()
-{
+request-handler /delete 
    out-header default
    @<h2>Delete a file</h2>
    task-param action
@@ -597,7 +592,7 @@ void delete ()
    else-task other
        @Unrecognized action <<p-web action>>
    end-task
-}
+end-request-handler
 
 .EE
 .RE
@@ -616,6 +611,7 @@ void delete ()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

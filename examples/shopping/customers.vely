@@ -1,8 +1,7 @@
 #include "vely.h"
 
-void customers()
-{
+request-handler /customers
     get-req method to define req_method
 
     if (req_method == VV_POST) add_customer ();
-}
+end-request-handler

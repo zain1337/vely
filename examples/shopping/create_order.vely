@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void create_order()
-{
+request-handler /create-order
     out-header use content-type "application/json"
 
     input-param customer_id
@@ -11,4 +10,4 @@ void create_order()
         query-result orderID to define order_id
         @"<<p-out order_id>>"
     end-query
-}
+end-request-handler

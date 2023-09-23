@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void delete_order()
-{
+request-handler /delete-order
     out-header use content-type "application/json"
 
     input-param order_id
@@ -12,4 +11,4 @@ void delete_order()
         no-loop affected-rows define item_rows
     commit-transaction
     @{ "orders":"<<p-num order_rows>>", "items":"<<p-num item_rows>>" }
-}
+end-request-handler

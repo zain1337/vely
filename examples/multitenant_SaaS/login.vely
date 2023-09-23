@@ -3,7 +3,7 @@
 
 // Handle session maintenance, login, logout, session verification
 // for any multitenant Cloud application
-void login () {
+%% /login 
     // Get URL input parameter "actions"
     task-param actions
 
@@ -146,7 +146,7 @@ void login () {
     else-task other
         // do not display anything
     end-task
-}
+%%
 
 // Display Login or Sign Up links
 void login_or_signup() {

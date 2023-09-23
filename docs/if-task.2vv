@@ -31,7 +31,7 @@ If the value of task-param matches the string expression <task> in if-task, then
 
 In a given if-task statement, there can be only one "else-task other" clause, and it must be the last one in if-task statement.
 
-For instance, a request named "customer" may be used to add a customer, update it, or delete it, and which one of these tasks is performed would be based on the value of a \fBtask-param\fPeter, as in these URLs that handle request "store" with tasks "add", "update" and "delete":
+For instance, a request named "customer" may be used to add a customer, update it, or delete it, and which one of these tasks is performed would be based on the value of a \fBtask-param\fPeter, as in these URLs where task "act" can have values of "add", "update" and "delete":
 
 .RS 4
 .EX
@@ -48,30 +48,30 @@ The request handler code in file "customer.vely" would have this code:
 .RS 4
 .EX
 
-\[char46]..
-out-header default
+request-handler /customer
+    out-header default
 
-// Specify input parameter "act" to be a task selector
-task-param act 
+    // Specify input parameter "act" to be a task selector
+    task-param act 
 
-if-task "add"
-    input-param name
-    input-param email
-    // Add customer
-    ...
-else-task "update"
-    input-param id
-    input-param address
-    // Update customer
-    ...
-else-task "delete"
-    input-param id
-    // Delete customer
-    ...
-else-task other
-    @Unknown task.
-end-task
-\[char46]..
+    if-task "add"
+        input-param name
+        input-param email
+        // Add customer
+        ...
+    else-task "update"
+        input-param id
+        input-param address
+        // Update customer
+        ...
+    else-task "delete"
+        input-param id
+        // Delete customer
+        ...
+    else-task other
+        @Unknown task.
+    end-task
+end-request-handler
 
 .EE
 .RE
@@ -87,13 +87,13 @@ Note that if there is no \fBtask-param\fPeter (which is "act" in the above examp
 .B NESTING AND SUBTASKS
 .LP
 
-if-task can be nested in case you want to change the task selector during the execution of a request handler, i.e. if you need to have sub-tasks. Such nesting can be up to 30 levels deep. In this example, a request "customer" has tasks "add", "update" and "delete". A task "update" has subtasks "address" and "phone":
+if-task can be nested in case you want to change the task selector during the execution of a request handler, i.e. if you need to have sub-tasks. Such nesting can be up to 30 levels deep. In this example, a request "customer" has a task "act" with values of "add", "update" and "delete". A subtask "upd_type" (when task "act" has value of "update") has values of "address" and "phone":
 
 .RS 4
 .EX
 
 
-void customer() { // request "customer"
+request-handler /customer // request "customer"
 
     out-header default
 
@@ -124,7 +124,7 @@ void customer() { // request "customer"
     else-task other
         @Unknown task.
     end-task
-}
+end-request-handler
 
 .EE
 .RE

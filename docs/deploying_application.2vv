@@ -99,6 +99,7 @@ Each application owner (i.e. the user used in application creation with -u flag,
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

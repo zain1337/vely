@@ -5,7 +5,7 @@ example_cookies \- Vely documentation (examples)
 Cookies in a web application
 A value is entered in the browser and saved as a cookie, then read back later. This example displays a web form. When it is submitted, the input is used to set a cookie in response. Then in a separate page, the cookie value is obtained and displayed. This is the basic mechanism often used in saving web application states and session information.
 
-In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 49 lines of code.
+In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 48 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -290,7 +290,7 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Working with cookies (cookies.vely)
 
@@ -305,8 +305,7 @@ Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter 
 
 \[char35]include "vely.h" 
 
-void cookies()
-{
+request-handler /cookies
 
     task-param action
 
@@ -346,7 +345,7 @@ void cookies()
         @Unrecognized action<hr/>
     end-task
 
-}
+end-request-handler
 
 
 .EE
@@ -366,6 +365,7 @@ void cookies()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

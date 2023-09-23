@@ -1,6 +1,6 @@
 #include "vely.h"
 
-void server() {
+request-handler /server
     out-header default
 
     // Unmanaged memory, i.e. not released at the end of the request
@@ -38,4 +38,4 @@ void server() {
             @Value [<<p-out val>>]
         }
     end-task
-}
+end-request-handler

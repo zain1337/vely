@@ -58,6 +58,7 @@ Note that /var/lib/vv directory is not removed, as it generally contains applica
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

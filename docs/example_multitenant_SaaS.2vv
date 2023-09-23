@@ -295,7 +295,7 @@ Add this to the end of file ("/api/v2/multitenant_SaaS" is the application path 
 .RS 4
 .EX
 
-ProxyPass "/api/v2/multitenant_SaaS" unix:///var/lib/vv/multitenant_SaaS/sock/sock|fcgi://localhost/multitenant_SaaS
+ProxyPass "/api/v2/multitenant_SaaS" unix:///var/lib/vv/multitenant_SaaS/sock/sock|fcgi://localhost/api/v2/multitenant_SaaS
 
 .EE
 .RE
@@ -386,7 +386,7 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - SQL setup (setup.sql)
 
@@ -592,7 +592,7 @@ If the user is currently logged in, go to the application's landing page.
 
 // Handle session maintenance, login, logout, session verification
 // for any multitenant Cloud application
-void login () {
+%% /login 
     // Get URL input parameter "actions"
     task-param actions
 
@@ -735,7 +735,7 @@ void login () {
     else-task other
         // do not display anything
     end-task
-}
+%%
 
 // Display Login or Sign Up links
 void login_or_signup() {
@@ -808,7 +808,7 @@ while a few other tasks are user-interface-only, such as:
 \[char35]include "login.h"
 
 // Notes application in a multitenant Cloud 
-void notes () {
+%% notes 
     // get global request data
     reqdata *rd;
     get-req data to rd
@@ -891,7 +891,7 @@ void notes () {
     else-task other
         // do not display anything
     end-task
-}
+%%
 
 .EE
 .RE
@@ -910,6 +910,7 @@ void notes () {
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

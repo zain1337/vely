@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void orders()
-{
+request-handler /orders
     out-header use content-type "application/json"
 
     get-req method to define req_method
@@ -19,4 +18,4 @@ void orders()
             update_order (); 
         }
     }
-}
+end-request-handler

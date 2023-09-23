@@ -106,8 +106,10 @@ $(VV_BLD)/vely_dispatch_request.o: $(VV_BLD)/vely_dispatch_request.vely $(VV_INC
 $(VV_BLD)/%.o: %.vely $(VV_INCLUDE_PATH)/vely.h $(VV_HEADER_FILES) $(VV_BLD)/velyapp.h $(VV_BLD)/blds
 	$(call make_source)
 
-#does not need to depend on velyfcgiapp.c because it makes it
-$(VV_BLD)/velyfcgiapp.o: $(VV_BLD)/blds
+#does not need to depend on velyfcgiapp.c because it makes it. There's a dependency on params (blds) and list of files to be made (.reqlist)
+#because now we have hash list there that accounts for all request name. If we didn't have this, adding new .vely file would not be picked up until
+#the next next time something changes on the vv command line!
+$(VV_BLD)/velyfcgiapp.o: $(VV_BLD)/blds $(VV_BLD)/.reqlist
 	$(VV_LIBRARY_PATH)/v1 $(VV_X_FLAG) -plain-diag "$(VV_C_PLAINDIAG)" -main -name "$(VV_C_NAME)" -max-upload "$(VV_C_MAXUPLOAD)" -app-path "$(VV_C_RESTPATH)" -trace "$(VV_C_TRACE)" -out $(VV_BLD)/velyfcgiapp.c
 	$(_CC) -c $(VV_BLD)/velyfcgiapp.c  $(_CFLAGS) -DCMOD -o $@ -I`pwd` 
 

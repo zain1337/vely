@@ -6,14 +6,148 @@ Vely is a general-purpose framework for rapid development of high-performance so
 
 Vely is unlike typical programming languages or frameworks you may have used. It might remind you of SQL, as it is declarative and simple, yet powerful. Vely brings rich functionality, great productivity and ergonomics, and most importantly, high performance. It generates C code from statements that perform entire tasks. 
 
-Want more performance? \fBTry\fP Vely from prebuilt packages or from a source build, then head over to plenty of \fBexamples\fP. Check out the latest Vely article on \fBHackernoon\fP!
+Want more performance? \fBTry\fP Vely from prebuilt packages or from a source build, then head over to plenty of \fBexamples\fP. Check out the article about Vely on \fBSoftware Development Times\fP and the latest \fBHackernoon\fP!
 
 .LP
-.B SAMPLE APPLICATION
+.B SAMPLE APPLICATIONS
 .LP
 
 
-.B - Add a customer
+.LP
+.B BUYING OR LEASING A CAR
+.LP
+
+This shows how to implement services that buy or lease a car - the actual functional bit is not here for simplicity. This is a short version, see \fBhere\fP for a complete example.
+
+.B - Buying with a loan
+
+Here's a request handler implementing a request to buy a car with a loan in file "shop__buy__loan.vely" - note that the request path is "/shop/buy/loan":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /shop/buy/loan
+    out-header default
+
+    input-param lot
+    input-param doors
+    input-param interest_rate
+    @Buying a car using a loan with interest rate of <<p-out interest_rate>>%.
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+end-request-handler
+
+.EE
+.RE
+
+
+.B - Buying for cash
+
+Next, a request to buy a car with cash in file "shop__buy__cash.vely":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /shop/buy/cash
+    out-header default
+
+    input-param lot
+    input-param doors
+    @Buying a car using cash.
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+end-request-handler
+
+.EE
+.RE
+
+
+.B - Leasing
+
+Finally, a request to lease a car in file "shop__lease.vely":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /shop/lease
+    out-header default
+
+    input-param lot
+    input-param doors
+
+    @Leasing a car.
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+end-request-handler
+
+.EE
+.RE
+
+
+.B - Make application
+
+To make this into an application, use \fBvv\fP with "-q" option:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+
+.B - Using it
+
+Buying with financing:
+
+.RS 4
+.EX
+
+https://.../cars/_shop/buy/loan_/lot/new/interest-rate/3?doors=4
+
+.EE
+.RE
+
+Then to buy for cash:
+
+.RS 4
+.EX
+
+https://.../cars/_shop/buy/cash_/lot/new/doors/4
+
+.EE
+.RE
+
+and to lease:
+
+.RS 4
+.EX
+
+https://../cars/_shop/lease_/lot/new/doors/4
+
+.EE
+.RE
+
+Or from command line, for example:
+
+.RS 4
+.EX
+
+vv -r --req="/_shop/buy/loan_/lot/new/interest-rate/3?doors=4"  --exec --silent-header
+
+.EE
+.RE
+
+
+.LP
+.B ADD A CUSTOMER
+.LP
 
 This adds a customer to a SQL database and outputs newly created customer ID as JSON document. Customer's first and last name are input parameters. This is sample code, see \fBhere\fP for a complete example.
 
@@ -21,22 +155,25 @@ This adds a customer to a SQL database and outputs newly created customer ID as 
 .EX
 
 \[char35]include "vely.h"
-void add_customer()
-{
+// Create request handler
+request-handler /add-customer
     out-header use content-type "application/json"
 
+    // Get input parameters
     input-param first_name
     input-param last_name
-    
+
+    // Run database query 
     run-query @db_shopping = \\
       "insert into customers (firstName, lastName) values ('%s', '%s') returning customerID" \\
       input first_name, last_name \\
       output define customerID 
 
+        // Output JSON document
         @"<<p-out customerID>>"
 
     end-query
-}
+end-request-handler
 
 .EE
 .RE

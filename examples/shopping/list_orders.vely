@@ -1,8 +1,7 @@
 #include "vely.h"
 #include "shopping.h"
 
-void list_orders()
-{
+request-handler /list-orders
     out-header use content-type "application/json"
 
     input-param order_id
@@ -37,5 +36,5 @@ void list_orders()
     // Finish JSON output
     @   ]
     @}
-}
+end-request-handler
 

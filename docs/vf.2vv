@@ -348,6 +348,7 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

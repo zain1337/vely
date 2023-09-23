@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void update_order()
-{
+request-handler /update-order
     out-header use content-type "application/json"
 
     input-param order_id
@@ -17,4 +16,4 @@ void update_order()
             : quantity, order_id, item_id no-loop affected-rows arows
     }
     @"<<p-num arows>>"
-}
+end-request-handler

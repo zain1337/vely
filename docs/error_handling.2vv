@@ -1,7 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-error_handling \- Vely documentation (error_handling
-error_handling)
+error_handling \- Vely documentation (error_handling)
 .SH DESCRIPTION
 
 .LP
@@ -38,7 +37,7 @@ If there is a fatal internal error (i.e. error in Vely code itself that cannot b
 .B LOGGING THE ERROR
 .LP
 
-Regardless of the type of error and regardless of whether the program exits or not, the error is logged and the program stack with full source code lines (see \fBvv\fP for including debug information) will be written to backtrace file (use -e option of \fBvv\fP to obtain its location).
+Regardless of the type of error and regardless of whether the program exits or not, the error is logged and the program stack with full source code lines (see \fBvv\fP for including debug information) will be written to backtrace file (use -e option of \fBvv\fP to obtain its location). Note that the program stack is logged only if Vely is built in debugging mode (see "DI=1" option when making Vely \fBfrom source\fP); otherwise, production code may be slowed down by stack dumping.
 
 You can see the list of last N errors (and the location of file containing backtrace for them) by using \fBvv\fP, for instance to see the last 3 errors:
 
@@ -55,7 +54,6 @@ vv -e 3
 .B - Error handling
 
 \fBerror_code\fP  
-\fBerror_handling\fP  
 \fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP    

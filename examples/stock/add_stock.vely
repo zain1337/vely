@@ -3,8 +3,7 @@
 
 #include "vely.h"
 
-void add_stock()
-{
+%% /add-stock
     out-header default
     @<html>
         @<body>
@@ -20,5 +19,5 @@ void add_stock()
         @</div>
         @</body>
     @</html>
-}
+%%
 

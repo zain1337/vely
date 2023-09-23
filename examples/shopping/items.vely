@@ -1,10 +1,9 @@
 #include "vely.h"
 
-void items()
-{
+request-handler /items
     out-header use content-type "application/json"
 
     get-req method to define req_method
 
     if (req_method == VV_POST) add_item ();
-}
+end-request-handler

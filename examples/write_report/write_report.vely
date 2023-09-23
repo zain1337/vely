@@ -3,8 +3,7 @@
 
 #include "vely.h" 
 
-void write_report()
-{
+%% /write-report
 
     out-header default
 
@@ -65,5 +64,5 @@ void write_report()
         p-out outmsg
     }
 
-}
+%%
 

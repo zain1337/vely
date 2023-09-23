@@ -134,6 +134,7 @@ sudo restorecon -R /your/new/dir
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

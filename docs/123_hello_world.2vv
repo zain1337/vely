@@ -21,11 +21,10 @@ Create Hello World source file (hello.vely) in a new directory; note it's all on
 
 echo '#include "vely.h"
 
-void hello()
-{
+request-handler /hello
     out-header default
     @Hello World!
-}' > hello.vely
+end-request-handler' > hello.vely
 
 .EE
 .RE
@@ -74,6 +73,8 @@ then connect to it:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/helloworld"
 export PATH_INFO="/hello"
@@ -92,6 +93,8 @@ From command line:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/helloworld"
 export PATH_INFO="/hello"

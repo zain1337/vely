@@ -215,7 +215,7 @@ binary:build
 .PHONY: build
 build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so libvelypcre2.so libvelypcre2glibc.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_pcre2.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
 	@echo "Building version $(BUILDVER).$(BUILDREL)"
-	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o $(LDFLAGS) 
+	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o hash.o $(LDFLAGS) 
 
 .PHONY: clean
 clean:

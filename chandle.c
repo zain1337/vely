@@ -149,6 +149,10 @@ void posix_print_stack_trace()
 //
 void vely_get_stack(char *fname)
 {
+#ifndef DEBUG
+    return; // do not bog down production with stack printout, only if debugging mode
+#endif
+
     //
     // This static variable is okay because if we're here, the program WILL end right here in this module.
     // So after it restarts, this static variable will re-initialize.

@@ -116,7 +116,7 @@ In your code, wherever it's needed, you can obtain this data into a local pointe
 \[char35]include "vely.h"
 \[char35]include "my.h"
 
-void mycode () {
+request-handler /mycode
     
     ...
     procdata *mydata; // declare local pointer 
@@ -132,7 +132,7 @@ void mycode () {
         resize-mem my_data->ptr size 1024
         manage-memory on
     }
-}
+end-request-handler
 
 
 .EE

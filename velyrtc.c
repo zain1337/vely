@@ -1119,3 +1119,84 @@ char *vely_find_keyword0(char *str, char *find, num has_spaces, num paren)
 
 
 
+//
+// Decorate a hierarchical request path. Substitute / with __  and - with _. Path must begin with /_ and end with _/
+// reqname is the fixed buffer that will hold the decorated path, reqname_len is its size,
+// if is_dash is true, we look for _ in /_ and _/ (or just _ at the end), otherwise path starts with / and ends without it.
+// p is the path to convert, p_len is its string length. Path is not checked for validity,
+// Each path segment must be a valid C identifier, save for leading/ending _ and this must be assured by the caller.
+// path must be trimmed by the caller
+// if path is found, p is advanced to be on its last / so that parsing may continue (if there's /, otherwise points to null char)
+// The caller must advance p by 1 to continue, or do nothing if points to null char
+// Returns 1 if hierarchical path found, 0 if not, 2 if has leading /_ but no closure with _/ (only when is_dash is true)
+// Returns 3 if there are no / , so just request name is in reqname (basically a copy of *p up to length of reqname_len)
+//
+char vely_decorate_path (char *reqname, num reqname_len, char **p, num p_len, bool is_dash)
+{
+    VV_TRACE("");
+    num p_off; // offset to begin scanning p; so if it starts with /_ then it's 2, if it starts with / then 1
+    num end_off; // offset to end to ereq below, for ending of path, so we're sure *p at the end is such that +1 moves us forward correctly
+    if (is_dash) 
+    {
+        // this is for server-side check, must have /_
+        if (**p != '/' || *(*p + 1) != '_') return 0; // quick way to find out if this isn't a hierarchical request path
+                                                 // it must start with /_
+        p_off = 2;
+    } else
+    {
+        // this is for request-handler, must have just / with or without _
+        if (**p != '/') 
+        {
+            if (strchr(*p, '/') == NULL) 
+            {
+                // if there are no / in name, it's just reqname, be it just a name or decorated
+                strncpy (reqname, *p, reqname_len - 1);
+                reqname[reqname_len - 1] = 0;
+                return 3; // this is just request name, not a path,
+            }
+            return 0; 
+        }
+        if (*(*p + 1) == '_') { p_off = 2; } else { p_off = 1; } // if /_ just skip over _, or not if not there
+    }
+    if (p_off == 2 && (*p)[p_off] == '/') p_off++; // this is /_/... in this case get passed the second / too, this is just like /_/ in the back
+
+    char *ereq = strstr (*p + p_off, "_/"); // search for ending, but after the beginning, since _/ could be in both
+    end_off = 1; // default if there's _/, we end on _, and *p will be /, as this function advertises. Can change below if just _, or nothing.
+    // check if _ is at the end, but nothing after it, set ereq to point to _
+    if (ereq == NULL && (*p)[p_len - 1] == '_') {ereq = *p + p_len - 1; end_off = 0; } // this assumes PATH_INFO is trimmed by the caller, which it should be
+
+    // if still nothing, this would be just a request that starts with _, but that can't be, since that's a non-request,
+    // so this is an error. However for request-handler, neither _ nor _/ are required at the end, though they may be present.
+    if (ereq == NULL && is_dash) { return 2; } // error if there is no closure with _/
+
+    if (ereq == NULL && !is_dash) {ereq = *p + p_len; end_off = 0;} // for request-handler, if no _ or _/, then just make it the end
+                                                     // because the whole thing is just a request path
+
+
+    // convert request name given as a path into __ substituting for / and _ for -
+    // so add-customer/america/subscription would be add_customer__america__subscription
+    char *pbeg = *p + p_off; // begin to read req name from path segments, right after the first / which is always there
+                        // see above, we only get here if *p ~ '/_'
+    char *pres = reqname; // result into reqname
+    num i = 0; // begin filling request
+    *ereq = 0; // end request so we only go up until null char
+    // exit loop if path segment for request ends, or if too long
+    while (*pbeg && i <= reqname_len - 3) // since we +2 for __ below, plus for null
+    {
+        if (*pbeg == '/')  // subst / for __
+        {
+            pres[i++]='_'; 
+            pres[i++]='_';
+        } else if (*pbeg == '-') pres[i++]='_';  // subst - for _
+        else pres[i++]=*pbeg;  // copy otherwise
+        pbeg++; // move path segment forward
+    }
+    pres[i] = 0; // end result
+    if (i > 1 && *(pres + i - 1) == '_' && *(pres + i - 2) == '_' ) *(pres + i - 2) = 0; // do not ever end with __ (in case of .../_/)
+    *p = ereq + end_off; // skip to just passed _/ and start with / as it should (see above *p == '/')
+                         // or just passed _ (if there's no _/). For !is_dash, that's actually the nul of end of string. 
+    return 1;
+}
+
+
+

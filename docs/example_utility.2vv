@@ -159,7 +159,7 @@ export VV_SILENT_HEADER=yes
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Recording temperature readings in a table (setup.sql)
 
@@ -183,7 +183,7 @@ This application will record temperatures, as well as list them. The source code
 
 \[char35]include "vely.h"
 
-void temphist() {
+%% /temphist
     out-header default
 
     task-param action
@@ -203,7 +203,7 @@ void temphist() {
             @Temperature: <<query-result  temp>>
         end-query
     end-task
-}
+%%
 
 .EE
 .RE
@@ -222,6 +222,7 @@ void temphist() {
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

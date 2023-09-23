@@ -156,6 +156,7 @@ Vely programs are built in a single command-line step, and ready to use immediat
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

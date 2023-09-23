@@ -1,7 +1,7 @@
 #include "vely.h"
 
-void add_customer()
-{
+request-handler /add-customer
+
     out-header use content-type "application/json"
 
     input-param first_name
@@ -12,4 +12,4 @@ void add_customer()
             first_name, last_name
         @"<<p-out customerID>>"
     end-query
-}
+end-request-handler

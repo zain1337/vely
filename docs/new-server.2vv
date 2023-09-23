@@ -63,7 +63,7 @@ Then \fBcall-server\fP will make all three server calls in parallel (i.e. as thr
 .EX
 
 \[char35]include "vely.h"
-void srv() {
+request-handler /srv
     out-header default
     // Create resources (prepare) for 3 server calls
     new-server define srv1 location "/var/lib/vv/hash/sock/sock" \\
@@ -98,7 +98,7 @@ void srv() {
     @
     p-out rdata3
     @
-}
+end-request-handler
 
 .EE
 .RE

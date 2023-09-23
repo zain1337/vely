@@ -3,8 +3,7 @@
 #include "vely.h" // must always be here
 
 // Upload and list/download files
-void start ()
-{
+request-handler /start 
 
    out-header default
 
@@ -27,5 +26,5 @@ void start ()
    @    <input type="submit" value="Submit">
    @</form>
 
-}
+end-request-handler
 

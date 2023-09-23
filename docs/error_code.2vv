@@ -26,7 +26,6 @@ Note that with some VV_ERR_... codes, the "errno" clause in get-req may return 0
 
 \fBerror_code\fP  
 \fBerror_handling\fP  
-\fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP    
 See all 

@@ -7,8 +7,7 @@
 // 
 // Post input from a web form
 //
-void form_post ()
-{
+request-handler /form_post 
 
     out-header default
 
@@ -23,5 +22,5 @@ void form_post ()
     }
 
     @Name added to the database<hr/>
-}
+end-request-handler
 

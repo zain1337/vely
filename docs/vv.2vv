@@ -93,7 +93,7 @@ During building of an application, emit a maxium of <max errors> diagnostic mess
 .RS 4
 \[bu]    
 --debug
-Generate debugging information when compiling your application. Debugging information is required to produce a backtrace file with the stack that contains source code line numbers, in order to pinpoint the exact location where report-error statement was used, or where the application crashed. It is also needed to use gdb for debugging purposes. 
+Generate debugging information when compiling your application. Debugging information is required to produce a backtrace file with the stack that contains source code line numbers, in order to pinpoint the exact location where report-error statement was used, or where the application crashed. It is also needed to use gdb for debugging purposes. Note that stack information is produced only when Vely is built in debugging mode (see "DI=1" option when making Vely \fBfrom source\fP).
 
 .RE
 
@@ -178,7 +178,7 @@ Display CHANGELOG (i.e. release notes) for the current release.
 
 .RS 4
 \[bu]    
--r [ --req="/<request name>[<url payload>]" [ --app="application path" ] [ --server [ --remote="server:port" ] [ --socket="socket path" ] ] [ --exec ] [ --method="<request method>" ] [ --content="<input file>" --content-type="<content type>" ]
+-r [ --req="/<request name>[<url payload>]" [ --app="application path" ] [ --server [ --remote="server:port" ] [ --socket="socket path" ] ] [ --exec ] [ --method="<request method>" ] [ --content="<input file>" --content-type="<content type>" ] [ --silent-header ]
 Display or execute bash code to run a command-line program. If you are not in application's source directory (see \fBhow_vely_works\fP), then you must specify "--app" option to supply the application path (typically "/<application name>", see \fBrequest_URL\fP). You can use "--req" option to specify the request name and an optional URL payload (see \fBrequest_URL\fP), for example it may be:
 
 .RS 4
@@ -224,6 +224,8 @@ vv -r --req="/encrypt/data/somedata?method=aes256" --method=POST
 If not specified, the default method is "GET". 
 
 If "--server" is not used, then bash code will invoke a \fBcommand_line\fP program. If "--server" is used, then \fBFastCGI_command_line_client\fP will call a \fBFastCGI\fP application server; in this case if "--remote" is not specified, a local Unix socket is used to contact the server, otherwise "server:port" specified in "--remote" is the IP/name and port of the server to call, separated by a colon (":"). In case of a local Unix socket, the socket path is by default "/var/lib/vv/<app name>/sock/sock", where "/<app name>" is given by the last path segment in "--app" option, or if not specified it is derived from the name of a Vely application built in the current directory; otherwise the socket path is given by "--socket" option.
+
+By default, the output from a command-line program is the same as from an application server, meaning it will have the HTTP headers. If you don't want those to appear, use "--silent-header" option.
 
 If "--content" is used, then file <input file> is either piped to the standard input of a command-line program (if "--server" is not used), or sent as a content to the application server (if "--server" is used). You can also specify content type with "--content-type". For example:
 
@@ -301,7 +303,7 @@ Add Vely syntax and keyword highlighting rules for files with .vely extension to
 .RS 4
 \[bu]    
 -c,--clean 
-Clean all object and other intermediate files, so that consequent project build is a full recompilation. Use it prior to rebuilding the application.
+Clean all object and other intermediate files, so that consequent application build is a full recompilation. Use it prior to rebuilding the application.
 
 .RE
 
@@ -375,6 +377,7 @@ vv -q
 \fBSELinux\fP  
 \fBvely_architecture\fP  
 \fBvely_removal\fP  
+\fBvely_version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

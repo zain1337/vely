@@ -2,68 +2,42 @@
 .SH NAME
 request \- Vely documentation (requests)
 .SH DESCRIPTION
-Vely application runs by processing requests. A request always takes form of an HTTP request, meaning a URL and an optional HTTP request body. This is regardless of whether it's a web or command line application.
+Vely application runs by processing requests. A request always takes form of an HTTP request, meaning a URL and an optional HTTP request body. This is regardless of whether it's an \fBapplication server\fP or a \fBcommand_line\fP application. See \fBrequest_URL\fP for more details on the structure of a URL, and \fBbuilding_URL\fP on using URL in your application.
 
-A request name is always specified in the URL path. By default a request URL path is comprised of application name and request name, so it may look like:
+\fBvely_dispatch_request\fP (a main Vely request dispatcher) uses request name to execute the appropriate function that handles the request.
+
+This handling is based on the names of .vely files, i.e. source code files that make up your application. The request name always matches the file name that implements it. 
+
+So for example, file "get_stock.vely" handles request "get_stock" by implementing a function "void get_stock()" in it (the implementation is done by using \fBrequest-handler\fP). A request that is meant to call this function would have "/get_stock" in its URL path right after the application path (see \fBrequest_URL\fP). The routing of this request to the namesake function will be done automatically by Vely. For instance, if application name is "trading" and request name "get_stock", such request would be called by URL like (note that hyphens are converted to underscores, so "get-stock" is the same as "get_stock"):
 
 .RS 4
 .EX
 
-http://<your website>/<app name>/<request name>?some_param=some_value...
+http://<your website>/trading/get-stock?some_param=some_value...
 
 .EE
 .RE
 
-See \fBrequest_URL\fP for more details on the structure of a URL, and \fBbuilding_URL\fP on using URL in your application.
-
-\fBvely_dispatch_request\fP (a main Vely request dispatcher) uses request name to route the request to the appropriate function that handles it. 
-
-This handling is based on the names of .vely files, i.e. source code files that make up your project. The request name always matches the file name that handles it. 
-
-So for example, file "get_stock.vely" handles request "get_stock" by implementing a function "void get_stock()" in it. A request that is meant to call this function would have "/get_stock" in its URL path right after the application path (see \fBrequest_URL\fP). The routing of this request to the namesake function will be done automatically by Vely. For instance, if application name is "stocks" and request name "get_stock", such request would be called by URL like:
+Thus file "get_stock.vely" must implement a function "void get_stock()" (with \fBrequest-handler\fP), and in the code below, it simply outputs text "Hello from get_stock: some_value":
 
 .RS 4
 .EX
 
-http://<your website>/stocks/get_stock?some_param=some_value...
-
-.EE
-.RE
-
-Thus file "get_stock.vely" must implement a function "void get_stock()", and in the code below, it simply outputs text "Hello from get_stock: some_value":
-
-.RS 4
-.EX
-
-void get_stock()
-{
+request-handler /get-stock
     input-param some_param
-    @Hello from get_stock: <<p-out some_param>>
-}
+    @Hello from get-stock: <<p-out some_param>>
+end-request-handler
 
 .EE
 .RE
 
 If the name of .vely file starts with an underscore ("_"), then it is a \fBnon_request\fP file and it will not handle a request. See \fBhow_vely_works\fP.
 
-You can use hyphens in URLs and they are converted to underscore by Vely. So for example the above URL could be written with "get-stock" instead of "get_stock":
-
-.RS 4
-.EX
-
-http://<your website>/stocks/get-stock?some_param=some_value...
-
-.EE
-.RE
-
-
 .LP
 .B TASKS
 .LP
 
-A request can have any number of input parameters, and based on them, perform any number of tasks. A "request" generally refers to a combination of input parameters. Those requests that share the same request name but have different \fBtask-param\fPeters are its tasks.
-
-In general, selecting what exactly will be done within a request is determined by a request name and \fBtask-param\fPeter values within the request. See \fBapplication_architecture\fP.
+A request can have any number of input parameters, and based on some of them, perform one or more tasks. See \fBtask-param\fPeters. In general, selecting what exactly will be done within a request is determined by a request name and optional \fBtask-param\fPeter values within the request. Often, a request performs a single task. See \fBapplication_architecture\fP.
 .SH SEE ALSO
  
 .B - Requests
@@ -71,11 +45,13 @@ In general, selecting what exactly will be done within a request is determined b
 \fBafter_request_handler\fP  
 \fBbefore_request_handler\fP  
 \fBbuilding_URL\fP  
+\fBend-request-handler\fP  
 \fBgetting_URL\fP  
 \fBglobal_request_data\fP  
 \fBnon_request\fP  
 \fBnormalized_URL\fP  
 \fBrequest\fP  
+\fBrequest-handler\fP  
 \fBrequest_URL\fP  
 \fBstartup_handler\fP  
 \fBvely_dispatch_request\fP    

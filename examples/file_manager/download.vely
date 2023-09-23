@@ -2,8 +2,7 @@
 #include "vely.h" // must always be here
 
 // Download a file
-void download ()
-{
+request-handler /download 
    // Show or download a file (its ID is in the database)
    input-param file_id
    char *local_path=NULL;
@@ -30,4 +29,4 @@ void download ()
    } else {
        send-file local_path headers content-type "application/octet-stream" download
    }
-}
+end-request-handler

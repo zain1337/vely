@@ -7,8 +7,7 @@
 // 
 // Display a web form
 //
-void form_display ()
-{
+request-handler /form_display 
 
      out-header default
 
@@ -24,5 +23,5 @@ void form_display ()
         
     @    <input type="submit" value="Submit">
     @ </form>
-}
+end-request-handler
 

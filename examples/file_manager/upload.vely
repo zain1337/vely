@@ -3,8 +3,7 @@
 #include "vely.h" // must always be here
 
 // Upload the file
-void upload ()
-{
+request-handler /upload 
    out-header default
 
    // file description from the upload form
@@ -26,4 +25,4 @@ void upload ()
    end-query
 
    @File <<p-web file_filename>> of size <<p-web file_size>> is stored on server at <<p-web file_location>>. File description is <<p-web filedesc>>.<hr/>
-}
+end-request-handler

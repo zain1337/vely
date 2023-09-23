@@ -5,7 +5,7 @@ example_shopping \- Vely documentation (examples)
 Shopping REST API
 This is a shopping web service REST API with basic functions: add customer, add item, create order, add item to order, update order, delete item from order, delete order.  The APIs return a valid JSON reply, even if it's just a single string (such as created ID for a customer, item or order). Listing an order returns a JSON document showing the order details. The example demostrates usage of REST methods (POST, PUT, GET, DELETE) as well as construction and use of REST URLs, and the code that implements the API.
 
-In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 12 source files, 212 lines of code.
+In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 12 source files, 203 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -300,7 +300,7 @@ Add this to the end of file ("/api/v1/shopping" is the application path (see \fB
 .RS 4
 .EX
 
-ProxyPass "/api/v1/shopping" unix:///var/lib/vv/shopping/sock/sock|fcgi://localhost/shopping
+ProxyPass "/api/v1/shopping" unix:///var/lib/vv/shopping/sock/sock|fcgi://localhost/api/v1/shopping
 
 .EE
 .RE
@@ -535,7 +535,7 @@ The return value is a JSON document with a number of orders and number of items 
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - These SQL statements will create tables for this application: customers, items, orders and orderItems: (setup.sql)
 
@@ -562,12 +562,11 @@ This implements REST API for a customer.
 
 \[char35]include "vely.h"
 
-void customers()
-{
+request-handler /customers
     get-req method to define req_method
 
     if (req_method == VV_POST) add_customer ();
-}
+end-request-handler
 
 .EE
 .RE
@@ -582,8 +581,7 @@ This implements REST API for an order.
 
 \[char35]include "vely.h"
 
-void orders()
-{
+request-handler /orders
     out-header use content-type "application/json"
 
     get-req method to define req_method
@@ -601,7 +599,7 @@ void orders()
             update_order (); 
         }
     }
-}
+end-request-handler
 
 .EE
 .RE
@@ -616,14 +614,13 @@ This implements REST API for an item.
 
 \[char35]include "vely.h"
 
-void items()
-{
+request-handler /items
     out-header use content-type "application/json"
 
     get-req method to define req_method
 
     if (req_method == VV_POST) add_item ();
-}
+end-request-handler
 
 .EE
 .RE
@@ -638,8 +635,8 @@ This will add a new customer. Removing a customer is not included, and it should
 
 \[char35]include "vely.h"
 
-void add_customer()
-{
+request-handler /add-customer
+
     out-header use content-type "application/json"
 
     input-param first_name
@@ -650,7 +647,7 @@ void add_customer()
             first_name, last_name
         @"<<p-out customerID>>"
     end-query
-}
+end-request-handler
 
 .EE
 .RE
@@ -665,8 +662,7 @@ Here an item is added to invetory available for sale.
 
 \[char35]include "vely.h"
 
-void add_item()
-{
+request-handler /add-item
     out-header use content-type "application/json"
 
     input-param name
@@ -677,7 +673,7 @@ void add_item()
         query-result itemID to define item_id
         @"<<p-out item_id>>"
     end-query
-}
+end-request-handler
 
 .EE
 .RE
@@ -692,8 +688,7 @@ This creates a new order, ready to have items added to it.
 
 \[char35]include "vely.h"
 
-void create_order()
-{
+request-handler /create-order
     out-header use content-type "application/json"
 
     input-param customer_id
@@ -703,7 +698,7 @@ void create_order()
         query-result orderID to define order_id
         @"<<p-out order_id>>"
     end-query
-}
+end-request-handler
 
 .EE
 .RE
@@ -718,8 +713,7 @@ Add an item to existing order.
 
 \[char35]include "vely.h"
 
-void add_to_order()
-{
+request-handler /add-to-order
     out-header use content-type "application/json"
 
     input-param order_id
@@ -729,7 +723,7 @@ void add_to_order()
     run-query @db_shopping ="insert into orderItems (orderId, itemID, quantity) values  ('%s', '%s', '%s')" \\
         : order_id, item_id, quantity no-loop affected-rows define arows
     @"<<p-num arows>>"
-}
+end-request-handler
 
 .EE
 .RE
@@ -744,8 +738,7 @@ If the quantity update is 0, the item is deleted from order, otherwise the quant
 
 \[char35]include "vely.h"
 
-void update_order()
-{
+request-handler /update-order
     out-header use content-type "application/json"
 
     input-param order_id
@@ -761,7 +754,7 @@ void update_order()
             : quantity, order_id, item_id no-loop affected-rows arows
     }
     @"<<p-num arows>>"
-}
+end-request-handler
 
 .EE
 .RE
@@ -777,8 +770,7 @@ All orders are listed along with customer ID and name, and under each order are 
 \[char35]include "vely.h"
 \[char35]include "shopping.h"
 
-void list_orders()
-{
+request-handler /list-orders
     out-header use content-type "application/json"
 
     input-param order_id
@@ -813,7 +805,7 @@ void list_orders()
     // Finish JSON output
     @   ]
     @}
-}
+end-request-handler
 
 
 .EE
@@ -895,6 +887,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

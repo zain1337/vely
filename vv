@@ -111,7 +111,7 @@ function main() {
 #list of Vely options for getop
 _OPT_STATUS="0"
 #do NOT use optional :: args - they must always be used as -e3 for example - there can be no space. This is awkward and unwieldy.
-_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,posix-regex,asan,asan-opt,content:,content-type:,server,remote:,socket:,app:,path:,c-lines,debug,req:,exec,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
+_opts=$(getopt -a -n $0 -o ae:t:,q,o,l,m,i,h,c,v,s,u,r --long db:,lflag:,cflag:,trace,plain-diag,posix-regex,asan,asan-opt,content:,content-type:,silent-header,server,remote:,socket:,app:,path:,c-lines,debug,req:,exec,method:,maxupload:,max-errors:,include,link -- "$@") || _OPT_STATUS=$?
 if [ $_OPT_STATUS -ne 0 ]; then
     use_message 1>&2
     exit -1
@@ -219,6 +219,11 @@ _DO_QUICK=0
             #content file (read from file)
             _REQ_CONTENT="$2"
             shift 2
+            ;;
+        --silent-header )
+#silent-header for --exec
+            _REQ_SILENT_HEADER=1
+            shift 1
             ;;
         --method  )
 #request method (GET, POST...)
@@ -394,7 +399,7 @@ if [[ "$_COMMRUN" != "" && ("$_REQ_APP" != "" ||  ("$_REQ_SRV" != "" && ("$_REQ_
 
 #check for source only if compiling or cleaning up
     if [[ "$_DO_QUICK" == "1" || "$_DO_CLEAN" == "1" ]]; then
-        _SRCC=$(ls *.vely|wc -l)
+        _SRCC=$(ls *.vely 2>/dev/null|wc -l)
         if [ "$_SRCC" == "0" ]; then
             error "No Vely source source code found."
         fi
@@ -541,6 +546,10 @@ function show_run_program() {
     _CONT=""
     _CONTL=""
     _CONTT="export CONTENT_TYPE="
+    _SHEADER="export VV_SILENT_HEADER=no"
+    if [ "$_REQ_SILENT_HEADER" == "1" ]; then
+        _SHEADER="export VV_SILENT_HEADER=yes"
+    fi
     if [[ "$_REQ_CONTENT_TYPE" != "" && "$_REQ_CONTENT" == "" ]]; then
         error "Cannot use --content-type without --content"
     fi
@@ -558,6 +567,7 @@ function show_run_program() {
     fi
     echo "$_CONTT
 $_CONTL
+$_SHEADER
 export REQUEST_METHOD=$_REQ_METHOD
 export SCRIPT_NAME=\"$_APATH\"
 export PATH_INFO=\"$_REQ_PATH\"
@@ -905,6 +915,22 @@ function read_modules() {
     export VV_CRYPTO_USED
 }
 
+#
+#
+#
+#make generated files affect recompilation ONLY if they are different
+#
+#
+#
+function copy_if_diff () {
+    F="$1"
+    _ISDIFF=$(diff $VV_BLD/$F.new $VV_BLD/$F 2>/dev/null) || true
+    if [[ "$_ISDIFF" != "" || ! -f "$VV_BLD/$F" ]]; then
+        mv $VV_BLD/$F.new $VV_BLD/$F
+    else
+        rm -rf $VV_BLD/$F.new
+    fi
+}
 
 
 
@@ -917,9 +943,14 @@ function read_modules() {
 function gen_src() {
 
 #
+#Files generated here are $VV_BLD/source.vely,velyapp.h,vely_dispatch_request.vely.
+#
+
+#
 #Generate source.vely, all the source files needed for Vely app
 #
     _T="source.vely"
+#this is all source files, including non-request ones
     _SRCF=$(ls *.vely 2>/dev/null) || true
     _HDRF=$(ls *.h 2>/dev/null) || true
 
@@ -950,7 +981,6 @@ function gen_src() {
 #Generate velyapp.h, a file that has a list of C declarations neeeded to build an app
 #
     _T="velyapp.h"
-    _SRCF=$(ls *.vely 2>/dev/null) || true
 
     echo "// SPDX-License-Identifier: EPL-2.0"  >> $VV_BLD/$_T.new
     echo "// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic.">> $VV_BLD/$_T.new
@@ -965,8 +995,9 @@ function gen_src() {
         echo >> $VV_BLD/$_T.new
     fi
     echo "// function prototypes of your code" >> $VV_BLD/$_T.new
+#declare all functions, including non-request ones (whether implemented or not)
     for _F in $(echo $_SRCF); do
-        _FN=$(sed 's/\(.*\)\.vely/\1/g' <<< $_F)
+        _FN=${_F%.*}
         echo "void ${_FN}();" >> $VV_BLD/$_T.new
     done
     echo >> $VV_BLD/$_T.new
@@ -983,8 +1014,10 @@ function gen_src() {
 #Generate vely_dispatch_request.vely, the main request handler. Based on the source code names of handler files (.vely files)
 #
     _T="vely_dispatch_request.vely"
-    _SRCF=$(ls *.vely 2>/dev/null | grep -a -v "^_.*\.vely") || true
-    _NUMF=$(echo $_SRCF | wc -w)
+#Generate request files, this means NO non-request files, since this is used for a dispatcher
+#and for a dispatcher, only request files matter (R is for request files in _SRCFR and _NUMFR)
+    _SRCFR=$(echo "$_SRCF" | grep -a -v "^_.*\.vely") || true
+    _NUMFR=$(echo $_SRCFR | wc -w)
 
     echo "// SPDX-License-Identifier: EPL-2.0" >>$VV_BLD/$_T.new
     echo "// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic." >>$VV_BLD/$_T.new
@@ -1012,29 +1045,32 @@ function gen_src() {
 #req_done used to skip before/after execution if no handler used
     echo "    volatile int req_done;" >>$VV_BLD/$_T.new #volatile because of longjmp, so the init below doesn't get optimized
 
-    if [ "$_NUMF" != "0" ]; then
+    if [ "$_NUMFR" != "0" ]; then
         echo "    get-req name to define req" >>$VV_BLD/$_T.new
     fi
     echo "    .req_done = 0;" >>$VV_BLD/$_T.new #must be initialized separately (not as int req_done=0;) because longjmp may return to the same function and won't be initialized again
-    _F_FIRST="yes"
-    for _F in $(echo $_SRCF); do
-        _FN=$(sed 's/\(.*\)\.vely/\1/g' <<< $_F)
-        if [ "$_F_FIRST" == "yes" ]; then
-            if [ "$_NUMF" == "1" ]; then
-                echo "    if (!strcmp (req, \"$_FN\") || !strcmp (req, \"\")) {" >>$VV_BLD/$_T.new
-            else
-                echo "    if (!strcmp (req, \"$_FN\")) {" >>$VV_BLD/$_T.new
-            fi
-            _F_FIRST="no"
-        else
-            echo "    } else if (!strcmp (req, \"$_FN\")) {" >>$VV_BLD/$_T.new
-        fi
-#before handler executes only IF req found a handler, that's why it's not in front of if()
-        echo "        ._before();" >>$VV_BLD/$_T.new
-        echo "        .vely_mem_os = false;" >>$VV_BLD/$_T.new
-        echo "        .req_done = 1;" >>$VV_BLD/$_T.new
-        echo "        .$_FN();" >>$VV_BLD/$_T.new
+#create file with all request names for v1 to process for the main function code. This way all request info is stored as constants to be loaded as program's data, meaning the fastest possible in huge memory blocks, without having to set up each individually
+#first line is the number of lines that follow, to make code generation easier
+    echo $_NUMFR > $VV_BLD/.reqlist.new
+    _F_FIRST=""
+    for _F in $(echo $_SRCFR); do
+        _FN=${_F%.*}
+        if [ "$_F_FIRST" == "" ]; then _F_FIRST="$_FN"; fi
+        echo "$_FN " >>$VV_BLD/.reqlist.new
     done
+    echo "  vely_request_handler _vv_req_handler;" >>$VV_BLD/$_T.new
+    if [ "$_NUMFR" == "1" ]; then
+        echo "    if (!strcmp (req, \"$_F_FIRST\") || req[0] == 0) _vv_req_handler = $_F_FIRST; else _vv_req_handler = NULL;" >>$VV_BLD/$_T.new
+    else
+#get handler function that handles this request from the pre-computed hash
+        echo "    _vv_req_handler = vely_find_hash (&vv_dispatch, req, NULL, 0, NULL, NULL);" >>$VV_BLD/$_T.new
+    fi
+#before handler executes only IF req found a handler, that's why it's not in front of if()
+    echo "      if (_vv_req_handler != NULL) {" >>$VV_BLD/$_T.new
+    echo "        ._before();" >>$VV_BLD/$_T.new
+    echo "        .vely_mem_os = false;" >>$VV_BLD/$_T.new
+    echo "        .req_done = 1;" >>$VV_BLD/$_T.new
+    echo "        ._vv_req_handler();" >>$VV_BLD/$_T.new
     echo "    } else {" >>$VV_BLD/$_T.new
     echo "        vely_bad_request();" >>$VV_BLD/$_T.new
     echo "        vely_report_error (\"Request [%s] not found\", req);" >>$VV_BLD/$_T.new
@@ -1060,12 +1096,8 @@ function gen_src() {
     echo "}" >>$VV_BLD/$_T.new
     echo >>$VV_BLD/$_T.new
 
-    _ISDIFF=$(diff $VV_BLD/$_T.new $VV_BLD/$_T 2>/dev/null) || true
-    if [[ "$_ISDIFF" != "" || ! -f "$VV_BLD/$_T" ]]; then
-        mv $VV_BLD/$_T.new $VV_BLD/$_T
-    else
-        rm -rf $VV_BLD/$_T.new
-    fi
+    copy_if_diff "$_T"
+    copy_if_diff ".reqlist"
 }
 
 

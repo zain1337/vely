@@ -2,7 +2,7 @@
 #include "login.h"
 
 // Notes application in a multitenant Cloud 
-void notes () {
+%% notes 
     // get global request data
     reqdata *rd;
     get-req data to rd
@@ -85,4 +85,4 @@ void notes () {
     else-task other
         // do not display anything
     end-task
-}
+%%

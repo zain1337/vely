@@ -127,7 +127,7 @@ Create file "add_item.vely" and copy this to it (note that the name of this file
 
 \[char35]include "vely.h"
 
-void add_item() {
+request-handler /add_item
     out-header default
 
     input-param name
@@ -162,7 +162,7 @@ void add_item() {
             @Could not insert to database, error <<p-out err_text>>, error code <<p-out err_code>>
         }
     end-query
-}
+end-request-handler
 
 .EE
 .RE
@@ -319,6 +319,7 @@ You can of course run this example as a web service by starting your own applica
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

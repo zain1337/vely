@@ -5,7 +5,7 @@ example_form \- Vely documentation (examples)
 HTML form for guest database
 This application is a guest tracking database. The user can input first and last name, which are added to a database table. A web page shows the list of names queried from the database.
 
-In a nutshell: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 86 lines of code.
+In a nutshell: PostgreSQL; web browser; Apache; Unix sockets; 4 source files, 83 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -341,7 +341,7 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Setup database objects (setup.sql)
 
@@ -370,8 +370,7 @@ This is a simple HTML web form where first and last name is collected and sent t
 // 
 // Display a web form
 //
-void form_display ()
-{
+request-handler /form_display 
 
      out-header default
 
@@ -387,7 +386,7 @@ void form_display ()
         
     @    <input type="submit" value="Submit">
     @ </form>
-}
+end-request-handler
 
 
 .EE
@@ -408,8 +407,7 @@ void form_display ()
 // 
 // Post input from a web form
 //
-void form_post ()
-{
+request-handler /form_post 
 
     out-header default
 
@@ -424,7 +422,7 @@ void form_post ()
     }
 
     @Name added to the database<hr/>
-}
+end-request-handler
 
 
 .EE
@@ -445,8 +443,7 @@ This shows typical web output from querying a database. SELECT statement in \fBr
 // 
 // Display table data
 //
-void display_data ()
-{
+request-handler /display_data 
 
     out-header default
 
@@ -465,7 +462,7 @@ void display_data ()
         end-query
     @</table>
 
-}
+end-request-handler
 
 
 .EE
@@ -485,6 +482,7 @@ void display_data ()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

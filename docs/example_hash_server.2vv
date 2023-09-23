@@ -390,7 +390,7 @@ Deleted [data_1]
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Create hash server (_startup.vely)
 
@@ -430,7 +430,7 @@ Next, you get the input parameters  (see \fBinput-param\fP); in this case "op" (
 
 \[char35]include "vely.h"
 
-void server() {
+request-handler /server
     out-header default
 
     // Unmanaged memory, i.e. not released at the end of the request
@@ -468,7 +468,7 @@ void server() {
             @Value [<<p-out val>>]
         }
     end-task
-}
+end-request-handler
 
 .EE
 .RE
@@ -547,6 +547,7 @@ echo "Hash server test successful"
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

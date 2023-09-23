@@ -13,7 +13,7 @@ Writing a single Vely statement instead of multiple C API calls is easier to rea
 
 A statement is not a macro or a simple substitution for one or more API calls. A statement can perform multiple functions that are logically connected, but would require use of different API calls and in different configurations to achieve the functionality. For example \fBrun-query\fP can perform a simple query with no input or output parameters, or a complex one with them, and with or without a number of other options. Achieving these functionalities with APIs would require different ones used in different ways, increasing chances of human error. Note that sorting out how to do things like this is performed at compile time - no performance is lost at run-time figuring out the best way to achieve Vely statement's stated goal.
 
-Statement name is always in the form of two words with hyphen in between:
+Statement name is always in the form of two or three words with a hyphen in between:
 
 .RS 4
 \[bu]    
@@ -29,10 +29,16 @@ descriptive "adjective"-"noun" ("input-param", "query-result" for example), wher
 
 .RS 4
 \[bu]    
+combination of the previous two, for example "verb"-<existing statement>, such as "end-write-string",
+
+.RE
+
+.RS 4
+\[bu]    
 transformational "noun"-"noun", where one object transforms (converts) into another,
 .RE
 
-along with the clauses supplying the rest of the predicate, such as subject or subordinate clause(s). The two-word model is chosen for simplicity in order to avoid unwieldy do-this-that-way-along-with-something-else or such kind of statements, which unfortunately sometimes proliferate in APIs.
+along with the clauses supplying the rest of the predicate, such as subject or subordinate clause(s). The three-word model is chosen for simplicity in order to avoid unwieldy do-this-that-way-along-with-something-else or such kind of statements, which unfortunately sometimes proliferate in APIs.
 
 This design mimics natural speech and is typical of declarative languages, as it is easier to write and read than APIs. Just like in a natural language, the action asked in a single statement can be very simple, moderate or involved depending on the need, and the "sentence" used to carry it out is easy to comprehend at a glance, and easy to construct based on "what" needs to be done rather than "how". Even so, the C code generated is still done with performance in mind first and foremost, and the statement design is ultimately always guided by that goal.
 
@@ -147,7 +153,7 @@ Optional clauses are enclosed with angle brackets (i.e between "[" and "]"), and
 
 The most common subclause is an optional "define", which always precedes an output variable, i.e. a variable that stores (one of) the results of the statements. If used, it creates such variable within the statement. It is commonly used to shorten the code written.
 
-Keywords (other than statement names such as encrypt-data above) are generally specific to each statement (or a group of statements in which they are used). So, keyword "salt", for example, has meaning only within encrypt-data statement, where it is used to specify the data for the "salt" clause. In order to have the complete freedom to choose your variable names so they don't clash with keywords, you can simply surround them (or the expressions in which they appear) in parenthesis (i.e. "(" and ")") and use any names you want, without worrying about keywords, for example:
+Keywords (other than statement names such as encrypt-data above) are generally specific to each statement (or a group of statements in which they are used). So, keyword "salt", for example, has meaning only within encrypt-data and a few other related statements, where it is used to specify the data for the "salt" clause. In order to have the complete freedom to choose your variable names so they don't clash with keywords, you can simply surround them (or the expressions in which they appear) in parenthesis (i.e. "(" and ")") and use any names you want, without worrying about keywords, for example:
 
 .RS 4
 .EX
@@ -265,7 +271,7 @@ Overall, the goal is to stop execution when necessary and to offer the ability t
 
 A statement is pre-processed into C code, which is then compiled into a native executable using gcc compiler. The final C code is a mix of your own code and generated Vely code. 
 
-Error reporting by default shows line numbers in your .vely source code files, which generally makes it easy to pinpoint an error. If you want to see generated C code and make error reporting refer to it, use "--c-lines" option of \fBvv\fP utility; this is useful if the error refers to details of generated code. You can also obtain the line number from .vely source file, and then examine generated source code file by looking for #line directives. Generated final C file is located in:
+Error reporting by default shows line numbers in your .vely source code files as well as the generated C code (see \fBdiagnostic_messages\fP), which generally makes it easy to pinpoint an error. If you want to see generated C code and make error reporting refer to it, use "--c-lines" option of \fBvv\fP utility; this is useful if the error refers to details of generated code. You can also obtain the line number from .vely source file, and then examine generated source code file by looking for #line directives. Generated final C file is located in:
 
 .RS 4
 .EX

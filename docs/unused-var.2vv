@@ -15,7 +15,7 @@ unused-var <variable name>
 .RE
 
 .SH DESCRIPTION
-unused-var prevents C compiler from erroring out if <variable name> is unused. Generally, you don't want to have unused variables - they typically indicate errors or clutter. However, in some cases you might need such variables as a reminder for a future stage of a project, or for some other reason it is unavoidable. In any case, you can use unused-var to shield such instances from causing errors.
+unused-var prevents C compiler from erroring out if <variable name> is unused. Generally, you don't want to have unused variables - they typically indicate errors or clutter. However, in some cases you might need such variables as a reminder for a future enhancement, or for some other reason it is unavoidable. In any case, you can use unused-var to shield such instances from causing errors.
 
 .SH EXAMPLES
 In the following, variable "bw" is created and the number of bytes written is stored in it. Such variable is not used at the moment, however if you would use it in the future and want to keep it, use unused-var to prevent compiler errors:

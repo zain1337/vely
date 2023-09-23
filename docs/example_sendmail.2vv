@@ -5,7 +5,7 @@ example_sendmail \- Vely documentation (examples)
 Sending mail
 Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
 
-In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 79 lines of code.
+In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 78 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -324,11 +324,13 @@ Note: if your server is on the Internet and it has a firewall, you may need to a
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Send email on the web (mail.vely)
 
 Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
+
+This shows usage of "%%" as a shortcut for \fBrequest-handler\fP, as well as using just the request name ("mail") instead of a request path (which would be "/mail").
 
 Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix or sendmail), and your computer must be authorized to send email on the internet. Otherwise you can test this by sending emails to your localhost.
 
@@ -342,8 +344,7 @@ Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix 
 
 \[char35]include "vely.h" 
 
-void mail()
-{
+%% mail
 
     out-header default
 
@@ -410,7 +411,7 @@ void mail()
         @Unrecognized action!<hr/>
     end-task
 
-}
+%%
 
 
 .EE
@@ -430,6 +431,7 @@ void mail()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

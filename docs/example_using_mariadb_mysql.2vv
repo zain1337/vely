@@ -102,7 +102,7 @@ Create file "list_people.vely" and copy this to it:
 
 \[char35]include "vely.h"
 
-void list_people() {
+%% /list_people
     out-header default
 
     @List of people:<hr/>
@@ -110,7 +110,7 @@ void list_people() {
     run-query @people = "select first_name, last_name from people_list" output define f_name, l_name
         @First name <<p-out f_name>>, last name <<p-out l_name>><br/>
     end-query
-}
+%%
 
 .EE
 .RE
@@ -118,6 +118,8 @@ void list_people() {
 This will run a query that lists everyone's first and last names. The query will use configuration file "people" that you created previously (note "@people"). And the output columns will go to string variables (i.e. "char *") named "f_name" and "l_name" - these variables are created on the spot with "define" clause of \fBrun-query\fP statement. You can also use prepared SQL statements by using "run-prepared-query" statement instead of "run-query" in the code above.
 
 And the "@" \fBoutput_statement\fP sends the data to standard output, which can be the actual "stdout" stream if this is going to be a command-line program, or to the browser if this is a web application. The nice thing is, it works the same for both. \fBp-out\fP statement outputs a string, and when placed in between << and >> it is "inlined" into an output statement. 
+
+Note the use of "%%" as a shortcut for \fBrequest-handler\fP.
 
 .LP
 .B CREATE AND MAKE THE APPLICATION
@@ -280,6 +282,7 @@ Connecting to MariaDB/mySQL isn't difficult. This article explains how to do so 
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

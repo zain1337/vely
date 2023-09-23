@@ -3,8 +3,7 @@
 
 #include "vely.h"
 
-void show_stock()
-{
+%% /show-stock
     out-header default
     @<html>
         @<body>
@@ -27,5 +26,5 @@ void show_stock()
             @</table>
         @</body>
     @</html>
-}
+%%
 

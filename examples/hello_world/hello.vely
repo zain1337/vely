@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void hello()
-{
+request-handler /hello
    out-header default
    @Hello World!
-}
+end-request-handler

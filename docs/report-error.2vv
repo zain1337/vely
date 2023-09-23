@@ -47,7 +47,6 @@ report-error "Too many input parameters, encountered total of [%lld]", num_count
 
 \fBerror_code\fP  
 \fBerror_handling\fP  
-\fBerror_handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP    
 See all 

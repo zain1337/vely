@@ -60,22 +60,20 @@ The following example will create an application with 3 Vely \fBrequest\fP files
 \[char35]
 echo '#include "vely.h"
 
-void hello_1()
-{
+request-handler /hello_1
 out-header default
 @Hello World #1
-}' > hello_1.vely
+end-request-handler' > hello_1.vely
 
 \[char35]
 \[char35]Create hello_2.vely source file
 \[char35]
 echo '#include "vely.h"
 
-void hello_2()
-{
+request-handler /hello_2
 out-header default
 @Hello World #2
-}' > hello_2.vely
+end-request-handler' > hello_2.vely
 
 \[char35]
 \[char35]Create Vely application named "hithere"

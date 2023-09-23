@@ -4,7 +4,7 @@ example_hello_world \- Vely documentation (examples)
 .SH DESCRIPTION
 This is a simple Hello World example. It explains basics of making applications as well as tracing and debugging them.
 
-In a nutshell:  command line; web browser; Nginx; Unix sockets; 2 source files, 7 lines of code.
+In a nutshell:  command line; web browser; Nginx; Unix sockets; 2 source files, 6 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -196,12 +196,18 @@ To access your application server from command line (instead through web browser
 .EX
 
 \[char35]Hello world 
-vv -r --app='/hello_world' --req='/hello?' --method=GET -server --exec
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/hello_world'
+export PATH_INFO='/hello'
+export QUERY_STRING=''
+cgi-fcgi -connect /var/lib/vv/hello_world/sock/sock /
 
 .EE
 .RE
 
-You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
+Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX
@@ -244,7 +250,7 @@ Note: if running your program as a command-line utility is all you want, you don
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Hello World (hello.vely)
 
@@ -271,11 +277,10 @@ In this case there's only one request file. In a real world application, there'd
 
 \[char35]include "vely.h"
 
-void hello()
-{
+request-handler /hello
    out-header default
    @Hello World!
-}
+end-request-handler
 
 .EE
 .RE
@@ -461,6 +466,7 @@ In addition to this, learn more about \fBdebugging\fP Vely applications.
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

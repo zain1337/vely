@@ -1,6 +1,6 @@
 #include "vely.h"
 
-void json_form () {
+request-handler /json_form 
     
     out-header default
 
@@ -14,5 +14,4 @@ void json_form () {
     @    <button type="submit">Extract specific data</button>
     @    <button type="submit" formaction="<<p-path>>/json_all">Extract all data</button>
     @ </form>
-
-}
+end-request-handler

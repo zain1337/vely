@@ -1,6 +1,6 @@
 #include "vely.h"
 
-void json_process() {
+request-handler /json-process
     out-header default
 
     // If JSON data sent via URL-encoded GET or POST
@@ -89,4 +89,4 @@ void json_process() {
     }
     @</ul>
 
-}
+end-request-handler

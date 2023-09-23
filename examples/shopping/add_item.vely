@@ -1,7 +1,6 @@
 #include "vely.h"
 
-void add_item()
-{
+request-handler /add-item
     out-header use content-type "application/json"
 
     input-param name
@@ -12,4 +11,4 @@ void add_item()
         query-result itemID to define item_id
         @"<<p-out item_id>>"
     end-query
-}
+end-request-handler

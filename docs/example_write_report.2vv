@@ -5,7 +5,7 @@ example_write_report \- Vely documentation (examples)
 Report from SQL database, file writing
 Builds a report of employees from a database. Creates a "reports" directory and a file name with a time stamp, then writes the report to a file and also displays the report to a web page.
 
-In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 69 lines of code.
+In a nutshell: MariaDB; command line; web browser; Nginx; Unix sockets; 2 source files, 68 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -245,12 +245,18 @@ To access your application server from command line (instead through web browser
 .EX
 
 \[char35]Run report 
-vv -r --app='/write_report' --req='/write_report?' --method=GET -server --exec
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME='/write_report'
+export PATH_INFO='/write_report'
+export QUERY_STRING=''
+cgi-fcgi -connect /var/lib/vv/write_report/sock/sock /
 
 .EE
 .RE
 
-You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
+Note: to suppress output of HTTP headers, add this before running the above:
 
 .RS 4
 .EX
@@ -293,7 +299,7 @@ Note: if running your program as a command-line utility is all you want, you don
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - Database setup (setup.sql)
 
@@ -322,8 +328,7 @@ A few other things are demonstrated here, such as \fBget-req\fP to obtain the da
 
 \[char35]include "vely.h" 
 
-void write_report()
-{
+%% /write-report
 
     out-header default
 
@@ -384,7 +389,7 @@ void write_report()
         p-out outmsg
     }
 
-}
+%%
 
 
 .EE
@@ -404,6 +409,7 @@ void write_report()
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

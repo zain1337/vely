@@ -64,7 +64,7 @@ To encrypt data use \fBencrypt-data\fP statement. The simplest form is to encryp
 
 \[char35]include "vely.h"
 
-void encrypt() {
+request-handler /encrypt
     out-header default
     char *str = "This contains a secret code, which is Open Sesame!";
     // Encrypt
@@ -75,7 +75,7 @@ void encrypt() {
     decrypt-data enc_str password "my_password" to define dec_str
     p-out dec_str
     @
-}
+end-request-handler
 
 .EE
 .RE
@@ -109,6 +109,9 @@ This will produce something like:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=no
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/enc"
 export PATH_INFO="/encrypt"
@@ -172,7 +175,7 @@ In the previous example, the resulting encrypted data is in a human-readable hex
 
 \[char35]include "vely.h"
   
-void encrypt() {
+request-handler /encrypt
     out-header default
     char *str = "This contains a secret code, which is Open Sesame!";
     // Encrypt
@@ -187,7 +190,7 @@ void encrypt() {
         input-length outlen binary to define dec_str
     p-out dec_str
     @
-}
+end-request-handler
 
 .EE
 .RE
@@ -213,6 +216,9 @@ Run it the same as before:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=no
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/enc"
 export PATH_INFO="/encrypt"
@@ -263,7 +269,7 @@ The data to encrypt in these examples is a string, i.e. null-delimited. You can 
 
 \[char35]include "vely.h"
 
-void encrypt() {
+request-handler /encrypt
     out-header default
     char *str = "This c\e000ontains a secret code, which is Open Sesame!";
     // Encrypt
@@ -284,7 +290,7 @@ void encrypt() {
         }
     }
     @
-}
+end-request-handler
 
 .EE
 .RE
@@ -308,6 +314,9 @@ Run it the same as before:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=no
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/enc"
 export PATH_INFO="/encrypt"
@@ -357,7 +366,7 @@ These two will provide a list of cipher and digest (hash) algorithms. Some of th
 
 \[char35]include "vely.h"
 
-void encrypt() {
+request-handler /encrypt
     out-header default
     char *str = "This contains a secret code, which is Open Sesame!";
     // Encrypt data
@@ -370,7 +379,7 @@ void encrypt() {
         cipher "CAMELLIA-256-CFB1" digest "SHA3-512"
     p-out dec_str
     @
-}
+end-request-handler
 
 .EE
 .RE
@@ -427,7 +436,7 @@ To add a salt to encryption, use "salt" clause. You can generate random salt by 
 
 \[char35]include "vely.h"
 
-void encrypt() {
+request-handler /encrypt
     out-header default
     char *str = "This contains a secret code, which is Open Sesame!";
     // Get salt
@@ -439,7 +448,7 @@ void encrypt() {
     decrypt-data enc_str password "my_password" salt rs to define dec_str
     p-out dec_str
     @
-}
+end-request-handler
 
 .EE
 .RE
@@ -502,7 +511,7 @@ Instead, you'd use an IV (Initialization Vector) for each message. It's usually 
 
 \[char35]include "vely.h"
 
-void encrypt() {
+request-handler /encrypt
     out-header default
     // Get salt
     random-string to define rs length 16
@@ -517,7 +526,7 @@ void encrypt() {
         p-out dec_str
         @
     }
-}
+end-request-handler
 
 .EE
 .RE
@@ -602,6 +611,7 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

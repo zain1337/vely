@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "18.2.0"
+#define VV_VERSION "18.3.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -153,6 +153,8 @@ typedef unsigned long long unum;
 typedef long long num;
 typedef int32_t num32;
 typedef double dbl;
+// Request handler type
+typedef void (*vely_request_handler)(); // request handler in vely dispatcher
 
 // 
 // Defines
@@ -176,6 +178,7 @@ typedef double dbl;
 // (that is, if the default changes)
 // for vely_<memory handling> inline or not?  Currently not, otherwise would be 'inline' instead of empty
 #define VV_TRACE_LEN 12000 // max length of line in trace file and max length of line in verbose output of 
+#define VV_MAX_REQ_NAME_LEN 256 // max length of request name
 #define VV_MAX_NESTED_WRITE_STRING 5 // max # of nests of write-string
 // max # of custom header a programmer can add to custom reply when replying with a file
 #define VV_MAX_HTTP_HEADER 32
@@ -378,10 +381,18 @@ typedef struct s_vely_args
 // 
 // Input parameters from a request (URL input parameters or POST without uploads).
 //
+// Single name/value pair
+typedef struct s_vely_ipar 
+{
+    char found; // when using input-param, it's 0 if not asked for yet, 1 if was. Speeds up finding params.
+                // it must be either 0 or 1, nothing else; if so, input-param won't work
+    char *name; // URL names for GET/POST request
+    char *value; // URL values for GET/POST request
+} vely_ipar;
+// List of input params
 typedef struct s_vely_input_params
 {
-    char **names; // URL names for GET/POST request
-    char **values; // URL values for GET/POST request
+    vely_ipar *ipars;
     num num_of_input_params; // # of name/values in GET/POST request
 } vely_input_params;
 // 
@@ -590,7 +601,7 @@ typedef struct vely_s_hash_table
 // Hash structure, top-level object
 typedef struct vely_s_hash
 {
-    num size; // size of hash table
+    num num_buckets; // size of hash table
     vely_hash_table **table; // actual table, array of lists, array of size 'size'
     num dnext; // the index in table[] from which to continue dumping key/value pairs
     vely_hash_table *dcurr; // pointer to current dumping member of linked list within [dnext] bucket
@@ -834,7 +845,7 @@ num vely_decode_utf8 (num32 u, unsigned char *r, char **e);
 num vely_encode_utf8 (char *r, num32 *u, char **e);
 num32 vely_make_from_utf8_surrogate (num32 u0, num32 u1);
 void vely_get_utf8_surrogate (num32 u, num32 *u0, num32 *u1);
-void vely_create_hash (vely_hash **hres_ptr, num size);
+void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h);
 void vely_delete_hash (vely_hash **h, char recreate);
 void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *found, char **oldkey);
 char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *st, char **oldkey);
@@ -861,6 +872,7 @@ void vely_exit (void);
 void vely_unmanaged();
 void vely_managed();
 void vely_mrestore();
+char vely_decorate_path (char *reqname, num reqname_len, char **p, num p_len, bool is_dash);
 
 #ifdef VV_INC_FCGI
 void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env);
@@ -958,6 +970,7 @@ extern int vely_stmt_cached;
 extern bool vely_mem_os;
 extern num vv_numstr;
 extern char vv_numstr_buff[VV_NUMBER_LENGTH];
+extern vely_hash vv_dispatch;
 
 
 // DO not include velyapp.h for Vely itself, only for applications at source build time

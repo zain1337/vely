@@ -1,8 +1,14 @@
-Vely release notes for 18.2.0
+Vely release notes for 18.3.0
 
-- Notes: this release is about performance and converting numbers to strings (a commonly asked feature) as well as other output statements. num-string statement is added, which is a high-performance and comprehensive way to convert any integer type (signed or unsigned) to a string in any base (2-36). Several other performance improvements were implemented, especially when outputting data and accepting requests. Building string (such as in write-string) and outputting them is now 20% faster due to optimizations implemented. Additionally p-* statements have added the ability to specify length of input and obtain the bytes written.
-- Release: increase performance of handling application path in request processing.
-- Release: vely_puts works faster, as any string constants' length is now calculated at compile time, and no such operation is performed at runtime.
-- Minor: p-out, p-url, p-web now have length and bytes-written; p-num and p-dbl now have bytes-written; p-path now has bytes-written;
-- Minor: added num-string statement to allow fast and comprehensive transformation of any integer numbers to strings, in any base (2-36).
+- Notes: major performance improvements along with new features are in this release. Building an application is now about 20% faster. Serving requests is faster across several optimizations, most notable being that there's now a built-in hash table that makes any number of requests being routed virtually as fast as a single one. This is very important for large applications under a heavy load. request-handler statement is added in order to facilitate hierarchical URL paths (such as for REST), making writing and reading code easier. Other improvements in building URL are added as well.
+- Release: fixed spurious output when compiling (vv -q), when there is no source files present.
+- Release: input-param statement now uses an optimization that makes it 2x faster.
+- Release: faster request serving due to refactoring names and values to use a single malloc/realloc.
+- Minor: added request-handler statement to better serve and emphasise request-handling functions, and to allow hierarchy in request names.
+- Minor: allow hierarchical path for a request name; this is very useful for REST or similar methodologies. 
+- Minor: added double paths, such as /param=value/ as another convenient way to build URLs.
+- Release: much faster request routing via hash table that's built into the program data segment. Virtually the same cost to access 1 or 1,000 request handlers.
+- Release: stack dumping when erroring out is now only for debugging builds.
+- Release: making of Vely application is now considerably faster with internal optimizations.
+- Release: added how-to-build-applications article.
 

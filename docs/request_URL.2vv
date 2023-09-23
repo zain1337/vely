@@ -2,24 +2,51 @@
 .SH NAME
 request_URL \- Vely documentation (requests)
 .SH DESCRIPTION
+A \fBrequest\fP URL is a URL that calls your Vely code. Aside from the scheme, domain and port, it's made up of:
+
+.RS 4
+\[bu]    
+application path,
+
+.RE
+
+.RS 4
+\[bu]    
+request path, and
+
+.RE
+
+.RS 4
+\[bu]    
+parameters.
+.RE
+
+Here's a breakdown of URL structure:
+
+.RS 4
+.EX
+
+<scheme>://<domain>[:<port>]<application path><request path><parameters>
+
+.EE
+.RE
+
+For example, in the following URL, "/my_app" is application path, "/my_request" is request path and "/par1/val1?par2=val2" are parameters "par1" and "par2" with values "val1" and "val2":
+
+.RS 4
+.EX
+
+https://your.website.com/my_app/my_request/par1/val1?par2=val2
+
+.EE
+.RE
+
 
 .LP
 .B APPLICATION PATH
 .LP
 
-A \fBrequest\fP URL is a URL that calls your Vely code. The leading part of its path is called "application path" and is determined by the caller; it is usually specified in a web proxy configuration or in an environment for command-line programs.
-
-By default, application path is assumed to be the application name (see \fBhow_vely_works\fP), and would be:
-
-.RS 4
-.EX
-
-/<app name>
-
-.EE
-.RE
-
-So if your application name is "shopping", then the default application path is:
+The leading part of URL's path is called "application path". By default, application path is the application name (see \fBhow_vely_works\fP); if it's "shopping", then the default application path is:
 
 .RS 4
 .EX
@@ -29,137 +56,10 @@ So if your application name is "shopping", then the default application path is:
 .EE
 .RE
 
-You would then specify this application path in the client, for instance:
 
-.RS 4
-\[bu]    
-in Apache configuration file (see for example \fBconnect_apache_unix_socket\fP):
+.B - Customizing application path
 
-.RS 4
-.EX
-
-ProxyPass "/shopping" unix:///var/lib/vv/shopping/sock/sock|fcgi://localhost/shopping
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-in Nginx configuration file (see for example \fBconnect_nginx_unix_socket\fP):
-
-.RS 4
-.EX
-
-location /shopping { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/shopping/sock/sock; }
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-in a command-line program as the SCRIPT_NAME environment variable (see \fBcommand_line\fP):
-
-.RS 4
-.EX
-
-export SCRIPT_NAME="/shopping"
-
-.EE
-.RE
-
-.RE
-
-
-
-.LP
-.B REQUEST PATH
-.LP
-
-Request path is always the first path segment after the application path that has the request name, for instance:
-
-.RS 4
-.EX
-
-https://some.web.site/shopping/buy-item
-
-.EE
-.RE
-
-In this case the request name is "buy_item" (written as request path "/buy-item"). Note that hyphen ("-") in the URL name is always converted to underscore ("_") for a Vely request name. This is true for all input parameters, see \fBinput-param\fP.
-
-A request name can be can be made up of alphanumeric characters, hyphen or underscore only and cannot start with a digit. Often it is in the same form as the names of Vely \fBstatement_APIs\fP, which is that of "verb"-"object", for example "add-note", "show-orders" etc. This form clearly communicates the functional purpose of the request in the URL itself, as well as the names of source code files that handle them, which in this case would be "add_note.vely", "show_orders.vely" etc. Note however you can name a request any way you like.
-
-.LP
-.B URL PAYLOAD
-.LP
-
-The actual URL payload, i.e. the input parameters, follow after the request path. For example, the full URL may be:
-
-.RS 4
-.EX
-
-https://some.web.site/shopping/buy-item?name=ABC&price=600
-
-.EE
-.RE
-
-Here, the required request name is "buy_item" and there are two other parameters ("name" and "price") with values of "ABC" and "600" respectively (see \fBrequest\fP). 
-
-The input parameters can also be specified as path segments in the form of "/name/value". This is often done when writing a \fBREST\fP API. So for example, the above URL can be:
-
-.RS 4
-.EX
-
-https://some.web.site/shopping/buy-item/name/ABC?price=600
-
-.EE
-.RE
-
-You can specify some or all parameters as path segments, so for example to specify all of them, the above URL can be written as:
-
-.RS 4
-.EX
-
-https://some.web.site/api/v2/shopping/buy-item/name/ABC/price/600
-
-.EE
-.RE
-
-The very last path segment can miss a value, and by default it would be "true", so if you add a parameter "edit":
-
-.RS 4
-.EX
-
-https://some.web.site/api/v2/shopping/buy/name/ABC/price/600/edit
-
-.EE
-.RE
-
-then this would be the same URL as before with the additional parameter "edit" of value "true". 
-
-If you specify input parameters as path segments, keep in mind that the path is meant to represent a logical hierarchy, where each path segment precedes in meaning the previous. In other words, input parameters representing a broader logical notion come first in the path, and those with a narrower one come afterwards. This order may represent the resource hierarchy (as it is often done with REST), but it does not have to.
-
-.LP
-.B CUSTOMIZING APPLICATION PATH
-.LP
-
-The application path can be customized to be any path you wish, but it must have the application name as the last segment:
-
-.RS 4
-.EX
-
-/some/path/<app name>
-
-.EE
-.RE
-
-This helps identify application at a glance. For example, if your application name is "shopping", the application path may be 
+You can change the application path. To do that, you need to specify it when you make your application (see \fBvv\fP); each application has its own unique application path. Note that whatever it may be, the application name must always be its last path segment. For example, if your application name is "shopping", then the application path may be:
 
 .RS 4
 .EX
@@ -169,64 +69,7 @@ This helps identify application at a glance. For example, if your application na
 .EE
 .RE
 
-and would be specified like this:
-
-.RS 4
-\[bu]    
-in Apache configuration file (see for example \fBconnect_apache_unix_socket\fP):
-
-.RS 4
-.EX
-
-ProxyPass "/api/v2/shopping" unix:///var/lib/vv/shopping/sock/sock|fcgi://localhost/shopping
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-in Nginx configuration file (see for example \fBconnect_nginx_unix_socket\fP):
-
-.RS 4
-.EX
-
-location /api/v2/shopping { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/shopping/sock/sock; }
-
-.EE
-.RE
-
-.RE
-
-
-.RS 4
-\[bu]    
-in a command-line program as the SCRIPT_NAME environment variable (see \fBcommand_line\fP):
-
-.RS 4
-.EX
-
-export SCRIPT_NAME="/api/v2/shopping"
-
-.EE
-.RE
-
-.RE
-
-
-For web requests, the URL sent by the caller might look something like this:
-
-.RS 4
-.EX
-
-https://some.web.site/api/v2/shopping/buy-item?name=ABC&price=600
-
-.EE
-.RE
-
-To tell Vely what the custom application path is, specify it in the "--path" parameter in \fBvv\fP when making your application, in this case:
+Use "--path" parameter in \fBvv\fP to set the application path:
 
 .RS 4
 .EX
@@ -238,25 +81,176 @@ vv -q --path="/api/v2/shopping"
 
 
 .LP
-.B PARAMETERS
+.B REQUEST PATH
 .LP
 
-It is up to you how you structure your parameters, i.e. the order in a query path or path segments, and which ones (if any) are in a query string. Regardless of your choices, the code handling a request is the same. In the example used here, you can obtain the parameters in request handler source file "buy_item.vely":
+Request path follows the application path, and by default it's the \fBrequest\fP name preceded with a forward slash, for instance:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-item
+
+.EE
+.RE
+
+In this case the application path is "/shopping" and the request path is "/buy-item" (which means the request name is "buy_item"). Note that hyphen ("-") in the URL name is always converted to underscore ("_") for a Vely request name (this is true also for all input parameters, see \fBinput-param\fP). The reason is that a hyphen cannot be a part of C identifier (such as a function or a variable). Since the source file name must match the request name, the .vely file that implements this request must be "buy_item.vely".
+
+A request name can be made up of alphanumeric characters or underscore ("_") only, and cannot start with a digit. 
+
+.B - Hierarchical request path
+
+Note that two underscores in the request name can be substituted for a forward slash in the URL. This way, a request name can also be written as a resource path, given as a number of path segments. In this case such path must start and end with an underscore. For instance, a request name may be "items__wine_collection__red_wine" and the request path is then "/_items/wine-collection/red-wine_":
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/_items/wine-collection/red-wine_/
+
+.EE
+.RE
+
+In this case "/shopping" is the application path (and "shopping" is the application name), while "/items/wine-collection/red-wine" is the request path, while "items__wine_collection__red_wine" is the request name, with hyphens and forward slashes replaced with single and double underscores. Note that you could also write the beginning and ending of a request path as a path segment consisting of an underscore alone (i.e. as "/_/"):
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/_/items/wine-collection/red-wine/_/
+
+.EE
+.RE
+
+The name of .vely file that implements such a request would be:
+
+.RS 4
+.EX
+
+items__wine_collection__red_wine.vely
+
+.EE
+.RE
+
+This makes it easy to identify the source .vely files that handles the request, as Vely source code directory is flat (and all requests are visible at a glance), and it is easy to visually tell the request path based on the name of a source file.
+
+You can also make this same call by using hyphens (or underscores), for instance:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/items--wine-collection--red-wine
+
+.EE
+.RE
+
+
+.LP
+.B PARAMETERS IN URL
+.LP
+
+The actual input parameters follow after the request path, and can be specified in a number of ways.
+
+.B - Query string
+
+Parameters can be specified after a question mark in a "name=value" form, where values are generally URL encoded. For example, the full URL may be:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-items?sku=4811&price=600
+
+.EE
+.RE
+
+Here, the required request name is "buy_item" and there are two other parameters ("sku" and "price") with values of "4811" and "600" respectively (see \fBrequest\fP). 
+
+.B - Path segments
+
+The input parameters can also be specified as path segments in the form of "/name/value". So for example, the above URL can be:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-item/sku/4811/price/600
+
+.EE
+.RE
+
+
+.B - Double path segments
+
+Another way to specify parameters is to specify name and value separated by an equal sign within a single path segment:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-item/sku=4811/price=600/
+
+.EE
+.RE
+
+This way, you can have a readable representation of parameter names and values, while still maintaining the hierarchical form which conveys how are the parameters structured.
+
+.B - Mixed
+
+You can specify some or a mix of the above ways to write parameters, for instance the above URL can be written as:
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-item/sku/4811?price=600
+
+.EE
+.RE
+
+
+.B - End-point
+
+The very last path segment can miss a value, and by default it would be "true", so if you add a parameter "edit":
+
+.RS 4
+.EX
+
+https://some.web.site/shopping/buy-item/sku/4811/price/600/edit
+
+.EE
+.RE
+
+then this would be the same URL as before with the additional parameter "edit" of value "true". This is useful to specify an action that follows the resource specified in the URL.
+
+.LP
+.B PARAMETERS IN VELY PROGRAM
+.LP
+
+It is up to you how to structure your parameters, i.e. the order in a query path or path segments, and which ones (if any) are in a query string. Regardless of your choices, the code handling a request is the same. In the example used here, you can obtain the parameters in request handler source file "buy_item.vely":
 
 .RS 4
 .EX
 
 \[char35]include "vely.h"
 
-void buy_item() {
+request-handler /buy-item
     out-header default
 
-    input-param name
+    input-param sku
     input-param price
 
-    run-query @mydb = "insert into orders (name, price) values ('%s', '%s')" : name, price no-loop
+    run-query @mydb = "update wine_items set price='%s' where sku='%s'" : price, sku no-loop
     @OKAY
-}
+end-request-handler
+
+.EE
+.RE
+
+For a hierarchical URL path, you would write:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /items/wine-collection/red-wine
+    ...
+end-request-handler
 
 .EE
 .RE
@@ -280,11 +274,13 @@ You can also write URLs where the entire request, including the request name, is
 \fBafter_request_handler\fP  
 \fBbefore_request_handler\fP  
 \fBbuilding_URL\fP  
+\fBend-request-handler\fP  
 \fBgetting_URL\fP  
 \fBglobal_request_data\fP  
 \fBnon_request\fP  
 \fBnormalized_URL\fP  
 \fBrequest\fP  
+\fBrequest-handler\fP  
 \fBrequest_URL\fP  
 \fBstartup_handler\fP  
 \fBvely_dispatch_request\fP    

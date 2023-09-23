@@ -3,8 +3,7 @@
 #include "vely.h" // must always be here
 
 // Delete the file
-void delete ()
-{
+request-handler /delete 
    out-header default
    @<h2>Delete a file</h2>
    task-param action
@@ -42,4 +41,4 @@ void delete ()
    else-task other
        @Unrecognized action <<p-web action>>
    end-task
-}
+end-request-handler

@@ -2,7 +2,7 @@
 // Copyright 2018 DaSoftver LLC.
 #include "vely.h"
 
-void temphist() {
+%% /temphist
     out-header default
 
     task-param action
@@ -22,4 +22,4 @@ void temphist() {
             @Temperature: <<query-result  temp>>
         end-query
     end-task
-}
+%%

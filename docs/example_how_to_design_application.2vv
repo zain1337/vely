@@ -1,0 +1,697 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example_how_to_design_application \- Vely documentation (examples)
+.SH DESCRIPTION
+How to design an application
+(Image writeapp.png not available in man page, see web page documentation)
+This article will show how to get started with any Vely application, not just when it comes to creating one, but making the first steps in its design. Specifically, the focus here is requests an application serves and the code that handles them.
+
+.LP
+.B CREATE AN APPLICATION
+.LP
+
+When starting a new application, create it first. To do this, first create a new directory for your source code, and then create your application. For instance:
+
+.RS 4
+.EX
+
+mkdir cars_app
+cd cars_app
+sudo vf -i -u $(whoami) cars
+
+.EE
+.RE
+
+This will create a directory structure for application "cars" under "/var/lib/vv/cars" directory. The above is the only Vely command that needs "sudo", because it will setup privileges for directories that make your application secure (see \fBhow_vely_works\fP). "-i" means to create an application, and "-u" specifies who will own it - in this case it's your own logged-on user. And finally, the application name is "cars". 
+
+.LP
+.B WHAT IS A REQUEST?
+.LP
+
+A request is data that's sent to your program so it can do something useful. In practical terms, it is a \fBURL\fP, the same kind that any web server or application works with. 
+
+Your program can run as an \fBapplication server\fP, or as a \fBcommand-line\fP utility. 
+
+If it's an application server, then it could be a web application in which case a web server (such as Apache, Nginx etc.) is probably used to talk to it (see for instance \fBhere\fP for Apache setup or \fBhere\fP for Nginx). Your application server could also serve as a middleware, talking to all kinds of clients (see \fBhere\fP on building clients with API, or a simple \fButility\fP that can talk to your server). It could also be any kind of server you may need.
+
+If it's a command-line program, then it's like any other program you run. It can query databases, read and write files, process text, or just about anything else.
+
+Regardless of how it runs, your Vely program works the same. It takes the same input and produces the same output. That's neat because you don't have to worry about two ways of writing a program; it also lets you test web programs on the command line.
+
+.LP
+.B REQUEST NAME
+.LP
+
+Each request has a name. The name is typically the first path segment in the URL, right after application name. For example, in this URL:
+
+.RS 4
+.EX
+
+https://webserver.com/cars/shop
+
+.EE
+.RE
+
+"cars" is the application name, because it's the first part of the path. Request name is "shop" because it follows right after.
+
+Consequently, "/cars" is the application path, and "/shop" is the request path. 
+
+.LP
+.B INPUT PARAMETERS
+.LP
+
+While a request can be without any parameters, typically there are some parameters your program needs to fullfill the request. These parameters are passed in a URL right after the request name, for instance:
+
+.RS 4
+.EX
+
+https://webserver.com/cars/shop/lot/used/doors/4
+
+.EE
+.RE
+
+In this case, there are 2 parameters: "lot" with the value of "used", and "doors" with the value of "4". You could also pass them as a query string:
+
+.RS 4
+.EX
+
+https://webserver.com/cars/shop?lot=used&doors=4
+
+.EE
+.RE
+
+Or you can mix them up as both a path segment and a query string:
+
+.RS 4
+.EX
+
+https://webserver.com/cars/shop/lot/used?doors=4
+
+.EE
+.RE
+
+
+.LP
+.B REQUEST HANDLER
+.LP
+
+Once parameters are passed to your program, you need to get them in order to use them. To do that, you'd use \fBinput-param\fP statement. For the example here, this may be a very simple implementation of "shop" request in file "shop.vely" - note that a file name where you implement a request must be named after the request itself:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /shop
+    out-header default
+
+    input-param lot
+    input-param doors
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+end-request-handler
+
+.EE
+.RE
+
+This request will have the value of parameter "lot" in variable "lot", and that of parameter "doors" in variable "doors". The names of parameters from the URL/environment and the names of variables in input-param statement must always match; this makes it easy to read and write programs. The request then prints out a message with both parameters. That's simple enough.
+
+.LP
+.B MAKE YOUR PROGRAM
+.LP
+
+To make this into an application, use \fBvv\fP with "-q" option:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+This will pick up any .vely files in the current directory. In this case, there's only one, but if you had 20, or 200, they would be used. Vely will use a "make" mechanism, meaning it will only compile files that need it.
+
+.LP
+.B RUN YOUR PROGRAM
+.LP
+
+For command-line programs, you need to specify an application path and a request path. However, since a command-line program doesn't take URL like the above, you'd pass that information through the environment before executing the program. That's a more flexible and safer way to pass parameters. The way you do this is to use \fBvv\fP utility with "-r" option like this:
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used/doors/4" --exec
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+Content-Type: text/html;charset=utf-8
+Cache-Control: max-age=0, no-cache
+Pragma: no-cache
+Status: 200 OK
+
+Hello, you are interested in a used car with 4 doors!
+
+.EE
+.RE
+
+Since command-line programs work exactly the same as web applications, you will see the HTTP header output (i.e. the Content-Type above and rest of it). You can easily skip that with --silent-header option:
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used/doors/4" --exec --silent-header
+
+.EE
+.RE
+
+and the output is then just:
+
+.RS 4
+.EX
+
+Hello, you are interested in a used car with 4 doors!
+
+.EE
+.RE
+
+Input parameters can be specified in many different ways. You could have done this to test a query string:
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used?doors=4" --exec --silent-header
+
+.EE
+.RE
+
+or this:
+
+.RS 4
+.EX
+
+vv -r --req="/shop?lot=used&doors=4" --exec --silent-header
+
+.EE
+.RE
+
+The result is the same. 
+
+Take a look at \fBvv\fP utility. You can specify more than just input parameters. For instance, you can attach file(s), use different request methods (such as for REST APIs, like PUT, POST, DELETE etc.). You can pretty much supply any information a web application would have; this is great for testing web applications: you can test them in a batch, automated mode in a simple test script.
+
+If you skip the "--exec" option, you can see how to set environment variables and execute your program manually (and faster, since you'd be doing it directly): 
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used/doors/4" 
+
+.EE
+.RE
+
+This will display all the environment variables you might want to set along with the command to execute your program, for example this may be the result:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=no
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/cars"
+export PATH_INFO="/shop/lot/used/doors/4"
+export QUERY_STRING=""
+/var/lib/vv/bld/cars/cars
+
+.EE
+.RE
+
+You can copy and paste this to execute in command line or a shell script.
+
+.LP
+.B CUSTOM APPLICATION PATH
+.LP
+
+Note that the application path doesn't necessarily have to be just the application name, but it has end with it. For instance, it could be "/api/v2/cars". To have a custom application path like this, you'd specify this path when building your application with \fBvv\fP as a "--path" option:
+
+.RS 4
+.EX
+
+vv -q --path="/api/v2/cars"
+
+.EE
+.RE
+
+The URL then might be:
+
+.RS 4
+.EX
+
+https://webserver.com/api/v2/cars/shop?lot=used&doors=4
+
+.EE
+.RE
+
+This example will stick to a simple case of just using application name, but I thought to mention it so you know it's possible (and easy) to do otherwise if you want to. Often, this is done to version the API for an application; to get started you probably won't need this, but perhaps you might in the future.
+
+.LP
+.B RUN YOUR APPLICATION SERVER
+.LP
+
+When you built your application (with "vv -q" above), both command-line and application-server executables were created. They are different, even though they serve the same requests, taking the same input and producing the same output. The application server executable runs as a \fBFastCGI\fP server, so its internal request-processing mechanism is different than for a command-line program.
+
+So, to run an application server, simply use \fBvf\fP, which is Vely FastCGI program manager:
+
+.RS 4
+.EX
+
+vf -w 3 cars
+
+.EE
+.RE
+
+Here, you'd start 3 processes to serve incoming requests in parallel. You can start any number of them. If you want Vely to start as many processes as needed to handle the load, simply do:
+
+.RS 4
+.EX
+
+vf cars
+
+.EE
+.RE
+
+In this case, when there's no requests, there will be no server processes staying resident in memory. When there are requests coming in, the number of processes will increase as the load increases, and decrease as it goes down. See \fBvf\fP for a number of parameters you can fine tune this.
+
+Now that you have an application server running, you can talk to it. In a web application, this would mean that your web server will talk to your application server; that's how web requests get fullfilled. But you can test your newly minted application server without having a web server; here's how: you can use a \fBclient command-line utility\fP, like in this example:
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used?doors=4" --exec --silent-header --server
+
+.EE
+.RE
+
+Note the "--server" option above. It means your application server will be called. If you'd like to see what's executed, just omit "--exec":
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used?doors=4" --silent-header --server
+
+.EE
+.RE
+
+and the result might be like this:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=yes
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/cars"
+export PATH_INFO="/shop/lot/used"
+export QUERY_STRING="doors=4"
+cgi-fcgi -connect /var/lib/vv/cars/sock/sock  /cars
+
+.EE
+.RE
+
+Just like before, you can copy this and either execute or run in a script. Here, a "cgi-fcgi" utility is called. It will use all the variables set and send them to your server as a request, it will receive a reply from it, and then display it. The result is of course the same:
+
+.RS 4
+.EX
+
+Hello, you are interested in a used car with 4 doors!
+
+.EE
+.RE
+
+However, this was very different from what you've done before. Previously, you started a command-line program that ran a request, and then exited. Here, you have an application server that has resident (daemon) processes running in the background, and you sent a request to one of them, which then replied and voila, you have it. Many clients can simultaneously call the server this way and get a reply. So this is a totally different beast here, even though it looks similar.
+
+Note that "cgi-fcgi" is connecting to your application server via a Unix socket "/var/lib/vv/cars/sock/sock", which is automatically created by Vely. A Unix socket is an extremely fast method of inter-process communication, and is used by default. If your application server(s) run on different computers, then you'd use TCP sockets. That's easy too; see \fBvf\fP.
+
+.LP
+.B SETUP WEB SERVER AND ACCESS FROM BROWSER
+.LP
+
+Okay, so now that you know all this, you can use a web server to talk to your application server. This is how real-world web applications work. End-users (typically through their browsers) will talk to your web server(s), and in turn, they will talk to your application server(s). The reply goes back in the same order. 
+
+The advantages of this kind of architecture are many. You're separating your presentation/transfer layer (i.e. web server) from your application/business layer (i.e. your application server). This is good because it increases security, data safety, performance and scalability. This is a topic of its own, but suffice it to say you're on the right track.
+
+Now, set up your web server. To do this, here are the instructions for \fBApache\fP and \fBNginx\fP. Virtually all web servers support FastCGI, so if you're using another web server, check out how to reverse proxy FastCGI requests. In a nutshell, aside from a one-time setup described in the links here, the most important thing you need to do is to provide a "directive" to your web server, so it knows where is the Unix socket for your application server. That way, they can talk. For instance, for Nginx, this directive would be in the Nginx configuration file (under "server" section):
+
+.RS 4
+.EX
+
+location /cars { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/cars/sock/sock; }
+
+.EE
+.RE
+
+and for Apache, the following would be in Apache's configuration file:
+
+.RS 4
+.EX
+
+ProxyPass "/cars" unix:///var/lib/vv/cars/sock/sock|fcgi://localhost/cars
+
+.EE
+.RE
+
+That's about it. After you do this and restart the web server, you should be able to try it from a web browser with something like the following - here the web address is your local computer (i.e. "127.0.0.1"), but in general if you're working off of a computer with a different IP or name, just replace it:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/shop/lot/used/doors/4
+
+.EE
+.RE
+
+Just like in the above examples, you can vary your URL to use any combination of a path segment and a query string, as in:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/shop?lot=used&doors=4
+
+.EE
+.RE
+
+The result will be the same.
+
+.LP
+.B TASKS
+.LP
+
+A task is some action your request executes. When you created "shop.vely" request handler, you've done so with the intention of handling a task. So a request that performs a single action is a task in itself. 
+
+As you design your application, you might want to keep each request to perform a single task (in which case you don't need to use tasks at all!), or you may want to perform different (but related) actions within the same request handler. It's a matter of how you'd like to structure your code. You may have tasks in only some of your request handlers (maybe those that are a bit more involved but you still want them in a single handler), and the rest of your handlers would not use tasks (since they serve just a single purpose).
+
+Here's an example of using tasks. In this case you might want to have two particular actions related to cars: buy and lease. To do that, you might add an input parameter "type" (meaning a type of shopping) with the intent to have two possible values: "buy" and "lease":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /shop
+    out-header default
+
+    input-param lot
+    input-param doors
+
+    task-param type
+    if-task "buy"
+        @Buying a car
+    else-task "lease"
+        @Leasing a car
+    end-task
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+%%
+
+.EE
+.RE
+
+Note usage of "%%" - you can use them instead of "request-handler" and "end-request-handler" statements for brevity.
+
+To recompile, use \fBvv\fP with "-q" option again:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+A \fBtask-param\fP is like input parameter, but it's used semantically as a value to choose what task to perform. A subsequent \fBif-task\fP refers to the task-param that last executed prior to it. This way a program structure is more streamlined, avoiding complicated conditionals while making it easy to follow the code logic. That's what tasks do. Here, you're just outputting informational messages; in a real application you'd be doing things that implement the intented functionality.
+
+The URL for this might be:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/shop/type/lease/lot/used?doors=4
+
+.EE
+.RE
+
+You can have any number of tasks. A sub-task is just a task that's evaluated within another task - so basically, it's a task-param within an if-task. Hence, the distinction between a task and a subtask is purely logical, meaning it depends on your own vision of task hierarchy. For example, you might add a subtask "financing" that only applies if the car is bought (i.e. not leased), and it would have values of "loan" and "cash"; in this case there's an additional input parameter "interest_rate" but only if "financing" subtask is "loan". Here's what that looks like in Vely:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /shop
+    out-header default
+
+    input-param lot
+    input-param doors
+
+    task-param type
+    if-task "buy"
+        task-param financing
+        if-task "loan"
+            input-param interest_rate
+            @Buying a car using a loan with interest rate of <<p-out interest_rate>>%.
+        else-task "cash"
+            @Buying a car using cash.
+        end-task
+    else-task "lease"
+        @Leasing a car.
+    else-task other
+        @Unknown car shopping type.
+    end-task
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+%%
+
+.EE
+.RE
+
+To recompile, use \fBvv\fP with "-q" option again:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+You can see how a clean hierarchy of tasks can be built to naturally reflect the intent here. 
+
+To execute from command line:
+
+.RS 4
+.EX
+
+vv -r --req="/shop/lot/used/doors/4/type/buy/financing/loan/interest-rate/3"  --exec --silent-header
+
+.EE
+.RE
+
+The URL for this might be in financing case:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/shop/type/buy/lot/new/financing/loan?interest_rate=5&doors=4
+
+.EE
+.RE
+
+or in case of buying cash:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/shop/type/buy/lot/new/financing/cash?doors=4
+
+.EE
+.RE
+
+
+.LP
+.B REQUESTS WITHOUT TASKS
+.LP
+
+Another way to design an application is to have single-task requests. It means that a request will perform just a single task; any input parameters it takes only apply to this task. 
+
+In the application here, it might look like the following. Note that now, the request path will be a hierarchical path, so this is great for implementing REST APIs, but also any other hierarchy-based methodology.
+
+One important thing to note is that the file names for each of these request handlers are "decorated". It means any inner forward slash is substituted for a double underscore, and any hyphen for a single underscore. Okay, here's that in practice:
+
+First, a request to buy a car with a loan in file "shop__buy__loan.vely" - note that the request path is "/shop/buy/loan", and that forward slashes in it are double underscores in the source file name:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /shop/buy/loan
+    out-header default
+
+    input-param lot
+    input-param doors
+    input-param interest_rate
+    @Buying a car using a loan with interest rate of <<p-out interest_rate>>%.
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+%%
+
+.EE
+.RE
+
+Next, a request to buy a car with cash in file "shop__buy__cash.vely":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /shop/buy/cash
+    out-header default
+
+    input-param lot
+    input-param doors
+    @Buying a car using cash.
+
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+%%
+
+.EE
+.RE
+
+Finally, a request to lease a car in file "shop__lease.vely":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /shop/lease
+    out-header default
+
+    input-param lot
+    input-param doors
+
+    @Leasing a car.
+    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
+%%
+
+.EE
+.RE
+
+To make this into an application, use \fBvv\fP with "-q" option:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+Note that Vely will compiles all .vely files currently in the directory. You can keep "shop.vely" file from before, and be able to use either kind of request URL, or you can remove it. This is just an example, so here it stays.
+
+As you can see, you have 3 source files ("shop__buy__loan.vely", "shop__buy__cash.vely" and "shop__lease.vely"), but each is now much simpler. And the way to call these request handlers is also very intuitive, using the hierarchy path they are defined with. The only thing you need to remember is that a request path in a URL must start and end with an underscore. For instance, here are the URLs to call the above request handlers, written in different notations as far as input parameters go. First to buy with a loan:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/_shop/buy/loan_/lot/new/interest-rate/3?doors=4
+
+.EE
+.RE
+
+Note the underscore at the start and the end of request path "/_shop/buy/loan_/". You could also write that as "/_/shop/buy/loan/_/" if it looks better to you.
+
+Then to buy for cash:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/_shop/buy/cash_/lot/new/doors/4
+
+.EE
+.RE
+
+and to lease:
+
+.RS 4
+.EX
+
+http://127.0.0.1/cars/_shop/lease_/lot/new/doors/4
+
+.EE
+.RE
+
+Or from command line, for example:
+
+.RS 4
+.EX
+
+vv -r --req="/_shop/buy/loan_/lot/new/interest-rate/3?doors=4"  --exec --silent-header
+
+.EE
+.RE
+
+
+.LP
+.B STRUCTURING OF REQUESTS AND TASKS
+.LP
+
+By "structuring", it's meant the answer to a question: should I use tasks, or write a request for each task, or use a combination?
+
+Tasks are meant to provide a bit of depth to a request, but they shouldn't be too deep. A request should still remain a relatively simple set of related actions in a logical sense; the actual implementation may be lengthy or complex (reflecting the nature of actions requested), however there shouldn't be too many tasks/sub-tasks within it, perhaps up to 3 or 4 (though there's no hard and fast rule). If there are too many (sub)tasks, then it's likely that a request should be split into multiple ones that handle the same logic in a simpler and more manageable way. Tasks should only be there to serve a request, not to substitute it. A request should be the simplest and smallest action that logically makes sense, while tasks help implement their internals.
+
+On the other hand, single-task requests (i.e. not using task-params at all), are easier to write, read and call with a hierarchical structure, though you'll have more source files.
+
+Ultimately it's up to you how you structure your application. It may end up being a combination of approaches, and it may change over time as you keep enhancing your design.
+
+.LP
+.B CONCLUSION
+.LP
+
+In this article, you've learned how to get started writing a Vely application. Requests and request-handlers are the basics of it, and this should give you a better idea about designing your own. For more, see \fBapplication_architecture\fP, \fBvely_architecture\fP and \fBhow_vely_works\fP.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample_client_API\fP  
+\fBexample_cookies\fP  
+\fBexample_create_table\fP  
+\fBexample_distributed_servers\fP  
+\fBexample_docker\fP  
+\fBexample_encryption\fP  
+\fBexample_file_manager\fP  
+\fBexample_form\fP  
+\fBexample_hash_server\fP  
+\fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
+\fBexample_json\fP  
+\fBexample_multitenant_SaaS\fP  
+\fBexample_postgres_transactions\fP  
+\fBexamples\fP  
+\fBexample_sendmail\fP  
+\fBexample_shopping\fP  
+\fBexample_stock\fP  
+\fBexample_uploading_files\fP  
+\fBexample_using_mariadb_mysql\fP  
+\fBexample_utility\fP  
+\fBexample_write_report\fP    
+See all 
+\fBdocumentation\fP

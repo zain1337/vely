@@ -7,8 +7,7 @@
 // 
 // Display table data
 //
-void display_data ()
-{
+request-handler /display_data 
 
     out-header default
 
@@ -27,5 +26,5 @@ void display_data ()
         end-query
     @</table>
 
-}
+end-request-handler
 

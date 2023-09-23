@@ -4,8 +4,7 @@
 
 #include "vely.h" 
 
-void cookies()
-{
+request-handler /cookies
 
     task-param action
 
@@ -45,5 +44,5 @@ void cookies()
         @Unrecognized action<hr/>
     end-task
 
-}
+end-request-handler
 

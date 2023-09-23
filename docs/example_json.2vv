@@ -5,7 +5,7 @@ example_json \- Vely documentation (examples)
 JSON parsing and searching
 This example demonstrates parsing JSON text. The text parsed contains information about cities. JSON document includes an array of countries, which includes an array of states, each having an array of cities. Use of UTF8 Unicode data is also shown - some cities have such characters in their names. JSON text comes from two different kinds of client requests: from an HTML form and also from Javascript/fetch(). This example shows how to deal with a generic JSON document where structure is known but can change, as well as if you don't know its structure and search for what interests you along the way.
 
-In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 140 lines of code.
+In a nutshell:  web browser; Nginx; Unix sockets; 5 source files, 139 lines of code.
 
 .LP
 .B SCREENSHOTS OF APPLICATION
@@ -258,7 +258,7 @@ http://127.0.0.1/velytest/post.html
 .B SOURCE FILES
 .LP
 
-The following are the source files in this project:
+The following are the source files in this application:
 
 .B - JSON document (cities.json)
 
@@ -433,7 +433,7 @@ This is a simple HTML form where you can enter JSON document. Since the code in 
 
 \[char35]include "vely.h"
 
-void json_form () {
+request-handler /json_form 
     
     out-header default
 
@@ -447,8 +447,7 @@ void json_form () {
     @    <button type="submit">Extract specific data</button>
     @    <button type="submit" formaction="<<p-path>>/json_all">Extract all data</button>
     @ </form>
-
-}
+end-request-handler
 
 .EE
 .RE
@@ -463,7 +462,7 @@ This parses the document that you may not know the structure of. Each data node 
 
 \[char35]include "vely.h"
 
-void json_all() {
+request-handler /json-all
     out-header default
 
     input-param json_text
@@ -490,7 +489,7 @@ void json_all() {
     }
     @</table>
 
-}
+end-request-handler
 
 .EE
 .RE
@@ -505,7 +504,7 @@ Parse the JSON document. This shows parsing the document that you know a structu
 
 \[char35]include "vely.h"
 
-void json_process() {
+request-handler /json-process
     out-header default
 
     // If JSON data sent via URL-encoded GET or POST
@@ -594,7 +593,7 @@ void json_process() {
     }
     @</ul>
 
-}
+end-request-handler
 
 .EE
 .RE
@@ -613,6 +612,7 @@ void json_process() {
 \fBexample_form\fP  
 \fBexample_hash_server\fP  
 \fBexample_hello_world\fP  
+\fBexample_how_to_design_application\fP  
 \fBexample_json\fP  
 \fBexample_multitenant_SaaS\fP  
 \fBexample_postgres_transactions\fP  

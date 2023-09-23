@@ -393,6 +393,32 @@ syn region vv_r_construct_if_task start="^[[:space:]]*if-task" skip="\\[[:space:
     hi def link vv_h_clause_if_task    velyClause
     hi def link vv_h_construct_if_task    velyConstruct
     hi def link vv_h_print_inline_if_task    velyConstruct
+syn region vv_r_construct___ start="^[[:space:]]*%%" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct___,vv_r_inline___,vv_r_at
+    syn match vv_h_construct___ "^[[:space:]]*%%" contained containedin=vv_r_construct___
+    syn match vv_h_clause___ "[=]\@<=define \@=" contained containedin=vv_r_construct___
+    syn match vv_h_clause___ " define \@=" contained containedin=vv_r_construct___
+    hi def link vv_h_clause___    velyClause
+    hi def link vv_h_construct___    velyConstruct
+    hi def link vv_h_print_inline___    velyConstruct
+syn region vv_r_construct_request_handler start="^[[:space:]]*request-handler" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_request_handler,vv_r_inline_request_handler,vv_r_at
+    syn match vv_h_construct_request_handler "^[[:space:]]*request-handler" contained containedin=vv_r_construct_request_handler
+    syn match vv_h_clause_request_handler "[=]\@<=define \@=" contained containedin=vv_r_construct_request_handler
+    syn match vv_h_clause_request_handler " define \@=" contained containedin=vv_r_construct_request_handler
+    syn match vv_h_clause_request_handler "[=]\@<=define \@=" contained containedin=vv_r_construct_request_handler
+    syn match vv_h_clause_request_handler " define \@=" contained containedin=vv_r_construct_request_handler
+    hi def link vv_h_clause_request_handler    velyClause
+    hi def link vv_h_construct_request_handler    velyConstruct
+    hi def link vv_h_print_inline_request_handler    velyConstruct
+syn region vv_r_construct_end_request_handler start="^[[:space:]]*end-request-handler" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_end_request_handler,vv_r_inline_end_request_handler,vv_r_at
+    syn match vv_h_construct_end_request_handler "^[[:space:]]*end-request-handler" contained containedin=vv_r_construct_end_request_handler
+    syn match vv_h_clause_end_request_handler "[=]\@<=define \@=" contained containedin=vv_r_construct_end_request_handler
+    syn match vv_h_clause_end_request_handler " define \@=" contained containedin=vv_r_construct_end_request_handler
+    hi def link vv_h_clause_end_request_handler    velyClause
+    hi def link vv_h_construct_end_request_handler    velyConstruct
+    hi def link vv_h_print_inline_end_request_handler    velyConstruct
 syn region vv_r_construct_set_input start="^[[:space:]]*set-input" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_set_input,vv_r_inline_set_input,vv_r_at
     syn match vv_h_construct_set_input "^[[:space:]]*set-input" contained containedin=vv_r_construct_set_input
