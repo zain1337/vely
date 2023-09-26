@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-write-hash \-  (hash_table)
+write-hash \-  (hash-table)
 .SH PURPOSE
 Store key/value pair into a hash table.
 

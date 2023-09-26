@@ -1189,7 +1189,7 @@ void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp)
     {
         num n_len = strlen (vp->name);
         vely_trim (vp->name, &n_len);
-        if (vely_is_valid_param_name (vp->name) != 1)
+        if (vely_is_valid_param_name (vp->name, false) != 1)
         {
             _vely_report_error(VV_NAME_INVALID, vp->name);
         }
@@ -1556,7 +1556,7 @@ void start_loop_query (vely_gen_ctx *gen_ctx)
             // define variable if asked, this is query-result <colname> to define <colname>
             // hence the sizing of qr, 50 is for "to define" or anything else
             char qr[2*VV_MAX_COLNAME_LEN+50];
-            if (vely_is_valid_param_name(collist) != 1)
+            if (vely_is_valid_param_name(collist, false) != 1)
             {
                 _vely_report_error(VV_NAME_INVALID, collist);
             }
@@ -1741,7 +1741,7 @@ void get_db_config (char *dbname)
     vely_trim (dbname, &l);
 
     // dbname is now pure db conn name
-    if (vely_is_valid_param_name(dbname) != 1)
+    if (vely_is_valid_param_name(dbname, false) != 1)
     {
         _vely_report_error( "Database name must have only alphanumeric characters and underscore");
     }
@@ -1927,7 +1927,7 @@ num define_statement (char **statement, num type)
     }
 
 
-    if (is_def_result == 1 && vely_is_valid_param_name(*statement) != 1)
+    if (is_def_result == 1 && vely_is_valid_param_name(*statement, false) != 1)
     {
         _vely_report_error(VV_NAME_INVALID, *statement);
     }
@@ -5156,7 +5156,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                                         // since we have 'i' up above already set to point in line
                         num var_len = strlen (var);
                         vely_trim (var, &var_len);
-                        if (vely_is_valid_param_name(var) != 1)
+                        if (vely_is_valid_param_name(var, false) != 1)
                         {
                             _vely_report_error(VV_NAME_INVALID, var);
                         }
@@ -5219,7 +5219,13 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         // 1 means good hierarchical path, reqname is it; or 3 means no /, so reqname is a copy of mtext
                         if (decres != 1 && decres != 3) _vely_report_error( "request path in request-handler is not valid (does it start with forward slash?)");
 
-                        if (vely_is_valid_param_name(reqname) != 1) _vely_report_error( "request path in request-handler is not valid, it can have only alphanumeric characters, dashes, underscores and forward slashes, and cannot start with a digit");
+                        if (vely_is_valid_param_name(reqname, false) != 1) _vely_report_error( "request path in request-handler is not valid, it can have only alphanumeric characters, hyphens, underscores and forward slashes, and cannot start with a digit");
+
+                        // check reqname and file_name match and that file_name doesn't start with underscore
+                        if (file_name[0] == '_')  _vely_report_error( "Non-request file [%s] (starting with underscore) cannot implement a request handler", file_name);
+                        char *dot = strchr (file_name, '.');
+                        if (dot == NULL)  _vely_report_error( "Source file name [%s] must have .vely extension", file_name);
+                        if (strncmp (reqname, file_name, dot - file_name)) _vely_report_error( "Source file name [%.*s] does not match request handler name [%s]", (int)(dot-file_name), file_name, reqname);
 
                         oprintf ("void %s () {\n", reqname);
                         continue;
@@ -5298,7 +5304,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                                         // since we have 'i' up above already set to point in line
                         num var_len = strlen (var);
                         vely_trim (var, &var_len);
-                        if (vely_is_valid_param_name(var) != 1)
+                        if (vely_is_valid_param_name(var, false) != 1)
                         {
                             _vely_report_error(VV_NAME_INVALID, var);
                         }
@@ -6137,9 +6143,9 @@ int main (int argc, char* argv[])
                 exit (1);
             }
             VV_STRDUP (vely_app_name, argv[i+1]);
-            if (vely_is_valid_param_name(vely_app_name) != 1)
+            if (vely_is_valid_param_name(vely_app_name, true) != 1)
             {
-                _vely_report_error( "Application name must have only alphanumeric characters and underscore, found [%s]", vely_app_name);
+                _vely_report_error( "Application name must have only alphanumeric characters, hyphens or underscores, found [%s]", vely_app_name);
             }
             i++; // skip db location now
             continue;

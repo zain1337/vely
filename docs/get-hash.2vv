@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-get-hash \-  (hash_table)
+get-hash \-  (hash-table)
 .SH PURPOSE
 Get usage specifics for a hash table.
 

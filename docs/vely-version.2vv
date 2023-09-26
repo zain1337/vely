@@ -1,0 +1,43 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+vely-version \- Vely documentation (general)
+.SH DESCRIPTION
+To display the Vely version you're working with:
+
+.RS 4
+.EX
+
+vv -v
+
+.EE
+.RE
+
+The output may look something like this, indicating full version (major, minor and release), the distribution and copyright:
+
+.RS 4
+.EX
+
+Vely 18.2.2 on ubuntu (22)
+Copyright (c) 2019-2023 Dasoftver LLC
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - General
+
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
+\fBSELinux\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
+\fBvf\fP  
+\fBvv\fP    
+See all 
+\fBdocumentation\fP

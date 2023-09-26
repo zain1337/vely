@@ -1,0 +1,33 @@
+// Copyright 2018 DaSoftver LLC.
+#include "vely.h" 
+
+// Download a file
+request-handler /download 
+    // Show or download a file (its ID is in the database)
+    input-param file_id
+
+    // get the local path and extension of the file
+    run-query @db_file_manager= \
+        "select localPath,extension from files where fileID='%s'" \
+        input file_id \
+        output define local_path, ext \
+        row-count define num_files 
+
+            // display JPG or PDF files in the browser, or download any other kind
+            if (!strcmp (ext, ".jpg")) {
+                send-file local_path headers content-type "image/jpg"
+            } else if (!strcmp (ext, ".pdf")) {
+                send-file local_path headers content-type "application/pdf"
+            } else {
+                send-file local_path headers content-type "application/octet-stream" download
+            }
+    end-query
+
+    // check we can find the file
+    if (num_files != 1) {
+        out-header default
+        @Cannot find this file!<hr/>
+        return;
+    }
+
+end-request-handler

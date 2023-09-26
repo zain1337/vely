@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-exit-request \-  (program_flow)
+exit-request \-  (program-flow)
 .SH PURPOSE
 Exit current request processing.
 
@@ -15,9 +15,9 @@ exit-request
 .RE
 
 .SH DESCRIPTION
-Exits current request by transferring control directly after the top-level \fBrequest\fP dispatcher. If there is an \fBafter_request_handler\fP, it will still execute, unless exit-request is called from \fBbefore_request_handler\fP. exit-request will have no effect in \fBstartup_handler\fP because that handler runs before any requests. 
+Exits current request by transferring control directly after the top-level \fBrequest\fP dispatcher. If there is an \fBafter-request-handler\fP, it will still execute, unless exit-request is called from \fBbefore-request-handler\fP. exit-request will have no effect in \fBstartup-handler\fP because that handler runs before any requests. 
 
-exit-request is useful when your request handler has called other functions (i.e. those implemented in \fBnon_request\fP source files), which may have called others (etc.), and there is no need to return in the reverse order, nor to pass any further data back to them; in which case returning one step at a time may be cumbersome and error prone.
+exit-request is useful when your request handler has called other functions (i.e. those implemented in \fBnon-request\fP source files), which may have called others (etc.), and there is no need to return in the reverse order, nor to pass any further data back to them; in which case returning one step at a time may be cumbersome and error prone.
 
 In other words, exit-request jumps to the top-level request dispatcher, and the stack of functions called to get to exit-request will be bypassed, thus those functions will not get control back; and they will not perform any additional work, rather simply the next \fBrequest\fP will be processed immediately.
 

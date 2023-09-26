@@ -1,0 +1,223 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-docker \- Vely documentation (examples)
+.SH DESCRIPTION
+The following is a bash script that will create a base Vely image as well as a base image for a Vely application, and setup Apache server and MariaDB database. To run this example, you must have Docker, Apache and MariaDB installed on Ubuntu 20 and up or Red Hat 9 or up. You can use \fBdocker\fP or \fBpodman\fP (substitute podman for docker).
+
+To run this example on Ubuntu:
+
+.RS 4
+.EX
+
+tar xvf /usr/share/vely/examples/velydocker.tar.gz
+cd velydocker
+export DBROOTPWD="<mariadb root database pwd>"
+export VV_APACHE_CONFIG="/etc/apache2/apache2.conf"
+export VV_APACHE_SERVICE="apache2"
+\[char46]/runvelydocker
+
+.EE
+.RE
+
+DBROOTPWD environment variable should have a MariaDB root database password (or empty if passwordless). VV_APACHE_CONFIG should be the location of Apache configuration file, and VV_APACHE_SERVICE the name of Apache service. You must have sudo privilege to run this example. The settings above are for Ubuntu/Debian, but you can change them for other distros.
+
+The script will create a container with your application installed. You can remove the application source code from the container in "runit" script in order to distribute only the application binaries. You can then run this container on any machine. 
+
+Note that Vely demo application source code being containerized is in "docker" directory. You can replace it with your own source code; see \fBapplication-setup\fP on building application with Vely. 
+
+Once the image is built and container started, use the following link(s) to run it, or if you can't, use curl to see the demo application response (the demo is \fBexample-stock\fP):
+
+.RS 4
+.EX
+
+\[char35]Add stock ticker 'XYZ' with stock price 450 
+http://127.0.0.1/velydemo/docker_stock?action=add&stock_name=XYZ&stock_price=450
+
+\[char35]Display list of stock tickers 
+http://127.0.0.1/velydemo/docker_stock?action=show
+
+.EE
+.RE
+
+.RE
+
+
+.SH FILES
+File Dockerfile:
+
+.RS 4
+.EX
+
+\[char35]
+\[char35] Create base vely image. Install Vely on top of Ubuntu 20.04
+\[char35]
+FROM ubuntu:20.04
+ENV TZ=America/Phoenix
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt update
+RUN apt install -y apt-transport-https ca-certificates wget sudo
+RUN wget  -qO - https://vely.dev//pkg/OPENPGP|sudo tee /usr/share/keyrings/vely.asc >/dev/null
+ARG arch
+RUN sudo bash -c "echo 'deb [signed-by=/usr/share/keyrings/vely.asc] https://vely.dev//pkg/ubuntu_20_$arch/latest ubuntu_20_$arch vely' >/etc/apt/sources.list.d/vely.list"
+RUN sudo apt update
+RUN sudo apt install -y vely
+
+.EE
+.RE
+
+File velyapp.dockerfile:
+
+.RS 4
+.EX
+
+\[char35]
+\[char35] Create image that will be used to compile and link an application. Source code is copied from host,
+\[char35] application is setup, and the source code is deleted (remove this step if you want to ship the source code).
+\[char35] After that the image is ready to run in a container. Here, the application name is "velydemo"; change it to
+\[char35] fit your application. The port used in 2300, you can change that as well.
+\[char35] Customize the ENTRYPOINT command to fit your runtime.
+\[char35]
+FROM vely
+\[char35] create vely user and give it limited sudo powers
+RUN useradd -ms /bin/bash vely && echo "vely:vely" | chpasswd 
+RUN echo "vely ALL=(ALL) NOPASSWD: /usr/bin/vf" >> /etc/sudoers
+\[char35] default user
+USER vely
+\[char35] default working dir
+WORKDIR /home/vely
+EXPOSE 2300
+\[char35] copy over source code and make app
+COPY ./docker/* /home/vely/
+\[char35] this is to run app with docker run
+ENTRYPOINT [ "./runit" ]
+
+.EE
+.RE
+
+File runvelydocker:
+
+.RS 4
+.EX
+
+\[char35]!/bin/bash
+
+\[char35]
+\[char35] Vely Docker example. 
+\[char35]
+
+\[char35] if you want to rebuild all from scratch, switch CACHE to the commented option
+\[char35] that is useful when installing new Vely version in the base image
+CACHE=""
+\[char35] CACHE="--no-cache"
+
+set -eE -o functrace
+trap 'echo "Error: status $?, $(caller), line ${LINENO}"' ERR
+
+
+\[char35]
+\[char35] Build vely base image
+\[char35]
+sudo docker build --build-arg arch=$(uname -m) $CACHE -t vely .
+
+\[char35]
+\[char35] Create persistent named volume for /var/lib/vv in the container
+\[char35]
+sudo docker volume create velyhome
+
+\[char35]
+\[char35] Stop current container(s) and remove current images
+\[char35]
+sudo docker stop velyapp || true
+sudo docker rmi --force velyapp || true
+
+\[char35]
+\[char35] Build a container for your application
+\[char35]
+sudo docker build $CACHE -t velyapp -f velyapp.dockerfile .
+
+\[char35]
+\[char35] Add ProxyPass to Apache configuration on the host to be able to access the application
+\[char35] Web server is on the host for simplicity in this example, but it can be in its own container
+\[char35]
+sudo sed -i "/^ProxyPass \[char92]"\e/velydemo\[char92]" .*$/d" $VV_APACHE_CONFIG
+echo 'ProxyPass "/velydemo" fcgi://127.0.0.1:2300/' | sudo tee -a $VV_APACHE_CONFIG >/dev/null
+sudo a2enmod proxy || true
+sudo a2enmod proxy_fcgi || true
+sudo service $VV_APACHE_SERVICE restart
+
+\[char35]
+\[char35] Create a MariaDB database on the host, setup the user and create database objects (a table in this case).
+\[char35] Database is on the host for simplicity in this example, but it can be in its own container
+\[char35]
+MKDB=$(echo "create database if not exists velydb; 
+create user if not exists velyuser identified by 'pwd';
+grant create,alter,drop,select,insert,delete,update on velydb.* to velyuser;
+use velydb;
+source docker/setup.sql;") 
+
+\[char35]
+\[char35] Execute database setup. 
+\[char35]
+if [ "$DBROOTPWD" == "" ]; then
+    echo $MKDB | sudo mysql
+else
+    echo $MKDB | sudo mysql -u root -p$DBROOTPWD
+fi
+
+mkdir -p $HOME/libvv
+\[char35]
+\[char35] Now that Vely application container is setup, web server and database setup as well, run it in a container.
+\[char35] Note that "host" network interface is used for simplicity.
+sudo docker run --name velyapp -d -v velyhome:/var/lib/vv  --network="host" --rm velyapp 
+
+
+exit 0
+
+.EE
+.RE
+
+File runit:
+
+.RS 4
+.EX
+
+\[char35]!/bin/bash
+\[char35] Create Vely application and run it in foreground for docker
+\[char35] demout has a log of execution
+sudo vf -i -u $(whoami) velydemo
+vv -c
+vv -q --db=mariadb:db -s
+vv -c
+vf -f -w3 -p2300 velydemo > demout
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

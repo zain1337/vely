@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-encode-url \-  (URL_encoding)
+encode-url \-  (URL-encoding)
 .SH PURPOSE
 URL-encode string.
 

@@ -15,7 +15,7 @@ flush-output
 .RE
 
 .SH DESCRIPTION
-Use flush-output statement to flush any pending output to the client (such as \fBFastCGI_command_line_client\fP) or from the \fBcommand_line\fP application. 
+Use flush-output statement to flush any pending output to the client (such as \fBFastCGI-command-line-client\fP) or from the \fBcommand-line\fP application. 
 
 This can be useful if the complete output would take longer to produce and intermittent partial output would be needed.
 
@@ -41,7 +41,7 @@ sleep(20);
 
 \fBfinish-output\fP  
 \fBflush-output\fP  
-\fBoutput_statement\fP  
+\fBoutput-statement\fP  
 \fBp-dbl\fP  
 \fBpf-out\fP  
 \fBpf-url\fP  

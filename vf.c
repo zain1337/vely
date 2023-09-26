@@ -918,7 +918,7 @@ int main(int argc, char **argv)
     }
     num l;
     if ((l = strlen (velyapp)) > 30) exit_error ("Application name [%s] too long", velyapp);
-    for (i = 0; i < l; i++) if (velyapp[i]!='_' && !isalnum(velyapp[i])) exit_error ("Application name can be comprised only of underscore, digits and characters, found [%s]", velyapp);
+    for (i = 0; i < l; i++) if (velyapp[i]!='_' && !isalnum(velyapp[i]) && velyapp[i] != '-') exit_error ("Application name can be comprised only of underscore, hyphen, digits and characters, found [%s]", velyapp);
 
     // Command line checks
     char ipath[VV_MAX_FILELEN];

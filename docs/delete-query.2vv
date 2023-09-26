@@ -21,7 +21,7 @@ However, if "skip-data" clause is used, then the query results will not be delet
 
 Make sure not to delete anything twice. For instance, do not use \fBdelete-mem\fP to delete query data such as error message, column name or results, while using delete-query as well. By the same token, if you use "skip-data", you can use delete-mem to free query results later.
 
-See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 
@@ -41,11 +41,11 @@ delete-query drop_query
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP    

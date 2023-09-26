@@ -72,13 +72,13 @@ If "timeout" clause is specified, call-web will timeout if operation has not com
 .B HTTPS AND CERTIFICATES
 .LP
 
-You can call any valid URL that uses protocol supported by the underlying library (cURL). If you're using https protocol (or any other that requires a SSL/TSL certificate), you can either use the local CA (certificate authority) issued, specify the location of a certificate with "cert" clause, or if you do not want it checked, use "no-cert". By default, the locally installed certificates are used; if the URL you are visiting is not trusted via those certificates, and you still want to visit it, use "no-cert"; and if you do have a no-CA (i.e. self-signed certificate) for that URL, use "cert" to provide it as a file name (either a full path or a name relative to current working directory, see \fBhow_vely_works\fP).
+You can call any valid URL that uses protocol supported by the underlying library (cURL). If you're using https protocol (or any other that requires a SSL/TSL certificate), you can either use the local CA (certificate authority) issued, specify the location of a certificate with "cert" clause, or if you do not want it checked, use "no-cert". By default, the locally installed certificates are used; if the URL you are visiting is not trusted via those certificates, and you still want to visit it, use "no-cert"; and if you do have a no-CA (i.e. self-signed certificate) for that URL, use "cert" to provide it as a file name (either a full path or a name relative to current working directory, see \fBhow-vely-works\fP).
 
 .LP
 .B COOKIES
 .LP
 
-If you'd like to obtain cookies (for example to maintain session or examine their values), use "cookie-jar" clause. <cookie jar> specifies the location of a file holding cookies. Cookies are read from this file (which can be empty or non-existent to begin with) before making a call-web and any changes to cookies are reflected in this file after the call. This way, multiple calls to the same server maintain cookies the same way browser would do. Make sure the same <cookie jar> file is not used across different application spaces, meaning it should be under the application home directory (see \fBhow_vely_works\fP), which is the most likely method of implementation.
+If you'd like to obtain cookies (for example to maintain session or examine their values), use "cookie-jar" clause. <cookie jar> specifies the location of a file holding cookies. Cookies are read from this file (which can be empty or non-existent to begin with) before making a call-web and any changes to cookies are reflected in this file after the call. This way, multiple calls to the same server maintain cookies the same way browser would do. Make sure the same <cookie jar> file is not used across different application spaces, meaning it should be under the application home directory (see \fBhow-vely-works\fP), which is the most likely method of implementation.
 
 .LP
 .B BINARY RESULT
@@ -106,7 +106,7 @@ call-web "http://website.com/app_name/some_request" response resp response-code 
 .EE
 .RE
 
-To include files, use "files" subclause in the form of <file name>=<file location> separated by commas. For example, here "file1" is the file name sent to the client (which can be anything), and local file "uploadtest.jpg" is the file whose contents is sent; and "file23" is the file name sent to the client (which can be anything),  and "fileup4.pdf" is the actual local file read and sent to the client. In this case files are in the application home directory (see \fBhow_vely_works\fP), but in general you can specify a relative or absolute path:
+To include files, use "files" subclause in the form of <file name>=<file location> separated by commas. For example, here "file1" is the file name sent to the client (which can be anything), and local file "uploadtest.jpg" is the file whose contents is sent; and "file23" is the file name sent to the client (which can be anything),  and "fileup4.pdf" is the actual local file read and sent to the client. In this case files are in the application home directory (see \fBhow-vely-works\fP), but in general you can specify a relative or absolute path:
 
 .RS 4
 .EX

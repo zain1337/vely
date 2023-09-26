@@ -19,7 +19,7 @@ open-file <file> file-id [ define ] <file id> \\
 .SH DESCRIPTION
 Opens <file> for reading and writing and creates an open file variable identified by <file id>, which can be created with optional "define". If you supply your own <file id>, it should be of type "vely_file*".
 
-<file> can be a full path name, or a path relative to the application home directory (see \fBhow_vely_works\fP).
+<file> can be a full path name, or a path relative to the application home directory (see \fBhow-vely-works\fP).
 
 You can obtain the status of file opening via optional <status> (in "status" clause), which can be created with optional "define". The <status> is VV_OKAY if file is opened, or VV_ERR_OPEN if could not open file.
 
@@ -66,15 +66,15 @@ close-file file-id nf
 \fBcopy-file\fP  
 \fBdelete-file\fP  
 \fBfile-position\fP  
-\fBfile_storage\fP  
-\fBfile_uploading\fP  
+\fBfile-storage\fP  
+\fBfile-uploading\fP  
 \fBlock-file\fP  
 \fBopen-file\fP  
 \fBread-file\fP  
 \fBread-line\fP  
 \fBrename-file\fP  
 \fBstat-file\fP  
-\fBtemporary_file\fP  
+\fBtemporary-file\fP  
 \fBuniq-file\fP  
 \fBunlock-file\fP  
 \fBwrite-file\fP    

@@ -24,7 +24,7 @@ If query-result is used without "to" clause, then the result is printed out. If 
 
 Without "to" clause, the result can be either not encoded (if "noencode" clause is used), URL encoded (if "urlencode" is used) or web (HTML) encoded (if "webencode" is used) - by default, webencode is used. With "to" clause (i.e. if the result is stored in a variable <result>), then no encoding takes place (you can then use \fBencode-url\fP or \fBencode-web\fP to convert it as desired).
 
-query-result is often used as \fBinline_code\fP, especially when output.
+query-result is often used as \fBinline-code\fP, especially when output.
 
 A NULL value is always represented as an empty string (""). 
 
@@ -55,7 +55,7 @@ end-query
 .EE
 .RE
 
-Using \fBinline_code\fP query-result:
+Using \fBinline-code\fP query-result:
 
 .RS 4
 .EX
@@ -109,11 +109,11 @@ end-query
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP    

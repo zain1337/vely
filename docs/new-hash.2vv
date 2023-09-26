@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-new-hash \-  (hash_table)
+new-hash \-  (hash-table)
 .SH PURPOSE
 Create hash table.
 

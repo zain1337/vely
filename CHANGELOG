@@ -1,14 +1,7 @@
-Vely release notes for 18.3.0
+Vely release notes for 18.4.0
 
-- Notes: major performance improvements along with new features are in this release. Building an application is now about 20% faster. Serving requests is faster across several optimizations, most notable being that there's now a built-in hash table that makes any number of requests being routed virtually as fast as a single one. This is very important for large applications under a heavy load. request-handler statement is added in order to facilitate hierarchical URL paths (such as for REST), making writing and reading code easier. Other improvements in building URL are added as well.
-- Release: fixed spurious output when compiling (vv -q), when there is no source files present.
-- Release: input-param statement now uses an optimization that makes it 2x faster.
-- Release: faster request serving due to refactoring names and values to use a single malloc/realloc.
-- Minor: added request-handler statement to better serve and emphasise request-handling functions, and to allow hierarchy in request names.
-- Minor: allow hierarchical path for a request name; this is very useful for REST or similar methodologies. 
-- Minor: added double paths, such as /param=value/ as another convenient way to build URLs.
-- Release: much faster request routing via hash table that's built into the program data segment. Virtually the same cost to access 1 or 1,000 request handlers.
-- Release: stack dumping when erroring out is now only for debugging builds.
-- Release: making of Vely application is now considerably faster with internal optimizations.
-- Release: added how-to-build-applications article.
+- Notes: minor release that allows hyphens to be used in application name, plus a few minor enhancements. A commonly asked enhancement is implemented here: if the request handler does not match the name of .vely file, emit an error specifically to that effect; previous error was somewhat unrelated to the cause and was confusing.
+- Minor: application name can have a hyphen in it, which is useful for common URL notations (such as REST).
+- Release: vv will report if no request handlers found in the build.
+- Release: vv will show error message if request handler does not match the name of .vely file
 

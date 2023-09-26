@@ -15,7 +15,7 @@ p-path [ bytes-written [ define ] <bytes written>
 .RE
 
 .SH DESCRIPTION
-p-path outputs a URL application path (see \fBrequest_URL\fP), i.e. the leading path segment(s) prior to request name.
+p-path outputs a URL application path (see \fBrequest-URL\fP), i.e. the leading path segment(s) prior to request name.
 
 If no "--path" option in \fBvv\fP is used to specify URL application path, then it is the same as application name prepended with a forward slash:
 
@@ -60,7 +60,7 @@ In HTML forms:
 
 \fBfinish-output\fP  
 \fBflush-output\fP  
-\fBoutput_statement\fP  
+\fBoutput-statement\fP  
 \fBp-dbl\fP  
 \fBpf-out\fP  
 \fBpf-url\fP  

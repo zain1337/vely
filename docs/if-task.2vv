@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-if-task \-  (request_information)
+if-task \-  (request-information)
 .SH PURPOSE
 Select a request's task to process.
 

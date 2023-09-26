@@ -49,9 +49,9 @@ printf ("%lld\en",
 .B - Language
 
 \fBdot\fP  
-\fBinline_code\fP  
-\fBstatement_APIs\fP  
-\fBsyntax_highlighting\fP  
+\fBinline-code\fP  
+\fBstatement-APIs\fP  
+\fBsyntax-highlighting\fP  
 \fBunused-var\fP    
 See all 
 \fBdocumentation\fP

@@ -2,13 +2,13 @@
 .SH NAME
 request \- Vely documentation (requests)
 .SH DESCRIPTION
-Vely application runs by processing requests. A request always takes form of an HTTP request, meaning a URL and an optional HTTP request body. This is regardless of whether it's an \fBapplication server\fP or a \fBcommand_line\fP application. See \fBrequest_URL\fP for more details on the structure of a URL, and \fBbuilding_URL\fP on using URL in your application.
+Vely application runs by processing requests. A request always takes form of an HTTP request, meaning a URL and an optional HTTP request body. This is regardless of whether it's an \fBapplication server\fP or a \fBcommand-line\fP application. See \fBrequest-URL\fP for more details on the structure of a URL, and \fBbuilding-URL\fP on using URL in your application.
 
-\fBvely_dispatch_request\fP (a main Vely request dispatcher) uses request name to execute the appropriate function that handles the request.
+\fBvely-dispatch-request\fP (a main Vely request dispatcher) uses request name to execute the appropriate function that handles the request.
 
 This handling is based on the names of .vely files, i.e. source code files that make up your application. The request name always matches the file name that implements it. 
 
-So for example, file "get_stock.vely" handles request "get_stock" by implementing a function "void get_stock()" in it (the implementation is done by using \fBrequest-handler\fP). A request that is meant to call this function would have "/get_stock" in its URL path right after the application path (see \fBrequest_URL\fP). The routing of this request to the namesake function will be done automatically by Vely. For instance, if application name is "trading" and request name "get_stock", such request would be called by URL like (note that hyphens are converted to underscores, so "get-stock" is the same as "get_stock"):
+So for example, file "get_stock.vely" handles request "get_stock" by implementing a function "void get_stock()" in it (the implementation is done by using \fBrequest-handler\fP). A request that is meant to call this function would have "/get_stock" in its URL path right after the application path (see \fBrequest-URL\fP). The routing of this request to the namesake function will be done automatically by Vely. For instance, if application name is "trading" and request name "get_stock", such request would be called by URL like (note that hyphens are converted to underscores, so "get-stock" is the same as "get_stock"):
 
 .RS 4
 .EX
@@ -31,29 +31,29 @@ end-request-handler
 .EE
 .RE
 
-If the name of .vely file starts with an underscore ("_"), then it is a \fBnon_request\fP file and it will not handle a request. See \fBhow_vely_works\fP.
+If the name of .vely file starts with an underscore ("_"), then it is a \fBnon-request\fP file and it will not handle a request. See \fBhow-vely-works\fP.
 
 .LP
 .B TASKS
 .LP
 
-A request can have any number of input parameters, and based on some of them, perform one or more tasks. See \fBtask-param\fPeters. In general, selecting what exactly will be done within a request is determined by a request name and optional \fBtask-param\fPeter values within the request. Often, a request performs a single task. See \fBapplication_architecture\fP.
+A request can have any number of input parameters, and based on some of them, perform one or more tasks. See \fBtask-param\fPeters. In general, selecting what exactly will be done within a request is determined by a request name and optional \fBtask-param\fPeter values within the request. Often, a request performs a single task. See \fBapplication-architecture\fP.
 .SH SEE ALSO
  
 .B - Requests
 
-\fBafter_request_handler\fP  
-\fBbefore_request_handler\fP  
-\fBbuilding_URL\fP  
+\fBafter-request-handler\fP  
+\fBbefore-request-handler\fP  
+\fBbuilding-URL\fP  
 \fBend-request-handler\fP  
-\fBgetting_URL\fP  
-\fBglobal_request_data\fP  
-\fBnon_request\fP  
-\fBnormalized_URL\fP  
+\fBgetting-URL\fP  
+\fBglobal-request-data\fP  
+\fBnon-request\fP  
+\fBnormalized-URL\fP  
 \fBrequest\fP  
 \fBrequest-handler\fP  
-\fBrequest_URL\fP  
-\fBstartup_handler\fP  
-\fBvely_dispatch_request\fP    
+\fBrequest-URL\fP  
+\fBstartup-handler\fP  
+\fBvely-dispatch-request\fP    
 See all 
 \fBdocumentation\fP

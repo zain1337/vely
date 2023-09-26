@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-set-input \-  (request_information)
+set-input \-  (request-information)
 .SH PURPOSE
 Set or overwrite input parameters.
 

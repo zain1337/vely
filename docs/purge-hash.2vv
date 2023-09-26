@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-purge-hash \-  (hash_table)
+purge-hash \-  (hash-table)
 .SH PURPOSE
 Purge hash table.
 
@@ -21,7 +21,7 @@ After purge-hash, the hash is empty and you can use it without calling \fBnew-ha
 
 If you use "delete" clause, then all the internal memory of a <hash> is freed, and you must call \fBnew-hash\fP in order to use it again; in this case all statistics are reset.
 
-See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 Create hash, put some data in it and then delete the data:

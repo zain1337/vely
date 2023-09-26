@@ -4,7 +4,7 @@
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    18.3.0
+Version:    18.4.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC

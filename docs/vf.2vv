@@ -27,7 +27,7 @@ vf runs as a light-weight daemon (often requiring only 100-150K of resident RAM)
 
 vf will re-start FCGI processes that exited or died, keeping the number of processes as specified, unless -n option is used. The number of worker FCGI processes can be specified with a fixed (-w) option, or it can dynamically change based on the load (-d option), including none at all. Hence, it is possible to have no worker processes at all, and they will be started when incoming request(s) come in.
 
-Your FCGI program must handle SIGTERM signal and gracefully exit, meaning exit by completing the request that may be executing when SIGTERM was received. See \fBplain_C_FCGI\fP example.
+Your FCGI program must handle SIGTERM signal and gracefully exit, meaning exit by completing the request that may be executing when SIGTERM was received. See \fBplain-C-FCGI\fP example.
 
 <options> are:
 
@@ -62,14 +62,14 @@ Run in the foreground. The process does not return to the command line prompt un
 .RS 4
 \[bu]    
 -p <port number>
-TCP/IP port number your FCGI program will listen on (and accept connections), if you are using TCP/IP. You typically need to specify ProxyPass, "location" or similar FCGI directives in your proxy web server so it can connect to your application. If you are using \fBFastCGI_API\fP or \fBcall-server\fP, you would use "<host name>:<port number>", for instance "127.0.0.1:2301" if the server is local and <port number> is 2301. You can either use TCP/IP or Unix domain sockets (-x option). Typically, you would use Unix domain sockets if proxy web server runs on the same computer as your application server. If you specify neither -x nor -p, -x (unix domain socket) is assumed to be used. See \fBSELinux\fP if you are using it, as additional steps may be required.
+TCP/IP port number your FCGI program will listen on (and accept connections), if you are using TCP/IP. You typically need to specify ProxyPass, "location" or similar FCGI directives in your proxy web server so it can connect to your application. If you are using \fBFastCGI-API\fP or \fBcall-server\fP, you would use "<host name>:<port number>", for instance "127.0.0.1:2301" if the server is local and <port number> is 2301. You can either use TCP/IP or Unix domain sockets (-x option). Typically, you would use Unix domain sockets if proxy web server runs on the same computer as your application server. If you specify neither -x nor -p, -x (unix domain socket) is assumed to be used. See \fBSELinux\fP if you are using it, as additional steps may be required.
 
 .RE
 
 .RS 4
 \[bu]    
 -x
-Use Unix domain socket to connect from proxy web server to your application server. This socket is automatically created by vf and its full path name is "/var/lib/vv/<app name>/sock/sock" (you can connect to it via \fBFastCGI_API\fP, \fBcall-server\fP etc.). When using a proxy web server (like Apache or Nginx), you typically need to specify ProxyPass, "location" or similar FCGI directives so it can connect to your application. If you specify neither -x nor -p (TCP/IP socket), then -x (unix domain socket) is assumed to be used.
+Use Unix domain socket to connect from proxy web server to your application server. This socket is automatically created by vf and its full path name is "/var/lib/vv/<app name>/sock/sock" (you can connect to it via \fBFastCGI-API\fP, \fBcall-server\fP etc.). When using a proxy web server (like Apache or Nginx), you typically need to specify ProxyPass, "location" or similar FCGI directives so it can connect to your application. If you specify neither -x nor -p (TCP/IP socket), then -x (unix domain socket) is assumed to be used.
 
 .RE
 
@@ -339,16 +339,16 @@ The file should be saved as <app name>.service (or similar). Once saved, you can
  
 .B - General
 
-\fBabout_Vely\fP  
-\fBapplication_architecture\fP  
-\fBdeploying_application\fP  
-\fBhow_vely_works\fP  
-\fBquality_control\fP  
-\fBrename_files\fP  
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
 \fBSELinux\fP  
-\fBvely_architecture\fP  
-\fBvely_removal\fP  
-\fBvely_version\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

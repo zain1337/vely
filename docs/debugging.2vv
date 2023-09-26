@@ -18,7 +18,7 @@ vv -e 3
 .EE
 .RE
 
-You can use \fBtrace-run\fP statement to create run-time traces (see \fBhow_vely_works\fP for directory location). To quickly find the location of recently written-to trace files, use -t option of \fBvv\fP, for example for 5 most recently used trace files:
+You can use \fBtrace-run\fP statement to create run-time traces (see \fBhow-vely-works\fP for directory location). To quickly find the location of recently written-to trace files, use -t option of \fBvv\fP, for example for 5 most recently used trace files:
 
 .RS 4
 .EX
@@ -34,7 +34,7 @@ Use \fBget-req\fP to get the trace file location at run-time from your applicati
 .B OUTPUT FROM FASTCGI APPLICATION WITHOUT WEB SERVER
 .LP
 
-Use \fBFastCGI_command_line_client\fP to send request and receive reply from your \fBFastCGI\fP server processes from command line. This is useful in debugging issues and automating tests.
+Use \fBFastCGI-command-line-client\fP to send request and receive reply from your \fBFastCGI\fP server processes from command line. This is useful in debugging issues and automating tests.
 
 .LP
 .B ISSUES IN STARTING VF
@@ -164,7 +164,7 @@ if (some condition)  {
 .EE
 .RE
 
-See \fBexample_hello_world\fP for an example in debugging and tracing.
+See \fBexample-hello-world\fP for an example in debugging and tracing.
 .SH SEE ALSO
  
 .B - Debugging

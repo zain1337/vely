@@ -1,0 +1,447 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-sendmail \- Vely documentation (examples)
+.SH DESCRIPTION
+Sending mail
+Sending email through web interface demonstrates web input of From, To, Subject and Message fields for an email, and the submittal of the form that sends an email, with confirmation displayed.
+
+In a nutshell:  web browser; Apache; Unix sockets; 1 source files, 78 lines of code.
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+An HTML form will accept the necessary information to send an email. Your server must be enabled to send email via Internet; if not, you can send email to localhost (i.e. to users on your own computer) and for that you must have an MTA like sendmail installed:
+(Image sendmail_enter.png not available in man page, see web page documentation)
+Once email is sent, a confirmation is sent to the user.:
+(Image sendmail_sent.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because it is used in this example, you will need to install \fBApache\fP as a web server.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/sendmail.tar.gz
+cd sendmail
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "sendmail", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) sendmail
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/sendmail") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q 
+
+.EE
+.RE
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 sendmail
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf sendmail
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+If you want to stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit sendmail
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+
+.B - Step 1
+:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+
+.B - Step 2
+:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/sendmail" is the application path (see \fBrequest-URL\fP) and "sendmail" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/sendmail" unix:///var/lib/vv/sendmail/sock/sock|fcgi://localhost/sendmail
+
+.EE
+.RE
+
+
+.B - Step 3
+:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+Note: you must not have any other URL resource that starts with "/sendmail" (such as for example "/sendmail.html" or "/sendmail_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/sendmail", see \fBrequest-URL\fP.
+
+
+.LP
+.B SETUP LOCAL MAIL
+.LP
+
+This example uses email as a part of its function. If your server already has capability to send email, you can skip this.
+
+Otherwise, you can use local mail, and that means email addresses such as "myuser@localhost". To do that, install postfix (or sendmail). On Debian systems (like Ubuntu):
+
+.RS 4
+.EX
+
+sudo apt install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+and on Fedora systems (like RedHat):
+
+.RS 4
+.EX
+
+sudo dnf install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+When the application sends an email to a local user, such as <OS user>@localhost, then you can see the email sent at:
+
+.RS 4
+.EX
+
+sudo vi /var/mail/<OS user>
+
+.EE
+.RE
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest-URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35] Display a send-mail form 
+http://127.0.0.1/sendmail/mail?action=show_form
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this application:
+
+.B - Send email on the web (mail.vely)
+
+Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
+
+This shows usage of "%%" as a shortcut for \fBrequest-handler\fP, as well as using just the request name ("mail") instead of a request path (which would be "/mail").
+
+Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix or sendmail), and your computer must be authorized to send email on the internet. Otherwise you can test this by sending emails to your localhost.
+
+.RS 4
+.EX
+
+
+//
+// Send email example
+// 
+
+\[char35]include "vely.h" 
+
+%% mail
+
+    out-header default
+
+    task-param action
+
+    if-task "show_form"
+
+        // Display HTML form to input email details. Here we will set the 'action' parameter
+        // to 'submit_form'. This way, when the user submits the form, such a request would
+        // come back here and the code under else-if-string checking for 'submit_form' (below)
+        // would execute
+
+        @<h2>Enter email and click Send to send it</h2>
+        @Note: 'From' field must be the email address from the domain of your server.<br/><br/>
+
+        @<form action="<<p-path>>/mail" method="POST">
+        @    <input type="hidden" name="action" value="submit_form">
+
+        @    <label for="from_mail">From:</label><br>
+        @    <input type="text" name="from_mail" value=""><br>
+        
+        @    <label for="to_mail">To:</label><br>
+        @    <input type="text" name="to_mail" value=""><br><br>
+        
+        @    <label for="subject_mail">Subject:</label><br>
+        @    <input type="text" name="subject_mail" value=""><br><br>
+        
+        @    <label for="message">Message:</label><br>
+        @    <textarea name="message" rows="3" columns="50"></textarea>
+
+        @    <br/><br/>
+        
+        @    <input type="submit" value="Send">
+        @</form>
+        
+    else-task "submit_form"
+
+        // Send email using data from the form. This code is called from the form above.
+        // Effectively, in this file we have the code to display the form and the code
+        // to handle its submission (below).
+
+        input-param from_mail
+        input-param to_mail
+        input-param message
+        input-param subject_mail
+
+        write-string define msg
+        @From: <<p-out from_mail>>
+        @To: <<p-out to_mail>>
+        @Subject: <<p-out subject_mail>>
+        @
+        <<p-out message>>
+        end-write-string
+        num st;
+        exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status st
+        if (st!=0) {
+            @Could not send email!
+        } else {
+            @Email sent!
+        }
+        @<hr/>
+
+    else-task other
+        @Unrecognized action!<hr/>
+    end-task
+
+%%
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

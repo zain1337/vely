@@ -17,7 +17,7 @@ end-request-handler
 .RE
 
 .SH DESCRIPTION
-request-handler starts the implementation of a \fBrequest\fP handler for <request path> (see \fBrequest_URL\fP), which is <any code> up to end-request-handler. <request path> is not quoted.
+request-handler starts the implementation of a \fBrequest\fP handler for <request path> (see \fBrequest-URL\fP), which is <any code> up to end-request-handler. <request path> is not quoted.
 
 A <request path> can be a request name (i.e. without any forward slashes) or a path consisting of any number of path segments. A request path can have alphanumeric characters, hyphens, underscores and forward slashes, and can start only with an alphabetic character or a forward slash.
 
@@ -58,18 +58,18 @@ Another way to write this is:
  
 .B - Requests
 
-\fBafter_request_handler\fP  
-\fBbefore_request_handler\fP  
-\fBbuilding_URL\fP  
+\fBafter-request-handler\fP  
+\fBbefore-request-handler\fP  
+\fBbuilding-URL\fP  
 \fBend-request-handler\fP  
-\fBgetting_URL\fP  
-\fBglobal_request_data\fP  
-\fBnon_request\fP  
-\fBnormalized_URL\fP  
+\fBgetting-URL\fP  
+\fBglobal-request-data\fP  
+\fBnon-request\fP  
+\fBnormalized-URL\fP  
 \fBrequest\fP  
 \fBrequest-handler\fP  
-\fBrequest_URL\fP  
-\fBstartup_handler\fP  
-\fBvely_dispatch_request\fP    
+\fBrequest-URL\fP  
+\fBstartup-handler\fP  
+\fBvely-dispatch-request\fP    
 See all 
 \fBdocumentation\fP

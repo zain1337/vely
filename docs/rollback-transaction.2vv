@@ -21,7 +21,7 @@ rollback-transaction will roll back a transaction started with \fBbegin-transact
 .B DATABASE
 .LP
 
-Optional <database> is specified in "@" clause and is the name of the \fBdatabase_config_file\fP. 
+Optional <database> is specified in "@" clause and is the name of the \fBdatabase-config-file\fP. 
 
 .LP
 .B ERROR HANDLING
@@ -33,7 +33,7 @@ The error code is available in  <error> variable in optional "error" clause - th
 
 <error> and <error text> can be created with optional "define".
 
-Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP).
+Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror-handling\fP).
 
 .SH EXAMPLES
 
@@ -55,11 +55,11 @@ rollback-transaction @mydb
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP    

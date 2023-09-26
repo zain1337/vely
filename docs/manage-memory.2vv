@@ -15,7 +15,7 @@ manage-memory [ on | off | <expression> ]
 .RE
 
 .SH DESCRIPTION
-By default, Vely memory is managed - this means any outstanding memory used by your request will be freed when the request ends (see \fBmemory_handling\fP). You can change this behavior for a time by using manage-memory.
+By default, Vely memory is managed - this means any outstanding memory used by your request will be freed when the request ends (see \fBmemory-handling\fP). You can change this behavior for a time by using manage-memory.
 
 If "on" clause is used, any memory allocated afterwards by any Vely statement is freed automatically (the default behavior). This is managed memory mode.
 
@@ -31,11 +31,11 @@ If memory is unmanaged, you can use other memory handling statements on such mem
 
 .B - Scope
 
-manage-memory has effect in the current request only. Regardless of whether managed or unmanaged memory was used last before the request ended, both the \fBafter_request_handler\fP and the following request will run with the default behavior (i.e. managed). This is true even when your request exits with \fBexit-request\fP or \fBreport-error\fP.
+manage-memory has effect in the current request only. Regardless of whether managed or unmanaged memory was used last before the request ended, both the \fBafter-request-handler\fP and the following request will run with the default behavior (i.e. managed). This is true even when your request exits with \fBexit-request\fP or \fBreport-error\fP.
 
-If you have a \fBstartup_handler\fP, you can use unmanaged memory; once the execution returns from the startup handler, all memory requests will be managed again.
+If you have a \fBstartup-handler\fP, you can use unmanaged memory; once the execution returns from the startup handler, all memory requests will be managed again.
 
-If you have a \fBbefore_request_handler\fP or \fBafter_request_handler\fP, you can use unmanaged memory; once the execution returns from either handler, it will be managed again.
+If you have a \fBbefore-request-handler\fP or \fBafter-request-handler\fP, you can use unmanaged memory; once the execution returns from either handler, it will be managed again.
 
 
 .B - Request data
@@ -45,7 +45,7 @@ Note that request-specific variables provided by Vely are always managed interna
 
 .B - Using
 
-You may want to store managed memory pointers in \fBglobal_process_data\fP in order to be useful across many requests - this is one purpose of unmanaged memory. Another is to use with external C APIs.
+You may want to store managed memory pointers in \fBglobal-process-data\fP in order to be useful across many requests - this is one purpose of unmanaged memory. Another is to use with external C APIs.
 
 Important: using unmanaged memory carries additional responsibilities for the developer, because any such \fBallocated memory\fP must be explicitly deleted when not needed, or there will be a memory leak. Use it only in special circumstances; its use is generally discouraged otherwise. Such circumstances typically involve data that should survive automatic memory deallocation at the end of the request or with external C API. 
 
@@ -89,7 +89,7 @@ manage-memory on
 
 \fBdelete-mem\fP  
 \fBmanage-memory\fP  
-\fBmemory_handling\fP  
+\fBmemory-handling\fP  
 \fBnew-mem\fP  
 \fBresize-mem\fP    
 See all 

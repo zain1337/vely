@@ -726,8 +726,8 @@ function docdir() {
 function check_name() {
 #$1 is the name
 #$2 is the type of it (used in error message)
-    if [[ ! "$1" =~ ^[a-zA-Z0-9_]{1,30}$ ]]; then
-        error "$2 name can be made up of alphanumerical characters only and underscore, and its length must be between 1 and 30 characters, found [$1]"
+    if [[ ! "$1" =~ ^[-a-zA-Z0-9_]{1,30}$ ]]; then
+        error "$2 name can be made up of alphanumerical characters only, hyphen or underscore, and its length must be between 1 and 30 characters, found [$1]"
     fi
 }
 
@@ -1018,6 +1018,10 @@ function gen_src() {
 #and for a dispatcher, only request files matter (R is for request files in _SRCFR and _NUMFR)
     _SRCFR=$(echo "$_SRCF" | grep -a -v "^_.*\.vely") || true
     _NUMFR=$(echo $_SRCFR | wc -w)
+
+    if [ "$_NUMFR" == "0" ]; then
+        error "Application must have at least one request-handler .vely file, none found"
+    fi
 
     echo "// SPDX-License-Identifier: EPL-2.0" >>$VV_BLD/$_T.new
     echo "// Copyright 2019 DaSoftver LLC. Written by Sergio Mijatovic." >>$VV_BLD/$_T.new

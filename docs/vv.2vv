@@ -29,11 +29,11 @@ vv <options>
 .RS 4
 \[bu]    
 --db="[#]<database vendor>:<db config file> ..."
-Specify a list of databases used in your application. Each element of the list is <database vendor> (which is 'mariadb', 'postgres' or 'sqlite'), followed by a colon (:) and then <db config file>, where <db config file> is used to refer to a database in \fBstatement_APIs\fP such as \fBrun-query\fP. 
+Specify a list of databases used in your application. Each element of the list is <database vendor> (which is 'mariadb', 'postgres' or 'sqlite'), followed by a colon (:) and then <db config file>, where <db config file> is used to refer to a database in \fBstatement-APIs\fP such as \fBrun-query\fP. 
 
-Each <database vendor>:<db config file> is separated by a space. You can list any number of databases for use in your application. A file with name <db config file> must exist and contain the connection parameters for database access, and is copied once to Vely's database configuration directory (see \fBhow_vely_works\fP). 
+Each <database vendor>:<db config file> is separated by a space. You can list any number of databases for use in your application. A file with name <db config file> must exist and contain the connection parameters for database access, and is copied once to Vely's database configuration directory (see \fBhow-vely-works\fP). 
 
-If an optional "#" precedes <database vendor>, then database configuration file is overwritten even if already present. See \fBdatabase_config_file\fP for more details on the content of this file, the defaults used, and changing them to fit your needs.
+If an optional "#" precedes <database vendor>, then database configuration file is overwritten even if already present. See \fBdatabase-config-file\fP for more details on the content of this file, the defaults used, and changing them to fit your needs.
 
 .RE
 
@@ -61,7 +61,7 @@ If specified, tracing information code will be generated (without it, tracing is
 .RS 4
 \[bu]    
 --path=<application path>
-This option lets you specify the application path for your \fBrequest_URL\fPs. It is a leading path of a URL prior to request name and any parameters. If empty, the default is the application name preceded by a forward slash:
+This option lets you specify the application path for your \fBrequest-URL\fPs. It is a leading path of a URL prior to request name and any parameters. If empty, the default is the application name preceded by a forward slash:
 
 .RS 4
 .EX
@@ -123,7 +123,7 @@ Do not use color-coded and more detailed Vely diagnostic output. While rare, you
 .RS 4
 \[bu]    
 -i
-Display both include and linking flags for an application that uses \fBFastCGI_API\fP to connect to Vely \fBFastCGI\fP server. The flags are for C compiler (gcc). If --include is used in addition, then only include flags are displayed. If --link is used in addition, then only linking flags are displayed. Use this to automate building of client applications with tools like Makefile.
+Display both include and linking flags for an application that uses \fBFastCGI-API\fP to connect to Vely \fBFastCGI\fP server. The flags are for C compiler (gcc). If --include is used in addition, then only include flags are displayed. If --link is used in addition, then only linking flags are displayed. Use this to automate building of client applications with tools like Makefile.
 
 .RE
 
@@ -179,7 +179,7 @@ Display CHANGELOG (i.e. release notes) for the current release.
 .RS 4
 \[bu]    
 -r [ --req="/<request name>[<url payload>]" [ --app="application path" ] [ --server [ --remote="server:port" ] [ --socket="socket path" ] ] [ --exec ] [ --method="<request method>" ] [ --content="<input file>" --content-type="<content type>" ] [ --silent-header ]
-Display or execute bash code to run a command-line program. If you are not in application's source directory (see \fBhow_vely_works\fP), then you must specify "--app" option to supply the application path (typically "/<application name>", see \fBrequest_URL\fP). You can use "--req" option to specify the request name and an optional URL payload (see \fBrequest_URL\fP), for example it may be:
+Display or execute bash code to run a command-line program. If you are not in application's source directory (see \fBhow-vely-works\fP), then you must specify "--app" option to supply the application path (typically "/<application name>", see \fBrequest-URL\fP). You can use "--req" option to specify the request name and an optional URL payload (see \fBrequest-URL\fP), for example it may be:
 
 .RS 4
 .EX
@@ -223,7 +223,7 @@ vv -r --req="/encrypt/data/somedata?method=aes256" --method=POST
 
 If not specified, the default method is "GET". 
 
-If "--server" is not used, then bash code will invoke a \fBcommand_line\fP program. If "--server" is used, then \fBFastCGI_command_line_client\fP will call a \fBFastCGI\fP application server; in this case if "--remote" is not specified, a local Unix socket is used to contact the server, otherwise "server:port" specified in "--remote" is the IP/name and port of the server to call, separated by a colon (":"). In case of a local Unix socket, the socket path is by default "/var/lib/vv/<app name>/sock/sock", where "/<app name>" is given by the last path segment in "--app" option, or if not specified it is derived from the name of a Vely application built in the current directory; otherwise the socket path is given by "--socket" option.
+If "--server" is not used, then bash code will invoke a \fBcommand-line\fP program. If "--server" is used, then \fBFastCGI-command-line-client\fP will call a \fBFastCGI\fP application server; in this case if "--remote" is not specified, a local Unix socket is used to contact the server, otherwise "server:port" specified in "--remote" is the IP/name and port of the server to call, separated by a colon (":"). In case of a local Unix socket, the socket path is by default "/var/lib/vv/<app name>/sock/sock", where "/<app name>" is given by the last path segment in "--app" option, or if not specified it is derived from the name of a Vely application built in the current directory; otherwise the socket path is given by "--socket" option.
 
 By default, the output from a command-line program is the same as from an application server, meaning it will have the HTTP headers. If you don't want those to appear, use "--silent-header" option.
 
@@ -261,7 +261,7 @@ export QUERY_STRING="method=aes256"
 .EE
 .RE
 
-If you copy the above and paste into bash shell, it will execute the command line program which handles the request specified. Note that SCRIPT_NAME will be set to whatever application path you use (i.e. the default or if set with "--path" option when making the application; or with "--app" option here), see \fBrequest_URL\fP. If you use "--exec", then the above output will not show and that same code will automatically execute; this is useful to conveniently execute command-line programs or to call your application servers directly, for instance. It can also be used to call any FastCGI server, like PHP FPM. Examples of using "--exec":
+If you copy the above and paste into bash shell, it will execute the command line program which handles the request specified. Note that SCRIPT_NAME will be set to whatever application path you use (i.e. the default or if set with "--path" option when making the application; or with "--app" option here), see \fBrequest-URL\fP. If you use "--exec", then the above output will not show and that same code will automatically execute; this is useful to conveniently execute command-line programs or to call your application servers directly, for instance. It can also be used to call any FastCGI server, like PHP FPM. Examples of using "--exec":
 
 .RS 4
 .EX
@@ -368,16 +368,16 @@ vv -q
  
 .B - General
 
-\fBabout_Vely\fP  
-\fBapplication_architecture\fP  
-\fBdeploying_application\fP  
-\fBhow_vely_works\fP  
-\fBquality_control\fP  
-\fBrename_files\fP  
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
 \fBSELinux\fP  
-\fBvely_architecture\fP  
-\fBvely_removal\fP  
-\fBvely_version\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

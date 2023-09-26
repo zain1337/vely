@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-call-server \-  (distributed_computing)
+call-server \-  (distributed-computing)
 .SH PURPOSE
 Make a remote server request.
 

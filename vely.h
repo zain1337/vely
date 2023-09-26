@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "18.3.0"
+#define VV_VERSION "18.4.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -755,7 +755,7 @@ num vely_puts_to_string (char *final_out, num final_len);
 char *vely_init_string(char *s);
 num vely_puts (num enc_type, char *s, num len);
 num vely_copy_data_at_offset (char **data, num off, char *value);
-num vely_is_valid_param_name (char *name);
+num vely_is_valid_param_name (char *name, bool hyphen);
 void vely_write_to_string (char **str);
 num vely_write_to_string_length ();
 void vely_write_to_string_notrim ();

@@ -1,0 +1,29 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+rename-files \- Vely documentation (general)
+.SH DESCRIPTION
+From time to time you may need to rename files within your application.
+
+Vely source code files can be \fBrequest\fP handlers (with file names that do not start with an underscore) and \fBnon-request\fP files (with names that start with an underscore). 
+
+A Vely \fBnon-request\fP file can be renamed freely. Whatever it's name is, it will be picked up automatically and compiled as a part of the application - so you don't have to worry about file names.
+
+A Vely \fBrequest\fP file can be renamed as well, and whatever it's name is, it will also be picked up and compiled as a part of the application. You must however, change the name of the handler function within such file to match the name of the file. For example a file "process_request.vely" must have a handler function implemented in it with the signature of "void process_request()". If you rename this file to "my_request.vely" then you must change the handler function to have a signature of "void my_request()".
+.SH SEE ALSO
+ 
+.B - General
+
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
+\fBSELinux\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
+\fBvf\fP  
+\fBvv\fP    
+See all 
+\fBdocumentation\fP

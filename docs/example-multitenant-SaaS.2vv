@@ -1,0 +1,926 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-multitenant-SaaS \- Vely documentation (examples)
+.SH DESCRIPTION
+Multitenant SaaS with MariaDB and Apache
+Cloud applications typically run as \fBSoftware-as-a-Service\fP (SaaS). This article will demonstrate typical functionality you need to have for a minimal functioning SaaS, and how to achieve it. The example shown here is a complete application you can run on virtually any Linux computer.
+
+The "notes" is a multi-tenant web application that you can run on the Internet as SaaS. Each user has a completely separate data space from any other. This web application will let user sign up for Notes service - a place where a user can create notes, and then view and delete them. 
+
+In a nutshell: MariaDB; web browser; Apache; Application path; Unix sockets; 7 source files, 315 lines of code.
+
+.LP
+.B SCREENSHOTS OF APPLICATION
+.LP
+
+Create new user by specifying an email address and password (you can style these anyway you like, such as with CSS):
+(Image notes_add_user.png not available in man page, see web page documentation)
+Verifying user's email:
+(Image notes_verification.png not available in man page, see web page documentation)
+User logs in with own user name and password:
+(Image notes_login.png not available in man page, see web page documentation)
+Adding a note once the user logged in:
+(Image notes_add.png not available in man page, see web page documentation)
+Listing notes:
+(Image notes_list.png not available in man page, see web page documentation)
+Ask for confirmation to delete a note:
+(Image notes_delete.png not available in man page, see web page documentation)
+After user confirms, delete a note:
+(Image notes_deleted.png not available in man page, see web page documentation)
+
+.LP
+.B SETUP PREREQUISITES
+.LP
+
+\fBInstall Vely\fP - you can use standard packaging tools such as \fBapt\fP, \fBdnf\fP, \fBpacman\fP or \fBzypper\fP.
+
+Because they are used in this example, you will need to install \fBApache\fP as a web server and \fBMariaDB\fP as a database.
+
+After installing Vely, turn on syntax highlighting in vim if you're using it:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+
+.LP
+.B GET THE SOURCE CODE
+.LP
+
+The source code is a part of Vely installation. It is a good idea to create a separate source code directory for each application (and you can name it whatever you like). In this case, unpacking the source code will do that for you:
+
+.RS 4
+.EX
+
+tar xvf $(vv -o)/examples/multitenant-SaaS.tar.gz
+cd multitenant-SaaS
+
+.EE
+.RE
+
+.LP
+.B SETUP APPLICATION
+.LP
+
+The very first step is to create an application. The application will be named "multitenant-SaaS", but you can name it anything (if you do that, change it everywhere). It's simple to do with \fBvf\fP:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) multitenant-SaaS
+
+.EE
+.RE
+
+This will create a new application home (which is "/var/lib/vv/multitenant-SaaS") and do the application setup for you. Mostly that means create various subdirectories in the home folder, and assign them privileges. In this case only current user (or the result of "whoami" Linux command) will own those directories with 0700 privileges; it means a secure setup.
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+Before any coding, you need some place to store the information used by the application. First, you will create MariaDB database "db_multitenant_SaaS" owned by user "vely" with password "your_password". You can change any of these names, but remember to change them everywhere here. And then, you will create database objects in the database.
+
+Execute the following logged in as root in \fBmysql utility\fP:
+
+.RS 4
+.EX
+
+--Create velydb database hosting application data (if it doesn't exist):
+create database if not exists db_multitenant_SaaS;
+create user if not exists vely identified by 'your_password';
+grant create,alter,drop,select,insert,delete,update on db_multitenant_SaaS.* to vely;
+-- Create database objects needed for the application (eg. tables, indexes):
+use db_multitenant_SaaS;
+source setup.sql;
+exit
+
+.EE
+.RE
+
+
+.LP
+.B CONNECT VELY TO A DATABASE
+.LP
+
+In order to let Vely know where your database is and how to log into it, you will create \fBdatabase-config-file\fP named "db_multitenant_SaaS". This name doesn't have to be "db_multitenant_SaaS", rather it can be anything - this is the name used in actual database statements in source code (like \fBrun-query\fP), so if you change it, make sure you change it everywhere. Create it:
+
+.RS 4
+.EX
+
+echo '[client]
+user=vely
+password=your_password
+database=db_multitenant_SaaS
+protocol=TCP
+host=127.0.0.1
+port=3306' > db_multitenant_SaaS
+
+.EE
+.RE
+
+The above is a \fBstandard mariadb client options file\fP. Vely uses native MariaDB database connectivity, so you can specify any options that a given database lets you.
+
+.LP
+.B BUILD APPLICATION
+.LP
+
+Use \fBvv\fP utility to make the application:
+
+.RS 4
+.EX
+
+vv -q --db=mariadb:db_multitenant_SaaS --path="/api/v2/multitenant-SaaS"
+
+.EE
+.RE
+
+Note usage of --db option to specify MariaDB database and the database configuration file name.
+
+--path is used to specify the application path, see \fBrequest-URL\fP.
+
+.LP
+.B START YOUR APPLICATION SERVER
+.LP
+
+To start the application server for your web application use \fBvf\fP FastCGI process manager. The application server will use a Unix socket to communicate with the web server (i.e. a reverse-proxy):
+
+.RS 4
+.EX
+
+vf -w 3 multitenant-SaaS
+
+.EE
+.RE
+
+This will start 3 daemon processes to serve the incoming requests. You can also start an adaptive server that will increase the number of processes to serve more requests, and gradually reduce the number of processes when they're not needed:
+
+.RS 4
+.EX
+
+vf multitenant-SaaS
+
+.EE
+.RE
+
+See \fBvf\fP for more options to help you achieve best performance.
+
+If you want to stop your application server:
+
+.RS 4
+.EX
+
+vf -m quit multitenant-SaaS
+
+.EE
+.RE
+
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Apache web server.
+
+
+.B - Step 1
+:
+To setup Apache as a reverse proxy and connect your application to it, you need to enable FastCGI proxy support, which generally means "proxy" and "proxy_fcgi" modules - this is done only once:
+
+.RS 4
+\[bu]    
+For Debian (like Ubuntu) and OpenSUSE systems you need to enable proxy and proxy_fcgi modules:
+
+.RS 4
+.EX
+
+sudo a2enmod proxy
+sudo a2enmod proxy_fcgi
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+For Fedora systems (or others like Archlinux) enable proxy and proxy_fcgi modules by adding (or uncommenting) LoadModule directives in the Apache configuration file - the default location of this file on Linux depends on the distribution. For Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+For OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+Add this to the end of the file:
+
+.RS 4
+.EX
+
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+
+.EE
+.RE
+
+.RE
+
+
+.B - Step 2
+:
+Edit the Apache configuration file:
+
+.RS 4
+\[bu]    
+For Debian (such as Ubuntu):
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/apache2.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+for Fedora (such as RedHat), Archlinux:
+
+.RS 4
+.EX
+
+sudo vi /etc/httpd/conf/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+and for OpenSUSE:
+
+.RS 4
+.EX
+
+sudo vi /etc/apache2/httpd.conf
+
+.EE
+.RE
+
+.RE
+
+Add this to the end of file ("/api/v2/multitenant-SaaS" is the application path (see \fBrequest-URL\fP) and "multitenant-SaaS" is your application name):
+
+.RS 4
+.EX
+
+ProxyPass "/api/v2/multitenant-SaaS" unix:///var/lib/vv/multitenant-SaaS/sock/sock|fcgi://localhost/api/v2/multitenant-SaaS
+
+.EE
+.RE
+
+
+.B - Step 3
+:
+Finally, restart Apache. On Debian systems (like Ubuntu) or OpenSUSE:
+
+.RS 4
+.EX
+
+sudo systemctl restart apache2
+
+.EE
+.RE
+
+On Fedora systems (like RedHat) and Arch Linux:
+
+.RS 4
+.EX
+
+sudo systemctl restart httpd
+
+.EE
+.RE
+
+Note: you must not have any other URL resource that starts with "/api/v2/multitenant-SaaS" (such as for example "/api/v2/multitenant-SaaS.html" or "/api/v2/multitenant-SaaS_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/api/v2/multitenant-SaaS", see \fBrequest-URL\fP.
+
+
+.LP
+.B SETUP LOCAL MAIL
+.LP
+
+This example uses email as a part of its function. If your server already has capability to send email, you can skip this.
+
+Otherwise, you can use local mail, and that means email addresses such as "myuser@localhost". To do that, install postfix (or sendmail). On Debian systems (like Ubuntu):
+
+.RS 4
+.EX
+
+sudo apt install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+and on Fedora systems (like RedHat):
+
+.RS 4
+.EX
+
+sudo dnf install postfix
+sudo systemctl start postfix
+
+.EE
+.RE
+
+When the application sends an email to a local user, such as <OS user>@localhost, then you can see the email sent at:
+
+.RS 4
+.EX
+
+sudo vi /var/mail/<OS user>
+
+.EE
+.RE
+
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest-URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35] Get started 
+http://127.0.0.1/api/v2/multitenant-SaaS/notes/action/begin
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+.LP
+.B SOURCE FILES
+.LP
+
+The following are the source files in this application:
+
+.B - SQL setup (setup.sql)
+
+The two tables created are: "users", which contains information about each user; and "notes" which contains notes entered by the user.
+
+Each user in "users" table has its own unique ID ("userId" column) along with other information such as email address and whether it's verified. There's also a hashed password - an actual password is never stored in plain text (or otherwise), rather a one-way hash is used to check the password.
+
+The "notes" table contains the notes, each along with "userId" column that states which user owns them. The "userId" column's value matches the namesake column from "users" table. This way, every note clearly belongs to a single user.
+
+.RS 4
+.EX
+
+create table if not exists notes (dateOf datetime, noteId bigint auto_increment primary key, userId bigint, note varchar(1000));
+create table if not exists users (userId bigint auto_increment primary key, email varchar(100), hashed_pwd varchar(100), verified smallint, verify_token varchar(30), session varchar(100));
+create unique index if not exists users1 on users (email);
+
+.EE
+.RE
+
+
+.B - Run-time data (login.h)
+
+
+In order to properly display the Login, Sign Up and Logout links, you will need some flags that are available anywhere in the application. Also, the application uses cookies to maintain a session, so this needs to be available anywhere, for example to verify that the session is valid. Every request sent to the application is verified that way. Only requests that come with cookies we can verify are permitted.
+
+So to that effect, you will have a \fBglobal-request-data\fP type "reqdata" (request data) and in it there's "sess_userId" (ID of user) and "sess_id" (user's current session ID). You'll also have rather self-explanatory flags that help render pages.
+
+.RS 4
+.EX
+
+\[char35]ifndef _VV_LOGIN
+\[char35]define _VV_LOGIN
+
+typedef struct s_reqdata {
+    bool displayed_logout; // true if Logout link displayed
+    bool is_logged_in; // true if session verified logged-in
+    char *sess_userId; // user ID of current session
+    char *sess_id; // session ID
+} reqdata;
+
+void login_or_signup ();
+
+\[char35]endif
+
+.EE
+.RE
+
+
+.B - Session checking and session data (_before.vely)
+
+
+Vely has a notion of a \fBbefore-request-handler\fP. It's the code you write that executes before any other code that handles a request. To do this, all you need is to write this code in file that's named "_before.vely" and the rest will be automatically handled.
+
+That's very useful here. Anything that a SaaS application does, such as handling requests sent to an application, must be validated for security. This way, the application knows if the caller has permissions needed to perform an action.
+
+So, this checking of permission will be done here in a before-request handler. That way, whatever other code you have handling a request, you will have the information about session already provided.
+
+To keep session data (like session ID and user ID) available anywhere in your code, you'll use \fBglobal-request-data\fP. It's just a generic pointer (void*) to memory that any code that handles a request can access. This is perfect for handling sessions.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "login.h"
+
+// _before() is a before-request-handler. It always executes before
+// any other code that handles a request. It's a good place for any
+// kind of request-wide setting or data initialization
+void _before() {
+    // Output HTTP header
+    out-header default
+    reqdata *rd; // this is global request data, see login.h
+    // allocate memory for global request data, will be automatically deallocated
+    // at the end of request
+    new-mem rd size sizeof(reqdata)
+    // initialize flags
+    rd->displayed_logout = false;
+    rd->is_logged_in = false;
+    // set the data we created to be global request data, accessible
+    // from any code that handles a request
+    set-req data rd
+    // check if session exists (based on cookies from the client)
+    // this executes before any other request-handling code, making it
+    // easier to just have session information ready
+    _check_session ();
+}
+
+.EE
+.RE
+
+
+.B - Checking if session is valid (_check_session.vely)
+
+
+One of the most important tasks in a multi-tenant SaaS application is to check (as soon as possible) if the session is valid. This means to check if a user is logged in. It's done by getting the session ID and user ID cookies from the client (i.e. web browser), and checking these against the database where sessions are stored.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "login.h"
+
+
+// Check if session is valid
+void _check_session () {
+    // Get global request data
+    reqdata *rd;
+    get-req data to rd
+    // Get cookies from user browser
+    get-cookie rd->sess_userId="sess_userId"
+    get-cookie rd->sess_id="sess_id"
+    if (rd->sess_id[0] != 0) {
+        // Check if session ID is correct for given user ID
+        char *email;
+        run-query @db_multitenant_SaaS = "select email from users where userId='%s' and session='%s'" output email : rd->sess_userId, rd->sess_id row-count define rcount 
+            query-result email to email
+        end-query
+        if (rcount == 1) {
+            // if correct, set logged-in flag
+            rd->is_logged_in = true;
+            // if Logout link not display, then display it
+            if (rd->displayed_logout == false) {
+                get-app path to define upath
+                @Hi <<p-out email>>! <a href="<<p-out upath>>/login/actions/logout">Logout</a><br/>
+                rd->displayed_logout = true;
+            }
+        } else rd->is_logged_in = false;
+    }
+}
+
+.EE
+.RE
+
+
+.B - Signing up, Logging in, Logging out (login.vely)
+
+The basis of any multi-tenant system is the ability for a user to sign up, and once signed up, to log in and log out.
+
+Typically, signing up involves verifying email address, and more often than not, the very same email address is used as a user name. That will be the case here.
+
+There are several sub\fBrequest\fPs implemented here that are necessary to perform the functionality. Each has its own "URL request signature".
+
+.RS 4
+\[bu]    
+When Signing Up a new user, display the HTML form to collect the information. The URL request signature for this is "/login/actions/newuser"
+
+.RE
+
+
+.RS 4
+\[bu]    
+As a response to Sign Up form, create a new user. The URL request signature is "/login/actions/createuser". \fBinput-param\fP is used to obtain "email" and "pwd" POST form fields (i.e. query string). Password is one-way hashed and an email verification token is created as a random 5-digit number. These are inserted into "users" table, creating a new user. A verification email is sent out, and the user is prompted to read the email and enter the code.
+
+.RE
+
+
+.RS 4
+\[bu]    
+Verify email by entering verification code sent to that email. The URL request signature is "/login/actions/verify"
+
+.RE
+
+
+.RS 4
+\[bu]    
+Display a Login form for user to login. The URL request signature is "/login" (i.e. "action" is empty)
+
+.RE
+
+
+.RS 4
+\[bu]    
+Login by verifying email address (i.e. user name) and password. The URL request signature is "/login/actions/login"
+
+.RE
+
+
+.RS 4
+\[bu]    
+Logout at user's request. The URL request signature is "/login/actions/logout"
+
+.RE
+
+
+.RS 4
+\[bu]    
+Landing page for application. The URL request signature is "/login/actions/begin"
+
+.RE
+
+
+.RS 4
+\[bu]    
+If the user is currently logged in, go to the application's landing page.
+.RE
+
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "login.h"
+
+// Handle session maintenance, login, logout, session verification
+// for any multitenant Cloud application
+%% /login 
+    // Get URL input parameter "actions"
+    task-param actions
+
+    // Get global request data, we record session information in it, so it's handy
+    reqdata *rd;
+    get-req data to rd
+
+    // If session is already established, the only reason why we won't proceed to
+    // application home is if we're logging out
+    if (rd->is_logged_in) {
+        if (strcmp(actions, "logout")) {
+            _show_home();
+            exit-request
+        }
+    }
+
+    // Application screen to get started. Show links to login or signup and show
+    // home screen appropriate for this
+    if-task "begin" 
+        _show_home();
+        exit-request
+
+    // Start creating new user. Ask for email and password, then proceed to create user
+    // when this form is submitted.
+    else-task "newuser"
+        @Create New User<hr/>
+        @<form action="<<p-path>>/login/actions/createuser" method="POST">
+        @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
+        @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
+        @<input type="submit" value="Sign Up">
+        @</form>
+
+    // Verify code sent to email by user. The code must match, thus verifying email address    
+    else-task "verify"
+        input-param code
+        input-param email
+        // Get verify token based on email
+        run-query @db_multitenant_SaaS = "select verify_token from users where email='%s'" output db_verify : email
+            query-result db_verify to define db_verify
+            // Compare token recorded in database with what user provided
+            if (!strcmp (code, db_verify)) {
+                @Your email has been verifed. Please <a href="<<p-path>>/login">Login</a>.
+                // If matches, update user info to indicate it's verified
+                run-query @db_multitenant_SaaS no-loop = "update users set verified=1 where email='%s'" : email
+                exit-request
+            }
+        end-query
+        @Could not verify the code. Please try <a href="<<p-path>>/login">again</a>.
+        exit-request
+
+    // Create user - this runs when user submits form with email and password to create a user     
+    else-task "createuser"
+        input-param email
+        input-param pwd
+        // create hashed (one-way) password
+        hash-string pwd to define hashed_pwd
+        // generate random 5 digit string for verify code
+        random-string to define verify length 5 number
+        // create user: insert email, hashed password, verification token. Current verify status is 0, or not verified
+        begin-transaction @db_multitenant_SaaS
+        run-query @db_multitenant_SaaS no-loop = "insert into users (email, hashed_pwd, verified, verify_token, session) values ('%s', '%s', '0', '%s', '')" : email, hashed_pwd, verify affected-rows define arows error define err on-error-continue
+        if (strcmp (err, "0") || arows != 1) {
+            // if cannot add user, it probably doesn't exist. Either way, we can't proceed.
+            login_or_signup();
+            @User with this email already exists.
+            rollback-transaction @db_multitenant_SaaS
+        } else {
+            // Create email with verification code and email it to user
+            write-string define msg
+                @From: vely@vely.dev
+                @To: <<p-out email>>
+                @Subject: verify your account
+                @
+                @Your verification code is: <<p-out verify>>
+            end-write-string
+            exec-program "/usr/sbin/sendmail" args "-i", "-t" input msg status define st
+            if (st != 0) {
+                @Could not send email to <<p-out email>>, code is <<p-out verify>>
+                rollback-transaction @db_multitenant_SaaS
+                exit-request
+            }
+            commit-transaction @db_multitenant_SaaS
+            // Inform the user to go check email and enter verification code
+            @Please check your email and enter verification code here:
+            @<form action="<<p-path>>/login/actions/verify" method="POST">
+            @<input name="email" type="hidden" value="<<p-out email>>">
+            @<input name="code" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Verification code">
+            @<button type="submit">Verify</button>
+            @</form>
+        }
+
+    // This runs when logged-in user logs out.    
+    else-task "logout"
+        // Update user table to wipe out session, meaning no such user is logged in
+        if (rd->is_logged_in) {
+            run-query @db_multitenant_SaaS = "update users set session='' where userId='%s'" : rd->sess_userId no-loop affected-rows define arows
+            if (arows == 1) {
+                rd->is_logged_in = false; // indicate user not logged in
+                @You have been logged out.<hr/>
+            }
+        }
+        _show_home();
+
+    // Login: this runs when user enters user name and password
+    else-task "login"
+        input-param pwd
+        input-param email
+        // create one-way hash with the intention of comparing with user table - password is NEVER recorded
+        hash-string pwd to define hashed_pwd
+        // create random 30-long string for session ID
+        random-string to rd->sess_id length 30
+        // Check if user name and hashed password match
+        run-query @db_multitenant_SaaS = "select userId from users where email='%s' and hashed_pwd='%s'" output sess_userId : email, hashed_pwd
+            query-result sess_userId to rd->sess_userId
+            // If match, update user table with session ID
+            run-query @db_multitenant_SaaS no-loop = "update users set session='%s' where userId='%s'" : rd->sess_id, rd->sess_userId affected-rows define arows
+            if (arows != 1) {
+                @Could not create a session. Please try again. <<.login_or_signup();>> <hr/>
+                exit-request
+            }
+            // Set user ID and session ID as cookies. User's browser will return those to us with every request
+            set-cookie "sess_userId" = rd->sess_userId path "/"
+            set-cookie "sess_id" = rd->sess_id path "/"
+            // Display home, make sure session is correct first and set flags
+            _check_session();
+            _show_home();
+            exit-request
+        end-query
+        @Email or password are not correct. <<.login_or_signup();>><hr/>
+
+    // Login screen, asks user to enter user name and password    
+    else-task ""
+        login_or_signup();
+        @Please Login:<hr/>
+        @<form action="<<p-path>>/login/actions/login" method="POST">
+        @<input name="email" type="text" value="" size="50" maxlength="50" required autofocus placeholder="Email">
+        @<input name="pwd" type="password" value="" size="50" maxlength="50" required placeholder="Password">
+        @<button type="submit">Go</button>
+        @</form>
+    else-task other
+        // do not display anything
+    end-task
+%%
+
+// Display Login or Sign Up links
+void login_or_signup() {
+        @<a href="<<p-path>>/login">Login</a> &nbsp; &nbsp; <a href="<<p-path>>/login/actions/newuser">Sign Up</a><hr/>
+}
+
+.EE
+.RE
+
+
+.B - General-purpose application (_show_home.vely)
+
+
+With this tutorial you can create any multitenant SaaS application you want. The multitenant-processing module above (login.vely) calls _show_home() function, which can house any code of yours. In here, you'll have Notes application, but it can be anything. _show_home() simply calls any code you wish, and is a general-purpose multitenant application plug-in.
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+void _show_home() {
+    notes();
+    exit-request
+}
+
+.EE
+.RE
+
+
+.B - Notes application (notes.vely)
+
+
+The application will be able to add notes, list them, and delete any given note. It operates under a request "notes", and the sub-requests it serves are:
+
+.RS 4
+\[bu]    
+/notes/subreqs/add_note - add a note,
+
+.RE
+
+.RS 4
+\[bu]    
+/notes/subreqs/list - list notes,
+
+.RE
+
+.RS 4
+\[bu]    
+/notes/subreqs/delete_note - delete a note
+.RE
+
+while a few other tasks are user-interface-only, such as:
+
+.RS 4
+\[bu]    
+/notes/subreqs/add_note - display an HTML form to add a note,
+
+.RE
+
+.RS 4
+\[bu]    
+/notes/subreqs/delete_note_ask - ask user to confirm intent to delete a note
+.RE
+
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "login.h"
+
+// Notes application in a multitenant Cloud 
+%% notes 
+    // get global request data
+    reqdata *rd;
+    get-req data to rd
+
+    // If session invalid, display Login or Signup
+    if (!rd->is_logged_in) {
+        login_or_signup();
+    }
+    // Greet the user
+    @<h1>Welcome to Notes!</h1><hr/>
+    // If not logged in, exit - this ensures security verification of user's identity
+    if (!rd->is_logged_in) {
+        exit-request
+    }
+    // Get URL parameter that tells Notes what to do
+    task-param subreqs
+    // Display actions that Notes can do (add or list notes)
+    @<a href="<<p-path>>/notes/subreqs/add">Add Note</a> <a href="<<p-path>>/notes/subreqs/list">List Notes</a><hr/>
+
+
+    // List all notes for this user
+    if-task "list"
+        // select notes for this user ONLY
+        run-query @db_multitenant_SaaS = "select dateOf, note, noteId from notes where userId='%s' order by dateOf desc" : rd->sess_userId output dateOf, note, noteId
+            query-result dateOf to define dateOf
+            query-result note to define note
+            query-result noteId to define noteId
+            (( define web_enc
+            p-web note
+            ))
+            // change new lines to <br/> with fast cached Regex
+            match-regex "\en" in web_enc replace-with "<br/>\en" result define with_breaks status define st cache
+            if (st == 0) with_breaks = web_enc; // nothing was found/replaced, just use original
+            // Display a note
+            @Date: <<p-out dateOf>> (<a href="<<p-path>>/notes/subreqs/delete_note_ask?note_id=<<p-out noteId>>">delete note</a>)<br/>
+            @Note: <<p-out with_breaks>><br/>
+            @<hr/>
+        end-query
+
+    // Ask to delete a note
+    else-task "delete_note_ask"
+        input-param note_id
+        @Are you sure you want to delete a note? Use Back button to go back,\\
+            or <a href="<<p-path>>/notes/subreqs/delete_note?note_id=<<p-out note_id>>">delete note now</a>.
+
+    // Delete a note
+    else-task "delete_note"
+        input-param note_id
+        // Delete note
+        run-query @db_multitenant_SaaS = "delete from notes where noteId='%s' and userId='%s'" : note_id, rd->sess_userId \\
+            affected-rows define arows no-loop error define errnote
+        // Inform user of status
+        if (arows == 1) {
+            @Note deleted
+        } else {
+            @Could not delete note (<<p-out errnote>>)
+        }
+
+    // Add a note
+    else-task "add_note"
+        // Get URL POST data from note form
+        input-param note
+        // Insert note under this user's ID
+        run-query @db_multitenant_SaaS = "insert into notes (dateOf, userId, note) values (now(), '%s', '%s')" : rd->sess_userId, note \\
+            affected-rows define arows no-loop error define errnote
+        // Inform user of status
+        if (arows == 1) {
+            @Note added
+        } else {
+            @Could not add note (<<p-out errnote>>)
+        }
+
+    // Display an HTML form to collect a note, and send it back here (with subreqs="add_note" URL param)
+    else-task "add"
+        @Add New Note
+        @<form action="<<p-path>>/notes/subreqs/add_note" method="POST">
+        @<textarea name="note" rows="5" cols="50" required autofocus placeholder="Enter Note"></textarea>
+        @<button type="submit">Create</button>
+        @</form>
+    else-task other
+        // do not display anything
+    end-task
+%%
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

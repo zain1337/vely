@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-decode-hex \-  (hex_encoding)
+decode-hex \-  (hex-encoding)
 .SH PURPOSE
 Decode hexadecimal string into data.
 

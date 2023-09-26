@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-input-param \-  (request_information)
+input-param \-  (request-information)
 .SH PURPOSE
 Get input parameter for a request.
 
@@ -15,7 +15,7 @@ input-param <name>
 .RE
 
 .SH DESCRIPTION
-To obtain input parameters from an incoming \fBrequest\fP, use input-param and/or \fBtask-param\fP. Whether it's a web or command-line application, input parameters are specified as name/value pairs (see \fBrequest_URL\fP). The value of input parameter <name> will be in the string variable with the same name. Input parameter values are trimmed for whitespace (both on left and right). 
+To obtain input parameters from an incoming \fBrequest\fP, use input-param and/or \fBtask-param\fP. Whether it's a web or command-line application, input parameters are specified as name/value pairs (see \fBrequest-URL\fP). The value of input parameter <name> will be in the string variable with the same name. Input parameter values are trimmed for whitespace (both on left and right). 
 
 Input parameter name can be made up of alphanumeric characters, hyphen or underscore only and cannot start with a digit. Note that a hyphen is automatically converted to underscore, so an input parameter "some-parameter" in the HTTP request will be known in your code as "some_parameter". For example in URL:
 
@@ -43,7 +43,7 @@ input-param my_par2
 .B FILE UPLOADS
 .LP
 
-File uploads are handled as input parameters as well, see \fBfile_uploading\fP.
+File uploads are handled as input parameters as well, see \fBfile-uploading\fP.
 
 .LP
 .B USING INPUT PARAMETERS

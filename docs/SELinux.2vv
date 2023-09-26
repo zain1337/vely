@@ -99,7 +99,7 @@ sudo semanage port -a -t vvport_t -p tcp  2209
 .B CHANGING OR ADDING DIRECTORIES
 .LP
 
-If you are adding directories to be used by Vely program, or changing a directory, for example using a different storage instead of /var/lib/vv (see \fBhow_vely_works\fP), you need to label files in new directories:
+If you are adding directories to be used by Vely program, or changing a directory, for example using a different storage instead of /var/lib/vv (see \fBhow-vely-works\fP), you need to label files in new directories:
 
 .RS 4
 .EX
@@ -125,16 +125,16 @@ sudo restorecon -R /your/new/dir
  
 .B - General
 
-\fBabout_Vely\fP  
-\fBapplication_architecture\fP  
-\fBdeploying_application\fP  
-\fBhow_vely_works\fP  
-\fBquality_control\fP  
-\fBrename_files\fP  
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
 \fBSELinux\fP  
-\fBvely_architecture\fP  
-\fBvely_removal\fP  
-\fBvely_version\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
 \fBvf\fP  
 \fBvv\fP    
 See all 

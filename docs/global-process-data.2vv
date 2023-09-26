@@ -1,0 +1,147 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+global-process-data \- Vely documentation (process)
+.SH DESCRIPTION
+The purpose of global-process data is to help with use of global cross-request variable(s) anywhere in your code. The difference from \fBglobal-request-data\fP is in the scope: global request data is valid only for a single request, while global-process data is valid for all requests processed in sequence by a single process (see \fBhow-vely-works\fP).
+
+While you can create global variables in C (with C's "extern" to make them globally available), Vely's global-process data is an easier and more structured way to share data globally across requests. This way, you do not have to define and maintain global variables. It also makes it more maintainable as such variables are well-encapsulated and easy to track (for instance in code reviews).
+
+.LP
+.B WHAT IS GLOBAL-PROCESS DATA
+.LP
+
+Global-process data is a generic pointer (void*) that points to any memory you wish to be shared among all your code across all the requests that any given process serves. This data cannot be shared between different processes. It is usually a structure containing information globally pertinent to your application that is shared between separate requests. The pointer's scope is a lifetime of the process and thus spans all the \fBrequest\fPs it serves. The global-process data pointer is initialized to NULL before \fBstartup-handler\fP executes. It is stored in Vely's internal process context structure so it can be used anywhere.
+
+.LP
+.B SETTING
+.LP
+
+
+.RS 4
+.EX
+
+set-app process-data <data>
+
+.EE
+.RE
+
+where <data> is a pointer to any memory you wish to use anywhere in your code across all process' requests. This memory must be unmanaged; see \fBmemory-handling\fP and the example below.
+
+.LP
+.B GETTING
+.LP
+
+Global-process data can be obtained anywhere in your code with:
+
+.RS 4
+.EX
+
+get-app process-data to <data>
+
+.EE
+.RE
+
+where <data> is a pointer to any type.
+
+.LP
+.B USAGE
+.LP
+
+Typically you would define a structure or a typedef that encapsulates any data that needs to be shared throughout your code in all requests in any given process. Different processes have separate process data that cannot be shared between them. For this reason, global-process data is not the same as global application data; rather it is global within any given process and not beyond that process.
+
+In \fBstartup-handler\fP, you would create a variable (or an array) of this type by using unmanaged \fBnew-mem\fP that producess cross-request memory - this is done by using "off" clause in \fBmanage-memory\fP. Use \fBnew-mem\fP for any members that need allocating. Initialize anything that needs it. Finally, switch back to managed memory by using "on" clause in manage-memory statement.
+
+The reason for using unmanaged memory is because otherwise the data would be automatically released at the end of the following request and would not stay allocated for the life of the process.
+
+Next, save the pointer to the variable (or an array) you created by using \fBset-app\fP. 
+
+Finally, anywhere you need to set or get any data, use \fBget-app\fP with "process-data" clause to get the pointer and manipulate or read your global-process data. Don't forget that any manipulation must be in unmanaged mode as well.
+
+.SH EXAMPLES
+Suppose your application has an include file my.h in which you define type "procdata":
+
+.RS 4
+.EX
+
+\[char35]ifndef _MY
+\[char35]define _MY
+
+typedef struct s_procdata {
+    bool some_flag;
+    bool another_flag;
+    char *ptr;
+} procdata;
+
+\[char35]endif
+
+.EE
+.RE
+
+Your \fBstartup-handler\fP (i.e. file _startup.vely) might look like this - note that my.h is included, providing your type definition "procdata":
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "my.h"
+
+void _startup () {
+    procdata *rd; // A pointer to global request data
+
+    // Use unmanaged memory for process-wide data
+    manage-memory off
+    // Allocate global request data
+    new-mem rd size sizeof(procdata)
+    // Turn back on managed memory
+    manage-memory on
+
+    // Initialize values in it
+    rd->some_flag = false;
+    rd->another_flag = false;
+
+    // Save the pointer so you can use it anywhere with get-req
+    set-app process-data rd
+}
+
+.EE
+.RE
+
+In the above code, a new pointer "rd" of type "procdata" is created with \fBnew-mem\fP. Data initialization takes place - anything that needs initialization should be initialized. Finally, pointer "rd" is saved to process' internal structure with \fBset-app\fP, so it can be used in any request for the life of the process.
+
+In your code, wherever it's needed, you can obtain this data into a local pointer of the same type "procdata" (in this case pointer name is "mydata"). You can do that with \fBget-app\fP and then examine or set any global-process variable you wish:
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+\[char35]include "my.h"
+
+request-handler /mycode
+    
+    ...
+    procdata *mydata; // declare local pointer 
+
+    // get the actual value of a pointer, so now it points to global request data
+    get-app process-data to mydata
+    
+    // do whatever you want with the data: examine, set etc.
+    if (mydata->another_flag) {
+        mydata->some_flag = true;
+        // If you free, allocate or reallocate global-process data, use unmanaged memory
+        manage-memory off
+        resize-mem my_data->ptr size 1024
+        manage-memory on
+    }
+end-request-handler
+
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Process
+
+\fBglobal-process-data\fP    
+See all 
+\fBdocumentation\fP

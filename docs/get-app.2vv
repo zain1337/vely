@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-get-app \-  (application_information)
+get-app \-  (application-information)
 .SH PURPOSE
 Obtain data that describes the application.
 
@@ -29,19 +29,19 @@ Application-related variables can be obtained with get-app statement. The follow
 
 .RS 4
 \[bu]    
-"directory" is the directory where your application resides, i.e. the application home directory (see \fBhow_vely_works\fP).
+"directory" is the directory where your application resides, i.e. the application home directory (see \fBhow-vely-works\fP).
 
 .RE
 
 .RS 4
 \[bu]    
-"trace-directory" is the directory where your application trace files are written (if enabled, see \fBhow_vely_works\fP).
+"trace-directory" is the directory where your application trace files are written (if enabled, see \fBhow-vely-works\fP).
 
 .RE
 
 .RS 4
 \[bu]    
-"file-directory" is the directory where Vely file storage system is, i.e. \fBfile_storage\fP.
+"file-directory" is the directory where Vely file storage system is, i.e. \fBfile-storage\fP.
 
 .RE
 
@@ -59,7 +59,7 @@ Application-related variables can be obtained with get-app statement. The follow
 
 .RS 4
 \[bu]    
-"process-data" obtains the pointer to \fBglobal_process_data\fP.
+"process-data" obtains the pointer to \fBglobal-process-data\fP.
 
 .RE
 

@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-task-param \-  (request_information)
+task-param \-  (request-information)
 .SH PURPOSE
 Get input parameter and set it as a task selector.
 

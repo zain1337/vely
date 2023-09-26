@@ -21,7 +21,7 @@ trace-run can be used without any clauses, in which case a location (file name a
 
 If trace-run has any other clauses, then <format> string must be present and there must be at least one <expression> (it means if you want to trace a simple string literal you still have to use "%s" as format).
 
-For tracing to have effect, debugging and tracing must be enabled (see \fBvv\fP). For location of trace files, see \fBhow_vely_works\fP.
+For tracing to have effect, debugging and tracing must be enabled (see \fBvv\fP). For location of trace files, see \fBhow-vely-works\fP.
 
 .SH EXAMPLES
 
@@ -37,7 +37,7 @@ trace-run
 .EE
 .RE
 
-See \fBexample_hello_world\fP for an example in debugging and tracing.
+See \fBexample-hello-world\fP for an example in debugging and tracing.
 .SH SEE ALSO
  
 .B - Debugging

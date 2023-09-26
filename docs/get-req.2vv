@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-get-req \-  (request_information)
+get-req \-  (request-information)
 .SH PURPOSE
 Obtain data that describes the input request.
 
@@ -25,13 +25,13 @@ Variables related to an input request can be obtained with get-req statement and
 
 .RS 4
 \[bu]    
-"data" obtains the pointer to \fBglobal_request_data\fP.
+"data" obtains the pointer to \fBglobal-request-data\fP.
 
 .RE
 
 .RS 4
 \[bu]    
-"errno" obtains the integer value of operating system "errno" tied to a last Vely statement that can return a status code. The "errno" value is saved internally; and restored here. It means that if "errno" changed for whatever reason since such Vely statement, you will still obtain the correct value. See \fBerror_code\fP for an example. Note that errno value is undefined if there is no error, and can be 0 if the error is reported by Vely and not by operating system.
+"errno" obtains the integer value of operating system "errno" tied to a last Vely statement that can return a status code. The "errno" value is saved internally; and restored here. It means that if "errno" changed for whatever reason since such Vely statement, you will still obtain the correct value. See \fBerror-code\fP for an example. Note that errno value is undefined if there is no error, and can be 0 if the error is reported by Vely and not by operating system.
 
 .RE
 
@@ -206,7 +206,7 @@ if (request_method == VV_DELETE) {
 
 .RS 4
 \[bu]    
-"name" is the request name as specified in the \fBrequest_URL\fP.
+"name" is the request name as specified in the \fBrequest-URL\fP.
 .RE
 
 Note that all the string values above (except "data") should be treated as constants - do not change them as that may cause program to malfunction. If you want to alter any of these values, make a copy first (see \fBcopy-string\fP).

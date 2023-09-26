@@ -1,0 +1,313 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+how-vely-works \- Vely documentation (general)
+.SH DESCRIPTION
+
+.LP
+.B CREATING AN APPLICATION
+.LP
+
+A Vely application <app name> is created by an application owner, i.e. an Operating System user who will own its processes and data, by using \fBvf\fP, such as:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) <app name>
+
+.EE
+.RE
+
+This will create directory structure described here. Vely application can be used as a server (see \fBFastCGI\fP), a \fBcommand-line\fP program or a \fBCGI\fP program. Note that vf is the only Vely utility requiring sudo privileges, and only for application creation.
+
+If you will build an application from source code, the above vf command must run in the directory that contains the application source code. Each application must be in its own separate directory which contains all of its source code.
+
+.LP
+.B HOW VELY WORKS: CODE, REQUESTS, PROCESSES AND MAIN()
+.LP
+
+In a single step, Vely code (.vely files) is precompiled entirely into C, linked, and ready to run as a command-line program or as an application server, or both. Error reporting is based on Vely source code (.vely files), though you can specify generated code lines to be used (see \fBdiagnostic-messages\fP). 
+
+\fBvv\fP will preprocess .vely source files and generate C code for supported \fBstatements\fP (database, file, strings etc.). Then, vv builds both a command-line program and an application server executable for application <app name> (the name <app name> is specified when running \fBvf\fP with "-i" flag to create the application). Executables created are located in directory:
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/<app name>
+
+.EE
+.RE
+
+A Vely program can be:
+
+.RS 4
+\[bu]    
+A server that runs as a daemon, i.e. it runs in the background and does not exit, serving incoming requests. Typically, a number of server processes are started to serve incoming requests in parallel; each process serves a single request at a time and thus can serve great many requests during its lifetime; in adaptive mode, the number of processes running may vary according to the load - including zero running processes for near-zero memory usage.
+
+.RE
+
+.RS 4
+\[bu]    
+A command-line program that works exactly the same way as a server; it takes the same input and produces the same output. A command-line program runs as a single process and processes a single request.
+
+.RE
+
+.RS 4
+\[bu]    
+Both, meaning the same application can run as a server and as a command-line utility
+.RE
+
+Regardless, a request is processed by means of \fBVely dispatcher\fP, which is extremely fast, because it uses a compile-time pre-built hash for near-instant dispatching of requests, specifically sized to the number of requests your application serves. 
+
+main() function (the entry point into your program) is generated so it can process requests fast, and in a uniform and consistent way. It calls the Vely dispatcher, sets up error handling, creates and releases program resources, sets up databases in use, etc. By doing so, it allows you to focus on application design and not the technical details, resource allocation and tuning performance.
+
+.LP
+.B .VELY FILES AND REQUESTS
+.LP
+
+Files with the .vely extension are Vely source files. You must have at least one Vely source file (.vely file). If a Vely source file starts with an underscore, it is a \fBnon-request\fP file, which typically implements shared code used by more than one request; otherwise it is a \fBrequest\fP file. A request file implements a request handler, which handles a \fBrequest-URL\fP sent by the client (such as reverse proxies like Apache or Nginx or a \fBFastCGI-API\fP application written in any programming language) or provided to \fBcommand-line\fP program via environment variables. 
+
+\[char46]vely files for a program are always contained in a flat directory, meaning source code in any subdirectories is not used to make a program. This is by design for better readability and maintainability, as it allows for "at-a-glance" look at requests handled by the program and its overall functionality. Each request handler can be named as a hierarchical path, and have (sub)tasks within it (see below), for example if implementing a REST API. 
+
+.LP
+.B REQUESTS AND REQUEST HANDLERS
+.LP
+
+To call the request handler, state its name in the URL after the application path (see \fBrequest-URL\fP). A request handler must be implemented as a function in a .vely file named after it. For example, in a URL such as:
+
+.RS 4
+.EX
+
+/trading/add-stock?ticker=ABC&price=130
+
+.EE
+.RE
+
+the application path is "/trading" (by default it's the application name) and the request name is "add_stock" (hyphens are converted to underscore by Vely). The request name handler would be implemented in file "add_stock.vely" as: 
+
+.RS 4
+.EX
+
+request-handler /add-stock
+    input-param ticker
+    input-param price
+    ...
+end-request-handler
+
+.EE
+.RE
+ 
+This correlation between requests and file names makes it easy to find the code you want and to maintain it. Vely will generate the code that will automatically route input requests to the appropriate code based on the request name, so in the above example Vely will automatically invoke function add_stock() implemented in file "add_stock.vely" with input parameters "ticker" and "price" (and their values) available via \fBinput-param\fP statement, as shown above.
+
+Note that you can also specify request name as a hierarchy path. For instance, if you wish to handle request "/stocks/add" (note that a hierarchical path starts and ends with an underscore):
+
+.RS 4
+.EX
+
+/trading/_stocks/add_/?ticker=ABC&price=130
+
+.EE
+.RE
+
+then you could implement a request handler:
+
+.RS 4
+.EX
+
+request-handler /stocks/add
+    input-param ticker
+    input-param price
+    ...
+end-request-handler
+
+.EE
+.RE
+ 
+In this case, forward slashes after the initial one would be substituted with double underscore for a file name, so the source Vely file name would be "stocks__add.vely". You can represent input parameters ("ticker" and "price" in this case) in many different ways, including as a hierarchical path:
+
+.RS 4
+.EX
+
+/trading/_stocks/add_/ticker/ABC/price/130
+
+.EE
+.RE
+
+See \fBrequest-URL\fP for more details.
+
+.LP
+.B TASKS
+.LP
+
+Each request handler can perform a number of tasks. A single invocation of a request may perform one or more tasks out of some number of choices. Tasks' functionality may or may not overlap, and they may have subtasks. To designate an input parameter as a task selector (i.e. as information that tells your code what task it's expected to do), use \fBtask-param\fP. To use the task parameter as a selector and execute the appropriate code, see \fBif-task\fP. A request and optional tasks determine what kind of service your request should perform. Optional task-param and if-task statements provide semantic support for this, so that your code effectively self-documents its interface. 
+
+.LP
+.B NON-REQUEST SOURCE CODE
+.LP
+
+Not every source code file in your application is meant to handle a request. You might have a number of \fBnon-request\fP files that implement shared code, such as commonly used functions. Such files are non-request source code and their names must start with underscore ("_"). 
+
+For example, file "_display_table.vely" might implement a common HTML table displaying code, which is used in various request handlers.
+
+Some non-request source files have predefined meaning: "_startup.vely" (\fBstartup-handler\fP), "_before.vely" (\fBbefore-request-handler\fP) and "_after.vely" (\fBafter-request-handler\fP).
+
+.LP
+.B BUILDING AN APPLICATION, MAKEFILE
+.LP
+
+Vely builds an application by looking at .vely and .h files present in the current directory. Therefore you don't have to write a Makefile. 
+
+You don't have to specify what source code your application uses - all .vely files will be automatically picked up and compiled, and \fBrequest\fP handlers (.vely files that don't start with an underscore) are used to generate \fBvely-dispatch-request\fP.vely file (a request-dispatcher). Thus, it is easy to view at a glance what kind of requests an application serves and what is its general purpose. Files with .h extension are standard C include files and are automatically included. 
+
+You can see the default implementations for all auto-generated files in directory
+
+.RS 4
+.EX
+
+/var/lib/vv/bld/<app name>
+
+.EE
+.RE
+
+An example of building a Vely application is:
+
+.RS 4
+.EX
+
+vv -q --db=mariadb:notes 
+
+.EE
+.RE
+
+"-q" options is the most important one - it specifies that you intend to build. In this instance, MariaDB database (named "notes") is used.
+
+Vely builds an application using standard Linux "make" mechanism. Note that when you change the command line options (see \fBvv\fP) in a build statement like above, it has the effect of "make clean", recompiling source files.
+
+.LP
+.B DIRECTORIES AND FILES
+.LP
+
+While you can keep and compile Vely source files in any directory, the directories used by Vely are always under /var/lib/vv directory. A Vely application is always owned by a single Operating System user, while different applications can be owned by different users. This is the directory structure:
+
+.RS 4
+\[bu]    
+/var/lib/vv/bld/<app name>
+Build directory is where your server application executable is built, with name <app name>.fcgi. The command-line executable is named <app name>. This is a scratch-pad directory, so do not alter files in it, or use for anything else.
+
+.RE
+
+.RS 4
+\[bu]    
+/var/lib/vv/<app name>
+Application directory. All application data, including internals such as sockets, are kept here. Each such directory is owned by its owner with 700 privileges, preventing other users from accessing its files.
+
+.RE
+
+.RS 4
+\[bu]    
+/var/lib/vv/<app name>/app 
+Application home directory. This is the current working directory when your application runs. Copy/move here any files and directories your application needs.
+
+.RE
+
+.RS 4
+\[bu]    
+/var/lib/vv/<app name>/app/file
+\fBfile-storage\fP used for uploads and new document creation. Do not write there directly; Vely does that for you, such as with \fBuniq-file\fP for instance, or when uploading files.
+
+.RE
+
+.RS 4
+\[bu]    
+/var/lib/vv/<app name>/app/trace
+Process tracing is written in per-process files if "--trace" option is used (see \fBvv\fP). Note that a special file "backtrace" is appended to when program crashes (or \fBreport-error\fP statement is used), and this file shows a full source backtrace, allowing for easier debugging. In order to see Vely source code lines, you must use "--debug" option, and to see a backtrace, Vely must be built with debugging information included. You can use "--c-lines" in order to show the source code lines of the generated C code, instead of Vely code.
+
+.RE
+
+.RS 4
+\[bu]    
+/var/lib/vv/<app name>/app/db
+Database configuration directory contains the \fBdatabase-config-file\fPs used by Vely to connect to databases; this directory is maintained by Vely and you should not use it.
+
+.RE
+
+While Vely directories are fixed, you can effectively change their location by creating a soft link. This way, your directories and files can be elsewhere, even on a different disk. For example, to house your files on a different disk:
+
+.RS 4
+.EX
+
+ln -s /home/disk0/file /var/lib/vv/<app name>/app/file
+
+.EE
+.RE
+
+
+.LP
+.B REMOTE CALLS
+.LP
+
+You can make remote requests, i.e. requests to other servers by using \fBcall-server\fP statement, including unlimited number of parallel remote requests, meaning executing in separate threads at the same time without any thread programming on developer's part. 
+
+Because Vely processes that execute remote requests are kept alive, the cost of starting and terminating requests is zero. That's why this method of parallel distributed computing is very fast; it is also easier and safer because each request executed in parallel does not need to be MT-safe, since such requests execute in separate single-threaded processes. The cost of these processes vs threads is generally small on Linux and because Vely creates lightweight native executables.
+
+To make remote calls across the Web, use \fBcall-web\fP.
+
+.LP
+.B MEMORY ALLOCATION
+.LP
+
+Vely uses its own memory allocator based on standard Linux malloc family of functions. It is used internally and for allocating the results of any statements (each statement's documentation specifies which results, if any, are such). The memory will be automatically freed upon the completion of the request - you can also explicitly free them if you need to. This approach avoids costly errors, crashes and memory leaks. See \fBmemory-handling\fP.
+
+.LP
+.B DATA TYPES
+.LP
+
+Vely \fBstatement-APIs\fP use mostly strings (char* type only, i.e. no "const char*") and numbers ("num" type, which is "long long" for maximum range of uses, "num32" for a 32-bit integer, "dbl" for a double precision number), "bool" (with true and false value as provided by stdbool.h) and other data types as specified. When a "number" is specified anywhere without an additional qualification, it is assumed to be of "num" type. If a type is not specified, it is either a string or a number, depending on the context in which it is used - in those cases the type is not specified for simplicity. 
+
+.LP
+.B NAMES OF OBJECTS
+.LP
+
+Do not use object names (such as variables, functions, types) that start with "_vv", "_vely", "vv" or "vely" as those are reserved by Vely.
+
+.LP
+.B LIBRARIES
+.LP
+
+You can use any external libraries with Vely (see "--lflag", "--cflag" with \fBvv\fP). For the implementation of its own functionality, Vely uses standard libraries wherever possible (such as cURL, OpenSSL, PostgreSQL, MariaDB, SQLite, pcre2 etc.). Those libraries are loaded when needed automatically; thus the run-time memory usage is minimized based on your program needs.
+
+.LP
+.B CONTAINERS (DOCKER ETC)
+.LP
+
+You can easily \fBcontainerize-application\fP.
+
+.LP
+.B CONNECT FROM OTHER APPLICATIONS
+.LP
+
+Use \fBFastCGI-API\fP to connect to a Vely application server from any program, C or otherwise - as long as it has C linkage capability, which most languages do. This works with both single and multi-threaded applications. 
+
+.LP
+.B BETTER ERROR REPORTING AND DIAGNOSTICS
+.LP
+
+Vely provides enhanced \fBdiagnostic-messages\fP which are color-coded for both Vely source code lines as well as generated C code, along with the messages from the C compiler; here is an example:
+(Image diag_small.png not available in man page, see web page documentation)
+.SH SEE ALSO
+ 
+.B - General
+
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
+\fBSELinux\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
+\fBvf\fP  
+\fBvv\fP    
+See all 
+\fBdocumentation\fP

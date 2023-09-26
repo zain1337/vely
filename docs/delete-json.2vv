@@ -17,7 +17,7 @@ delete-json <json>
 .SH DESCRIPTION
 delete-json will delete memory associated with variable <json> created to parse a JSON string with \fBnew-json\fP. 
 
-See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 

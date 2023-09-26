@@ -484,9 +484,10 @@ num vely_get_file_size(char *fn)
 // Checks if input parameter name (in URL) is valid for vely.
 // Valid names are consider to have only alphanumeric characters and
 // underscores, and must not start with a digit.
+// If hyphen is true, then it's allowed, otherwise it's not.
 // Returns 1 if name is valid, 0 if not.
 //
-num vely_is_valid_param_name (char *name)
+num vely_is_valid_param_name (char *name, bool hyphen)
 {
     VV_TRACE ("");
     assert (name);
@@ -495,7 +496,7 @@ num vely_is_valid_param_name (char *name)
     if (!isalpha(name[0]) && name[0] != '_') return 0;
     while (name[i] != 0)
     {
-        if (!isalnum(name[i]) && name[i] != '_') return 0;
+        if (!isalnum(name[i]) && name[i] != '_' && (!hyphen || name[i] != '-')) return 0;
         i++;
     }
     return 1;

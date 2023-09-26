@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-encode-web \-  (web_encoding)
+encode-web \-  (web-encoding)
 .SH PURPOSE
 Web(HTML)-encode string.
 

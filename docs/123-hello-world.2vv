@@ -1,0 +1,124 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+123-hello-world \- Vely documentation (quick-start)
+.SH DESCRIPTION
+This is a condensed version of Vely Hello World that you can run in minutes. No additional software needs to be installed. For more, see \fBexamples\fP.
+
+.LP
+.B STEP 1: INSTALL VELY
+.LP
+
+First \fBinstall Vely\fP. 
+
+.LP
+.B STEP 2: BUILD IT
+.LP
+
+Create Hello World source file (hello.vely) in a new directory; note it's all one bash command:
+
+.RS 4
+.EX
+
+echo '#include "vely.h"
+
+request-handler /hello
+    out-header default
+    @Hello World!
+end-request-handler' > hello.vely
+
+.EE
+.RE
+
+Create Hello World application:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) helloworld
+
+.EE
+.RE
+
+Make Hello World application:
+
+.RS 4
+.EX
+
+vv -q 
+
+.EE
+.RE
+
+
+.LP
+.B STEP 3: RUN IT
+.LP
+
+You can run Hello World both as a service and from command line:
+
+.RS 4
+\[bu]    
+As a service, first start your Hello World FastCGI application server:
+
+.RS 4
+.EX
+
+vf helloworld
+
+.EE
+.RE
+
+then connect to it:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/helloworld"
+export PATH_INFO="/hello"
+cgi-fcgi -connect /var/lib/vv/helloworld/sock/sock  /
+
+.EE
+.RE
+
+
+.RE
+
+.RS 4
+\[bu]    
+From command line:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/helloworld"
+export PATH_INFO="/hello"
+/var/lib/vv/bld/helloworld/helloworld
+
+.EE
+.RE
+
+
+.RE
+
+
+.LP
+.B EXPECTED RESULT
+.LP
+
+The end result looks like this (notice in bold the responses from your web application and the command line):
+
+(Image 123result.png not available in man page, see web page documentation)
+You have run Hello World with Vely, first by talking directly to a \fBFastCGI\fP server and then from command line. See \fBFastCGI-command-line-client\fP for a similar example that uses TCP sockets.
+.SH SEE ALSO
+ 
+.B - Quick start
+
+\fB123-hello-world\fP    
+See all 
+\fBdocumentation\fP

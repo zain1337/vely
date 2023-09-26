@@ -33,7 +33,7 @@ To get the length of the string written, use the optional "bytes-written" clause
 .B SHORTCUT CODE
 .LP
 
-Note that instead of write-string you can also use a shortcut "(("  (and instead of end-write-string you can use "))"  ), for example here a string "fname" holds a full path of a file named "config-install.vely" under the application home directory (see \fBhow_vely_works\fP), and "bw" holds the number of bytes written:
+Note that instead of write-string you can also use a shortcut "(("  (and instead of end-write-string you can use "))"  ), for example here a string "fname" holds a full path of a file named "config-install.vely" under the application home directory (see \fBhow-vely-works\fP), and "bw" holds the number of bytes written:
 
 .RS 4
 .EX
@@ -229,7 +229,7 @@ In the above example, "result_str" variable is defined on the spot, but it can a
 
 .B - Using function calls inside
 
-The following uses functions inside write-string (note that "<<.func2();>>" is simply calling C code as \fBinline_code\fP):
+The following uses functions inside write-string (note that "<<.func2();>>" is simply calling C code as \fBinline-code\fP):
 
 .RS 4
 .EX

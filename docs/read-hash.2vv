@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-read-hash \-  (hash_table)
+read-hash \-  (hash-table)
 .SH PURPOSE
 Get data from hash table.
 

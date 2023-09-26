@@ -41,11 +41,11 @@ end-query
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP    

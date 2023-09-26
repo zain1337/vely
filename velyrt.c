@@ -1498,7 +1498,7 @@ num vely_get_input(vely_input_req *req, char *method, char *input)
         name_length = strlen (content + j); 
         (req->ip.ipars)[i].name = content +j;
         (req->ip.ipars)[i].found = 0; // init since we're not doing calloc to allocate ipars
-        if (vely_is_valid_param_name (req->ip.ipars[i].name) != 1)
+        if (vely_is_valid_param_name (req->ip.ipars[i].name, false) != 1)
         {
             vely_bad_request();
             vely_report_error ("Invalid input parameter name [%s], can contain alphanumeric characters or underscores only", req->ip.ipars[i].name);

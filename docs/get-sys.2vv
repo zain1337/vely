@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-get-sys \-  (system_information)
+get-sys \-  (system-information)
 .SH PURPOSE
 Obtain data that describes the system.
 
@@ -54,7 +54,7 @@ Note that the same name can be used for both Operating System environment variab
 
 .RS 4
 \[bu]    
-"directory" is the execution directory of the \fBcommand_line\fP program, i.e. the current working directory when the program was executed. Note that Vely will change the current working directory immediately afterwards to the application home directory (see \fBhow_vely_works\fP). You can use this clause to work with files in the directory where the program was started. If your program runs as an application server (see \fBFastCGI\fP), then "directory" clause always returns application home directory, regardless of which directory \fBvf\fP program manager started your application.
+"directory" is the execution directory of the \fBcommand-line\fP program, i.e. the current working directory when the program was executed. Note that Vely will change the current working directory immediately afterwards to the application home directory (see \fBhow-vely-works\fP). You can use this clause to work with files in the directory where the program was started. If your program runs as an application server (see \fBFastCGI\fP), then "directory" clause always returns application home directory, regardless of which directory \fBvf\fP program manager started your application.
 
 .RE
 
@@ -87,6 +87,6 @@ get-sys os-name to define os_name
 .B - System information
 
 \fBget-sys\fP  
-\fBOS_conditional_compilation\fP    
+\fBOS-conditional-compilation\fP    
 See all 
 \fBdocumentation\fP

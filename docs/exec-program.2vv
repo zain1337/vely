@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-exec-program \-  (program_execution)
+exec-program \-  (program-execution)
 .SH PURPOSE
 Execute a program.
 
@@ -22,7 +22,7 @@ exec-program <program path> \\
 .RE
 
 .SH DESCRIPTION
-exec-program executes a program specified in <program path>, which can be a program name without path that exists in the path specified by the PATH environment variable; or an absolute path; or a path relative to the application home directory (see \fBhow_vely_works\fP). 
+exec-program executes a program specified in <program path>, which can be a program name without path that exists in the path specified by the PATH environment variable; or an absolute path; or a path relative to the application home directory (see \fBhow-vely-works\fP). 
 
 A program can have input arguments (specified with "args" clause), and if there are more than one, they must be separated by a comma. There is no limit on the number of input arguments, other than of the underlying Operating System. Each argument <program arg> may contain a comma if it is a string (i.e. double-quoted) or it is an expression within parenthesis. 
 

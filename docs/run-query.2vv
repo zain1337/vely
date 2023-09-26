@@ -42,7 +42,7 @@ run-query executes a query specified with <query text>, which is a dynamic query
 .B DATABASE
 .LP
 
-Optional <database> is specified in "@" clause and is the name of the \fBdatabase_config_file\fP. It is optional if there is only one database used (see \fBvv\fP), in which case it is the default.
+Optional <database> is specified in "@" clause and is the name of the \fBdatabase-config-file\fP. It is optional if there is only one database used (see \fBvv\fP), in which case it is the default.
 
 .LP
 .B OUTPUT
@@ -124,7 +124,7 @@ The error code is available in  <error> variable in optional "error" clause - th
 
 <error> and <error text> can be created with optional "define".
 
-Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror_handling\fP).
+Note that if database connection was lost, and could not be reestablished, the request will error out (see \fBerror-handling\fP).
 
 .LP
 .B NAMING QUERY
@@ -136,7 +136,7 @@ A query can be named with an optional "name" clause by specifying <query name>. 
 .B RUN-PREPARED-QUERY
 .LP
 
-run-prepared-query is the same as run-query except for a few important differences; see \fBprepared_statements\fP.
+run-prepared-query is the same as run-query except for a few important differences; see \fBprepared-statements\fP.
 
 .LP
 .B QUERYING WHEN COLUMN NAMES ARE NOT KNOWN
@@ -289,7 +289,7 @@ run-prepared-query @db = qry no-loop error define ecode affected-rows define aro
 .EE
 .RE
 
-When only a single database is used (a single \fBdatabase_config_file\fP for an application), then "@" clause can be omitted:
+When only a single database is used (a single \fBdatabase-config-file\fP for an application), then "@" clause can be omitted:
 
 .RS 4
 .EX
@@ -306,11 +306,11 @@ run-query =myqry no-loop input stock_name, stock_price, stock_price
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP    

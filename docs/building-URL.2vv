@@ -1,0 +1,54 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+building-URL \- Vely documentation (requests)
+.SH DESCRIPTION
+
+.LP
+.B BUILDING ABSOLUTE URLS
+.LP
+
+Use \fBp-path\fP to create the absolute URL path to refer back to your application so you can issue \fBrequest\fPs to it. 
+
+For example, this is a link that specifies request "show-notes":
+
+.RS 4
+.EX
+
+@<a href="<<p-path>>/show-notes?date=yesterday">Show Notes</a> 
+
+.EE
+.RE
+
+
+If you are building HTML forms, you can add a note with:
+
+.RS 4
+.EX
+
+@<form action="<<p-path>>/add-note" method="POST">
+@<input type="text" name="note" value="">
+@</form>
+
+.EE
+.RE
+
+See \fBrequest-URL\fP for more on URL structure.
+.SH SEE ALSO
+ 
+.B - Requests
+
+\fBafter-request-handler\fP  
+\fBbefore-request-handler\fP  
+\fBbuilding-URL\fP  
+\fBend-request-handler\fP  
+\fBgetting-URL\fP  
+\fBglobal-request-data\fP  
+\fBnon-request\fP  
+\fBnormalized-URL\fP  
+\fBrequest\fP  
+\fBrequest-handler\fP  
+\fBrequest-URL\fP  
+\fBstartup-handler\fP  
+\fBvely-dispatch-request\fP    
+See all 
+\fBdocumentation\fP

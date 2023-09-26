@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-FastCGI \- Vely documentation (running_application)
+FastCGI \- Vely documentation (running-application)
 .SH DESCRIPTION
 You can run a Vely application as a server by using \fBvf\fP program manager. Your application will communicate with outside world using with \fBFastCGI protocol\fP. 
 
@@ -14,13 +14,13 @@ A web server (which is probably the most common way). You need to setup a revers
 
 .RS 4
 \[bu]    
-The command line, in which case you can use a \fBFastCGI_command_line_client\fP. 
+The command line, in which case you can use a \fBFastCGI-command-line-client\fP. 
 
 .RE
 
 .RS 4
 \[bu]    
-\fBFastCGI_API\fP, which allows any application in any programming language to access your server, as long as it has C linkage (by far most do). This method allows for MT (multithreaded) access to your application, where many client requests can be made in parallel.
+\fBFastCGI-API\fP, which allows any application in any programming language to access your server, as long as it has C linkage (by far most do). This method allows for MT (multithreaded) access to your application, where many client requests can be made in parallel.
 Vely server runs as a number of (zero or more) background processes in parallel, processing requests.
 
 .LP
@@ -29,9 +29,9 @@ Vely server runs as a number of (zero or more) background processes in parallel,
 
 To access your application via a reverse proxy (i.e. web server), generally you need to add a proxy directive and restart the web server. 
 
-If you use Apache, you need to connect it to your application, see \fBconnect_apache_tcp_socket\fP (for using TCP sockets) and \fBconnect_apache_unix_socket\fP (for using Unix sockets).
+If you use Apache, you need to connect it to your application, see \fBconnect-apache-tcp-socket\fP (for using TCP sockets) and \fBconnect-apache-unix-socket\fP (for using Unix sockets).
 
-If you use Nginx, you need to connect it to your application, see \fBconnect_nginx_tcp_socket\fP (for using TCP sockets) and \fBconnect_nginx_unix_socket\fP (for using Unix sockets).
+If you use Nginx, you need to connect it to your application, see \fBconnect-nginx-tcp-socket\fP (for using TCP sockets) and \fBconnect-nginx-unix-socket\fP (for using Unix sockets).
 
 .LP
 .B STARTING FASTCGI SERVER PROCESSES
@@ -69,11 +69,11 @@ In this case, the timeout is set to 8 seconds.
  
 .B - Running application
 
-\fBapplication_setup\fP  
+\fBapplication-setup\fP  
 \fBCGI\fP  
-\fBcommand_line\fP  
-\fBcontainerize_application\fP  
+\fBcommand-line\fP  
+\fBcontainerize-application\fP  
 \fBFastCGI\fP  
-\fBplain_C_FCGI\fP    
+\fBplain-C-FCGI\fP    
 See all 
 \fBdocumentation\fP

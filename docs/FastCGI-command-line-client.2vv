@@ -1,0 +1,135 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+FastCGI-command-line-client \- Vely documentation (Client)
+.SH DESCRIPTION
+You can use cgi-fcgi command-line utility to communicate with your \fBFastCGI\fP application without using a web server. Use it to get responses from the command line. This is useful for shell scripting, debugging, testing etc.
+
+If you have application <app name> running, for example 3 concurrent processes:
+
+.RS 4
+.EX
+
+vf -w 3 <app name>
+
+.EE
+.RE
+
+then you can send requests to it and receive replies:
+
+.RS 4
+.EX
+
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/<app name>"
+export PATH_NAME="/<request name>"
+export QUERY_STRING="par1=val1&par2=val2.."
+cgi-fcgi -connect /var/lib/vv/<app name>/sock/sock  /<app name>
+
+.EE
+.RE
+
+If you're running your application on TCP/IP instead of Unix socket (as above), for instance on TCP port 3000:
+
+.RS 4
+.EX
+
+vf -w 3 -p 3000 <app name>
+
+.EE
+.RE
+
+then you can send requests to it and receive replies:
+
+.RS 4
+.EX
+
+cgi-fcgi -connect 127.0.0.1:3000  /
+
+.EE
+.RE
+
+
+.SH EXAMPLES
+The following example will create an application with 3 Vely \fBrequest\fP files, and test them as \fBFastCGI\fP application (both using Unix sockets and TCP) and as a \fBcommand-line\fP program. You can execute below bash commands one by one, or save them in a single file and run:
+
+.RS 4
+.EX
+
+\[char35]
+\[char35]Create hello_1.vely source file
+\[char35]
+echo '#include "vely.h"
+
+request-handler /hello_1
+out-header default
+@Hello World #1
+end-request-handler' > hello_1.vely
+
+\[char35]
+\[char35]Create hello_2.vely source file
+\[char35]
+echo '#include "vely.h"
+
+request-handler /hello_2
+out-header default
+@Hello World #2
+end-request-handler' > hello_2.vely
+
+\[char35]
+\[char35]Create Vely application named "hithere"
+\[char35]
+sudo vf -i -u $(whoami) hithere
+
+\[char35]
+\[char35]Make the application
+\[char35]
+vv -q 
+
+\[char35]
+\[char35]Stop (any) running server processes
+\[char35]Start 2 workers for your application running as FastCGI server via Unix sockets
+\[char35]
+vf -m quit hithere
+vf -w 2 hithere
+
+\[char35]
+\[char35]Send request to execute hello_1() function.
+\[char35]
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/hithere"
+export PATH_INFO="/hello_1"
+export VV_SILENT_HEADER=no
+cgi-fcgi -connect /var/lib/vv/hithere/sock/sock  /hithere
+
+\[char35]
+\[char35]Restart your application as FastCGI server running on TCP port 3000
+\[char35]Then send request to execute hello_2() function.
+\[char35]
+vf -m quit hithere
+vf -p 3000 -w 2 hithere
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/hithere"
+export PATH_INFO="/hello_2"
+export VV_SILENT_HEADER=no
+cgi-fcgi -connect 127.0.0.1:3000 /
+
+\[char35]
+\[char35]Run your application as command line program. Supress HTTP headers.
+\[char35]
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/hithere"
+export PATH_INFO="/hello_2"
+export VV_SILENT_HEADER=no
+/var/lib/vv/bld/hithere/hithere
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Client
+
+\fBFastCGI-API\fP  
+\fBFastCGI-command-line-client\fP    
+See all 
+\fBdocumentation\fP

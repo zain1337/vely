@@ -15,9 +15,9 @@ uniq-file [ define ] <file name> [ temporary ]
 .RE
 
 .SH DESCRIPTION
-One of the common tasks in many applications is creating a unique file (of any kind, including temporary). uniq-file statement does that - it creates a new unique file of zero size, with <file name> being its fully qualified name, which is always within the \fBfile_storage\fP. <file name> is \fBallocated memory\fP.
+One of the common tasks in many applications is creating a unique file (of any kind, including temporary). uniq-file statement does that - it creates a new unique file of zero size, with <file name> being its fully qualified name, which is always within the \fBfile-storage\fP. <file name> is \fBallocated memory\fP.
 
-If string variable <file name> does not exist, it can be created with "define" clause. The file itself is created empty. If "temporary" clause is used, then the file created is a \fBtemporary_file\fP.
+If string variable <file name> does not exist, it can be created with "define" clause. The file itself is created empty. If "temporary" clause is used, then the file created is a \fBtemporary-file\fP.
 
 The file has no extension. You can rename it after it has been created to reflect its usage or purpose. 
 
@@ -57,15 +57,15 @@ delete-file temp_file
 \fBcopy-file\fP  
 \fBdelete-file\fP  
 \fBfile-position\fP  
-\fBfile_storage\fP  
-\fBfile_uploading\fP  
+\fBfile-storage\fP  
+\fBfile-uploading\fP  
 \fBlock-file\fP  
 \fBopen-file\fP  
 \fBread-file\fP  
 \fBread-line\fP  
 \fBrename-file\fP  
 \fBstat-file\fP  
-\fBtemporary_file\fP  
+\fBtemporary-file\fP  
 \fBuniq-file\fP  
 \fBunlock-file\fP  
 \fBwrite-file\fP    

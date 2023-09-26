@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-new-server \-  (distributed_computing)
+new-server \-  (distributed-computing)
 .SH PURPOSE
 Create resources for a server call.
 
@@ -42,20 +42,20 @@ for a TCP socket, a host name and a port number in the form of "<host name>:<por
 
 <request method> (in "method" clause) is a request method, such as "GET", "POST", "DELETE", "PUT" etc.
 
-<app path> (in "app-path" clause) is the application path used to access a URL resource in server <location>, see \fBrequest_URL\fP.
+<app path> (in "app-path" clause) is the application path used to access a URL resource in server <location>, see \fBrequest-URL\fP.
 
-<request path> (in "request-path" clause) is the request path used to access a URL resource in server <location>, see \fBrequest_URL\fP.
+<request path> (in "request-path" clause) is the request path used to access a URL resource in server <location>, see \fBrequest-URL\fP.
 
 Optional request body (i.e. body content) is specified via "request-body" clause. Within it, <content> (in "content" subclause) is the actual body content string. Optional <content length>  (in "content-length" subclause) specifies the number of bytes in <content>; by default it will be the string length of <content>. Mandatory <content type> (in "content-type" subclause) is the body content type (for instance  "application/json" or "image/jpg").
 
-Optional <url payload> (in "url payload" clause) is the URL payload, see \fBrequest_URL\fP.
+Optional <url payload> (in "url payload" clause) is the URL payload, see \fBrequest-URL\fP.
 
 Optional <environment> (in "environment" clause) is the environment passed to a server call, in the form of "name"="value" list where such environment elements are separated by a comma. This way you can send any environment variables to the request executed remotely. For a Vely server, you can access those variables in a remote request by using "web-environment" clause of \fBget-sys\fP statement. There is no limit on the number of environment variables you can use this way, other than the underlying communication library.
 
-Optional <timeout> (in "timeout" clause) is the number of seconds after which a server call will timeout; meaning the duration of a server call should not exceed this period of time. For no timeout, specify 0. Note that time needed for a DNS resolution of <location> is not counted in <timeout>. Maximum value is 86400 seconds. Even though it's optional, it is recommended to specify <timeout> in order to avoid a Vely process waiting for a very long time (see \fBhow_vely_works\fP). Note that even if your server call times out, the actual request executing on the server may continue until it's done.
+Optional <timeout> (in "timeout" clause) is the number of seconds after which a server call will timeout; meaning the duration of a server call should not exceed this period of time. For no timeout, specify 0. Note that time needed for a DNS resolution of <location> is not counted in <timeout>. Maximum value is 86400 seconds. Even though it's optional, it is recommended to specify <timeout> in order to avoid a Vely process waiting for a very long time (see \fBhow-vely-works\fP). Note that even if your server call times out, the actual request executing on the server may continue until it's done.
 
 .SH EXAMPLES
-In this example, 3 server calls are resourced ("srv1", "srv2" and "srv3"), and they will connect to a hash server (see \fBexample_hash_server\fP) and each will add a key ("key1" with data "data_1", "key2" with data "data_2" and "key3" with data "data_3"). All three connect via Unix socket. A full URL path (for "srv1" for example), would be "/hash/server/op/add/key/key_1/data/data_1" (see \fBexample_hash_server\fP).
+In this example, 3 server calls are resourced ("srv1", "srv2" and "srv3"), and they will connect to a hash server (see \fBexample-hash-server\fP) and each will add a key ("key1" with data "data_1", "key2" with data "data_2" and "key3" with data "data_3"). All three connect via Unix socket. A full URL path (for "srv1" for example), would be "/hash/server/op/add/key/key_1/data/data_1" (see \fBexample-hash-server\fP).
 
 Then \fBcall-server\fP will make all three server calls in parallel (i.e. as threads executing at the same time). You can examine if everything went okay, how many threads have started, and how many finished with a reply from the server (this means any kind of reply, even if an error). Finally, the output from each call is displayed (that's "data" clause in \fBread-server\fP statement at the end). Create file "srv.vely" and copy to it this code:
 

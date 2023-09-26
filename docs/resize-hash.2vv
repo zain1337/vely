@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-resize-hash \-  (hash_table)
+resize-hash \-  (hash-table)
 .SH PURPOSE
 Resize hash table.
 

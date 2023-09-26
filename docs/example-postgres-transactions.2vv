@@ -1,0 +1,359 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-postgres-transactions \- Vely documentation (examples)
+.SH DESCRIPTION
+What are ACID transactions and how to use them with files: a PostgreSQL example
+(Image transactions_postgresql.png not available in man page, see web page documentation)
+
+.LP
+.B FILES AND TRANSACTIONS
+.LP
+
+While general operating system files are not a part of database systems, you can commit a database transaction and write a file so that a file is assured to be written if the database record is committed. Note this isn't the same as file being a part of the transaction - you would have to use database's facilities for that; however it's a way to practically tie files to database records. For example you might be writing files and inserting their information into a database. You will do just that with PostgreSQL in this example, but in general you can use other databases that support transactions - more on this next.
+
+.LP
+.B POSTGRESQL
+.LP
+
+PostgreSQL (or just Postgres) is a popular Open Source database that uses SQL to create and manipulate data, and which is also ACID compliant. This means Atomicity, Consistency, Isolation and Durability, which are properties that a database should comply with to process transactions reliably. This is very important, as without it, data used in virtually any business might get lost, duplicated or become just plain wrong. Imagine if banks didn't implement transactions correctly - your check deposit or a simple transfer between accounts might not go through as you expect. 
+
+So what does ACID mean exactly?
+
+.RS 4
+\[bu]    
+Atomicity means that everything within a transaction succeeds or nothing does. So if, during the transaction, some part of it is complete, and others are not, and the transaction is interrupted (by a system crash for example), then partially completed items will be rolled back to where they were at the beginning of the transaction. Hence, you will see SQL commands like BEGIN and COMMIT that signify the beginning and the ending of a transaction, with ROLLBACK used to cancel the transaction.
+
+.RE
+
+.RS 4
+\[bu]    
+Consistency means that data will be in accordance with the rules like uniqueness, predetermined relationships (like foreign keys), data range constraints etc. In other words, if a transaction is about to violate any of the rules established for the database, then it must rollback and the data cannot be left in a state contrary to the database rules.
+
+.RE
+
+.RS 4
+\[bu]    
+Isolation means that each transaction is like an island unto itself, and cannot be affected by any changes going on in any other concurrent transaction. That doesn't mean transactions can't happen at the same; they can, as long as they wouldn't impact one another. So those transactions that would operate on the same data in a way that would mean they could produce bad or inconsistent results will be serialized. Different databases employ different methods to ensure this.
+
+.RE
+
+.RS 4
+\[bu]    
+Durability means that once the database informs you it has completed a transaction, not even a system crash immediately following will erase its effects.
+.RE
+
+These qualities are guaranteed by PostgreSQL when you use transactions. Other databases (such as SQLite or MariaDB with InnoDB engine) are also ACID-compliant. For the most part, you can write the same SQL statements that would work with all of these databases, and you can use transactions in the same fashion.
+
+.LP
+.B CONNECTING TO DATABASE
+.LP
+
+Working with PostgreSQL is the fastest with a native C library. Here I will use \fBVely\fP, which uses this kind of library. It also keeps the connection alive, which avoids wasting time on connect/disconnect cycles. In addition, you can use prepared SQL statements, where the server will parse a SQL statement once and then use the parsed statement tree in the future, without having to do it again. Persistent connections and parsed statements go hand in hand, because a parsed statement is only valid within a single session. So if you were to use connection method that isn't persistent, then you would get very little out of prepared statements. Vely will automatically re-establish the connection if it gets lost - for example that can happen if the PostgreSQL server is restarted.
+
+.LP
+.B PREREQUISITES
+.LP
+
+To begin with, \fBinstall Postgres\fP. Also, \fBinstall Vely\fP, which will be used to create a native executable for this example. 
+
+Create a new directory for this example:
+
+.RS 4
+.EX
+
+mkdir postgres
+cd postgres
+
+.EE
+.RE
+
+
+.LP
+.B SETUP THE DATABASE
+.LP
+
+First, you will login as root to "psql" utility and setup database objects:
+
+.RS 4
+.EX
+
+echo "create user $(whoami);
+create database db_items with owner=$(whoami);
+grant all on database db_items to $(whoami);
+\eq
+" | sudo -u postgres psql
+
+.EE
+.RE
+
+Here, you've created database "db_items" and user named after your OS Linux user, creating a passwordless Postgres user. The reason for this is because it gives you better and easier security - only you, logged in as your current OS user, can access the database, and thus you don't need a password. Then you'll give database user the permissions to basically own database "db_items" and be able to create objects, data etc.
+
+Finally, create table "item_list" in this database:
+
+.RS 4
+.EX
+
+echo "create table item_list (item_id bigserial primary key, item_name varchar(30), item_desc varchar(100))" | psql -d db_items
+
+.EE
+.RE
+
+This will create table "item_list" which contains item names and descriptions, as well as auto-generated primary key as an ID. 
+
+.LP
+.B ACCESS THE DATABASE
+.LP
+
+In order to access the database, you will need a \fBdatabase-config-file\fP for it. This file specifes the database user name and password and any other connection string parameters. Consult Postgres documentation to see all the parameters available. Here, create database configuration file named "items". You can call this file anything, but its name is used in the code to reference the database, so if you change it, then also change it in the code below. Create file "items" with this bash code:
+
+.RS 4
+.EX
+
+echo "user=$(whoami) dbname=db_items"  > items
+
+.EE
+.RE
+
+This is actually a native PostgreSQL client configuration file, so learning the format of it may help you elsewhere as well. You'd specify Postgres user name (which is the name of your OS user, or the result of $(whoami) bash expression), and the database name is "db_items" - again that's the database we created already. There's no password because the login is passwordless, as explained above.
+
+.LP
+.B THE CODE
+.LP
+
+Create file "add_item.vely" and copy this to it (note that the name of this file always matches a function name implemented in it; see \fBhow-vely-works\fP):
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+request-handler /add_item
+    out-header default
+
+    input-param name
+    input-param desc
+
+    // Start transaction
+    begin-transaction @items
+    // Insert data
+    run-query @items = "insert into item_list (item_name, item_desc) values ('%s', '%s') returning (item_id)" \\
+            output define item_id : name, desc  \\
+            error define err_code error-text define err_text affected-rows define rows
+        // Check if no error and a row is actually inserted
+        if (!strcmp (err_code, "0") && rows == 1) {
+            // Construct file name
+            write-string define item_file
+            @item_added_<<p-out item_id>>
+            end-write-string
+            // Write file
+            write-file item_file from item_id status define write_st
+            if (write_st < 0) {
+                // Could not write file, even if insert okay
+                rollback-transaction @items
+                @Could not write to file, status <<p-num write_st>>
+            } else {
+                // Both write file and insert okay
+                commit-transaction @items
+                @SUCCESS, item added to database and written to a file (<<p-out item_file>>)
+            }
+        } else {
+            // Could not insert
+            rollback-transaction @items
+            @Could not insert to database, error <<p-out err_text>>, error code <<p-out err_code>>
+        }
+    end-query
+end-request-handler
+
+.EE
+.RE
+
+This code is a \fBrequest\fP handler - it handles a request, such as an HTTP(S) request, or a request from command line. Here's how it works:
+
+.RS 4
+\[bu]    
+First, the data you will insert into database comes as input parameters. Note \fBinput-param\fP at the beginning where you get "name" and "desc" variables - these will come from the program's caller. This is regardless of whether your program is called from the web (i.e. browser) or from the command line.
+
+.RE
+
+.RS 4
+\[bu]    
+Next, begin transaction (\fBbegin-transaction\fP) with database specified by "@items", where "items" is the database configuration file you created that describes the database.
+
+.RE
+
+.RS 4
+\[bu]    
+Insert data with \fBrun-query\fP: a query is specified using '%s' as a placeholder for parameters following a colon (":") - Vely will guard against SQL injection, so you don't need to worry about that. The output is a unique ID of a row created (in "output" clause and created with "define" subclause), and also any error information and the number of rows inserted (in "error", "error-text" and "affected-rows" clauses respectively). All this information is useful later, be in error checking or functionally. 
+
+.RE
+
+.RS 4
+\[bu]    
+Since the error code and error text are obtained, you would check for errors and make sure the row was actually inserted. If not, rollback the transaction, and finish.
+
+.RE
+
+.RS 4
+\[bu]    
+If data was inserted okay, write a file. This file's name is based on this ID and its contents are the same, however both the name and the contents of the file are up to you - this is just for demonstration purposes. Use \fBwrite-string\fP to create a file name, and \fBwrite-file\fP to write data to a file.
+
+.RE
+
+.RS 4
+\[bu]    
+If writing to a file succeeds, \fBcommit-transaction\fP. If it fails, roll it back with \fBrollback-transaction\fP.
+
+.RE
+
+.RS 4
+\[bu]    
+There's a minuscule chance that committing the transaction might fail, in which case the file will remain. This is typically not a problem, since it is the record in the database that is always looked up first, i.e. you won't have a record without the file written - so error handling for this is not included in the code. 
+.RE
+
+You can also use prepared SQL statements by using "run-prepared-query" statement instead of "run-query" in the code above.
+
+And the "@" \fBoutput-statement\fP sends the data to standard output, which can be the actual "stdout" stream if this is going to be a command-line program, or to the browser if this is a web application. The nice thing is, it works the same for both. \fBp-out\fP statement outputs a string, and when placed in between << and >> it is "inlined" into an output statement. 
+
+.LP
+.B CREATE AND MAKE THE APPLICATION
+.LP
+
+When you get started on a Vely application, you have to create it first with the \fBvf\fP program manager:
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) items_app
+
+.EE
+.RE
+
+"-i" option says to create an application. "-u" option says which user will own it, in this case it's "$(whoami)" which is Linix-speak for the "currently logged in user". And finally the application name is "items_app". 
+
+To make your application, use \fBvv\fP tool:
+
+.RS 4
+.EX
+
+vv -q --db='postgres:items'
+
+.EE
+.RE
+
+This gathers all the .vely files in the current directory (in this case just one), processes all the Vely statements (like run-query) into C code, and then compiles and links it all together into a native application. Note "--db='postgres:items'" option - it states your program uses database named "items" and the database vendor is PostgreSQL. You can have any number of databases and any number of supported vendors.
+
+Two executables will be produced, both in the "/var/lib/vv/bld/items_app" directory. Note the "items_app" subdirectory - it matches your application name created above. This directory is like a scratch-pad for your application, this is where all the generated code goes. One executable created will be "items_app" that you can run from the command line. The other one is "items_app.fcgi" that you can run as a \fBFastCGI\fP application server, which is the web application. 
+
+.LP
+.B RUN FROM COMMAND LINE
+.LP
+
+Execute your program:
+
+.RS 4
+.EX
+
+vv -r --req="/add-item?name=Wifi+Camera&desc=Feature+rich+wifi+camera+for+the+home" --silent-header --exec
+
+.EE
+.RE
+
+You might get:
+
+.RS 4
+.EX
+
+SUCCESS, item added to database and written to a file (item_added_1)
+
+.EE
+.RE
+
+Verify the data has been added:
+
+.RS 4
+.EX
+
+echo "select * from item_list" | psql -d db_items
+
+.EE
+.RE
+
+The result is:
+
+.RS 4
+.EX
+
+ item_id |  item_name  |               item_desc
+---------+-------------+---------------------------------------
+       1 | Wifi Camera | Feature rich wifi camera for the home
+(1 row)
+
+.EE
+.RE
+
+Your request has added data to the database!
+
+Note you can also obtain the direct commands to execute a program by omitting "--exec" option in "vv -r" call above:
+
+.RS 4
+.EX
+
+vv -r --req="/add-item?name=Wifi+Camera&desc=Feature+rich+wifi+camera+for+the+home" --silent-header 
+
+.EE
+.RE
+
+which produces:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=yes
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/items_app"
+export PATH_INFO="/add-item"
+export QUERY_STRING="name=Wifi+Camera&desc=Feature+rich+wifi+camera+for+the+home"
+/var/lib/vv/bld/items_app/items_app
+
+.EE
+.RE
+
+You can copy these to your script and execute, to the same result.
+
+Vely is all about standard HTTP requests. So even when you run a command line program, it does so by receiving an HTTP request. That's why there's a request method ("GET"), a script name (which is a path to application name "items_app"), a path info (which is a path to request handler "add_item", i.e. your code above), and a query string containing the input data ("name" and "desc") which match the input parameters in your code. 
+
+This makes is very easy to build programs for both command-line and web execution, because they are the same. You don't need to write two code bases and you only debug once. Plus, you can do on command line virtually anything you can on the web, so you can write your program without ever even having a web server setup.
+
+Note the VV_SILENT_HEADER environment variable - it suppresses HTTP header output. If it weren't there, you'd get the HTTP header, the same one that a browser will get. 
+
+You can of course run this example as a web service by starting your own application server - see \fBthis as an example\fP.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

@@ -58,7 +58,7 @@ delete-mem ws
 
 \fBdelete-mem\fP  
 \fBmanage-memory\fP  
-\fBmemory_handling\fP  
+\fBmemory-handling\fP  
 \fBnew-mem\fP  
 \fBresize-mem\fP    
 See all 

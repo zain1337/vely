@@ -1,6 +1,6 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-read-server \-  (distributed_computing)
+read-server \-  (distributed-computing)
 .SH PURPOSE
 Get results of a server call.
 

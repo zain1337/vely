@@ -29,8 +29,8 @@ ldx
 ldx
 .B - Client
 
-\fBFastCGI_API\fP  
-\fBFastCGI_command_line_client\fP   
+\fBFastCGI-API\fP  
+\fBFastCGI-command-line-client\fP   
 .RE
 
 
@@ -49,11 +49,11 @@ ldx
 \fBbegin-transaction\fP  
 \fBcommit-transaction\fP  
 \fBcurrent-row\fP  
-\fBdatabase_config_file\fP  
-\fBdatabase_queries\fP  
+\fBdatabase-config-file\fP  
+\fBdatabase-queries\fP  
 \fBdelete-query\fP  
 \fBon-error\fP  
-\fBprepared_statements\fP  
+\fBprepared-statements\fP  
 \fBquery-result\fP  
 \fBrollback-transaction\fP  
 \fBrun-query\fP   
@@ -71,7 +71,7 @@ ldx
 ldx
 .B - Diagnostics
 
-\fBdiagnostic_messages\fP   
+\fBdiagnostic-messages\fP   
 .RE
 
 
@@ -107,8 +107,8 @@ ldx
 ldx
 .B - Error handling
 
-\fBerror_code\fP  
-\fBerror_handling\fP  
+\fBerror-code\fP  
+\fBerror-handling\fP  
 \fBon-error\fP  
 \fBreport-error\fP   
 .RE
@@ -117,28 +117,28 @@ ldx
 ldx
 .B - Examples
 
-\fBexample_client_API\fP  
-\fBexample_cookies\fP  
-\fBexample_create_table\fP  
-\fBexample_distributed_servers\fP  
-\fBexample_docker\fP  
-\fBexample_encryption\fP  
-\fBexample_file_manager\fP  
-\fBexample_form\fP  
-\fBexample_hash_server\fP  
-\fBexample_hello_world\fP  
-\fBexample_how_to_design_application\fP  
-\fBexample_json\fP  
-\fBexample_multitenant_SaaS\fP  
-\fBexample_postgres_transactions\fP  
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
 \fBexamples\fP  
-\fBexample_sendmail\fP  
-\fBexample_shopping\fP  
-\fBexample_stock\fP  
-\fBexample_uploading_files\fP  
-\fBexample_using_mariadb_mysql\fP  
-\fBexample_utility\fP  
-\fBexample_write_report\fP   
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP   
 .RE
 
 
@@ -160,15 +160,15 @@ ldx
 \fBcopy-file\fP  
 \fBdelete-file\fP  
 \fBfile-position\fP  
-\fBfile_storage\fP  
-\fBfile_uploading\fP  
+\fBfile-storage\fP  
+\fBfile-uploading\fP  
 \fBlock-file\fP  
 \fBopen-file\fP  
 \fBread-file\fP  
 \fBread-line\fP  
 \fBrename-file\fP  
 \fBstat-file\fP  
-\fBtemporary_file\fP  
+\fBtemporary-file\fP  
 \fBuniq-file\fP  
 \fBunlock-file\fP  
 \fBwrite-file\fP   
@@ -178,16 +178,16 @@ ldx
 ldx
 .B - General
 
-\fBabout_Vely\fP  
-\fBapplication_architecture\fP  
-\fBdeploying_application\fP  
-\fBhow_vely_works\fP  
-\fBquality_control\fP  
-\fBrename_files\fP  
+\fBabout-Vely\fP  
+\fBapplication-architecture\fP  
+\fBdeploying-application\fP  
+\fBhow-vely-works\fP  
+\fBquality-control\fP  
+\fBrename-files\fP  
 \fBSELinux\fP  
-\fBvely_architecture\fP  
-\fBvely_removal\fP  
-\fBvely_version\fP  
+\fBvely-architecture\fP  
+\fBvely-removal\fP  
+\fBvely-version\fP  
 \fBvf\fP  
 \fBvv\fP   
 .RE
@@ -226,9 +226,9 @@ ldx
 .B - Language
 
 \fBdot\fP  
-\fBinline_code\fP  
-\fBstatement_APIs\fP  
-\fBsyntax_highlighting\fP  
+\fBinline-code\fP  
+\fBstatement-APIs\fP  
+\fBsyntax-highlighting\fP  
 \fBunused-var\fP   
 .RE
 
@@ -245,7 +245,7 @@ ldx
 
 \fBdelete-mem\fP  
 \fBmanage-memory\fP  
-\fBmemory_handling\fP  
+\fBmemory-handling\fP  
 \fBnew-mem\fP  
 \fBresize-mem\fP   
 .RE
@@ -256,7 +256,7 @@ ldx
 
 \fBfinish-output\fP  
 \fBflush-output\fP  
-\fBoutput_statement\fP  
+\fBoutput-statement\fP  
 \fBp-dbl\fP  
 \fBpf-out\fP  
 \fBpf-url\fP  
@@ -272,7 +272,7 @@ ldx
 ldx
 .B - Process
 
-\fBglobal_process_data\fP   
+\fBglobal-process-data\fP   
 .RE
 
 
@@ -294,7 +294,7 @@ ldx
 ldx
 .B - Quick start
 
-\fB123_hello_world\fP   
+\fB123-hello-world\fP   
 .RE
 
 
@@ -321,31 +321,31 @@ ldx
 ldx
 .B - Requests
 
-\fBafter_request_handler\fP  
-\fBbefore_request_handler\fP  
-\fBbuilding_URL\fP  
+\fBafter-request-handler\fP  
+\fBbefore-request-handler\fP  
+\fBbuilding-URL\fP  
 \fBend-request-handler\fP  
-\fBgetting_URL\fP  
-\fBglobal_request_data\fP  
-\fBnon_request\fP  
-\fBnormalized_URL\fP  
+\fBgetting-URL\fP  
+\fBglobal-request-data\fP  
+\fBnon-request\fP  
+\fBnormalized-URL\fP  
 \fBrequest\fP  
 \fBrequest-handler\fP  
-\fBrequest_URL\fP  
-\fBstartup_handler\fP  
-\fBvely_dispatch_request\fP   
+\fBrequest-URL\fP  
+\fBstartup-handler\fP  
+\fBvely-dispatch-request\fP   
 .RE
 
 
 ldx
 .B - Running application
 
-\fBapplication_setup\fP  
+\fBapplication-setup\fP  
 \fBCGI\fP  
-\fBcommand_line\fP  
-\fBcontainerize_application\fP  
+\fBcommand-line\fP  
+\fBcontainerize-application\fP  
 \fBFastCGI\fP  
-\fBplain_C_FCGI\fP   
+\fBplain-C-FCGI\fP   
 .RE
 
 
@@ -367,7 +367,7 @@ ldx
 .B - System information
 
 \fBget-sys\fP  
-\fBOS_conditional_compilation\fP   
+\fBOS-conditional-compilation\fP   
 .RE
 
 
@@ -415,10 +415,10 @@ ldx
 ldx
 .B - Web servers
 
-\fBconnect_apache_tcp_socket\fP  
-\fBconnect_apache_unix_socket\fP  
-\fBconnect_nginx_tcp_socket\fP  
-\fBconnect_nginx_unix_socket\fP   
+\fBconnect-apache-tcp-socket\fP  
+\fBconnect-apache-unix-socket\fP  
+\fBconnect-nginx-tcp-socket\fP  
+\fBconnect-nginx-unix-socket\fP   
 .RE
 
 
@@ -435,9 +435,9 @@ Vely documentation is available online, and also as man pages (i.e. manual pages
 
 man run-query
 
-man how_vely_works
+man how-vely-works
 
-man example_shopping
+man example-shopping
 
 .EE
 .RE
@@ -449,9 +449,9 @@ The Vely section is '2vv', so in case of other software having conflicting topic
 
 man 2vv run-query
 
-man 2vv how_vely_works
+man 2vv how-vely-works
 
-man 2vv example_shopping
+man 2vv example-shopping
 
 .EE
 .RE

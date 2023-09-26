@@ -15,7 +15,7 @@ finish-output
 .RE
 
 .SH DESCRIPTION
-finish-output will flush out and conclude all of the request's output (see \fBoutput_statement\fP). Any such output afterwards will silently fail to do so. As far as the client is concerned (or the user running a \fBcommand_line\fP program), all the output from the request is complete.
+finish-output will flush out and conclude all of the request's output (see \fBoutput-statement\fP). Any such output afterwards will silently fail to do so. As far as the client is concerned (or the user running a \fBcommand-line\fP program), all the output from the request is complete.
 
 This statement is useful when you need to continue work after the request's output is complete. For example, if the request is a long-running one, you can inform the client that the job has started, and then take any amount of time to actually complete the job, without worrying about client timeouts. The client can inquire about the job status via a different request, or be informed via email etc.
 
@@ -35,7 +35,7 @@ finish-output
 
 \fBfinish-output\fP  
 \fBflush-output\fP  
-\fBoutput_statement\fP  
+\fBoutput-statement\fP  
 \fBp-dbl\fP  
 \fBpf-out\fP  
 \fBpf-url\fP  

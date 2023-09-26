@@ -2,250 +2,102 @@
 .SH NAME
 index \- Vely documentation ()
 .SH DESCRIPTION
-Vely is a general-purpose framework for rapid development of high-performance software. It is especially well suited for web applications, and it's Free Open Source. Read more \fBabout_Vely\fP.
+Vely is a general-purpose framework for rapid development of high-performance software. It is especially well suited for web applications, and it's Free Open Source. Read more \fBabout-Vely\fP.
 
 Vely is unlike typical programming languages or frameworks you may have used. It might remind you of SQL, as it is declarative and simple, yet powerful. Vely brings rich functionality, great productivity and ergonomics, and most importantly, high performance. It generates C code from statements that perform entire tasks. 
 
 Want more performance? \fBTry\fP Vely from prebuilt packages or from a source build, then head over to plenty of \fBexamples\fP. Check out the article about Vely on \fBSoftware Development Times\fP and the latest \fBHackernoon\fP!
 
 .LP
-.B SAMPLE APPLICATIONS
+.B SAMPLE VELY CODE
 .LP
 
+Take a look at sample Vely code to get a feel for it. Vely isn't just about performance; it's about ergonomics, readability and being able to do a lot in just a single line of code. This code is excerpted from an example on how to \fBbuild a web file manager in just 160 lines of code\fP.
 
 .LP
-.B BUYING OR LEASING A CAR
+.B LIST UPLOADED FILES
 .LP
 
-This shows how to implement services that buy or lease a car - the actual functional bit is not here for simplicity. This is a short version, see \fBhere\fP for a complete example.
-
-.B - Buying with a loan
-
-Here's a request handler implementing a request to buy a car with a loan in file "shop__buy__loan.vely" - note that the request path is "/shop/buy/loan":
+List files that have been saved on the server:
 
 .RS 4
 .EX
 
-\[char35]include "vely.h"
+\[char35]include "vely.h" // must always be here
 
-request-handler /shop/buy/loan
+// List files
+request-handler /list
+    // List current files in the database
     out-header default
+    @<h2>List of files</h2>
+    @To add a file, <a href="<<p-path>>?req=start">click here</a><br/><br/>
+    @<table border="1">
+    @<tr>
+    @    <td>File</td><td>Description</td><td>Size</td><td>Show</td><td>Delete</td>
+    @</tr>
 
-    input-param lot
-    input-param doors
-    input-param interest_rate
-    @Buying a car using a loan with interest rate of <<p-out interest_rate>>%.
+    // get the list of files from the database
+    run-query @db_file_manager= \\
+        "select fileName, description, fileSize, fileID from files order by fileSize desc" \\
+        output define file_name, description, file_size, file_ID
 
-    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
-end-request-handler
-
-.EE
-.RE
-
-
-.B - Buying for cash
-
-Next, a request to buy a car with cash in file "shop__buy__cash.vely":
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-request-handler /shop/buy/cash
-    out-header default
-
-    input-param lot
-    input-param doors
-    @Buying a car using cash.
-
-    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
-end-request-handler
-
-.EE
-.RE
-
-
-.B - Leasing
-
-Finally, a request to lease a car in file "shop__lease.vely":
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-request-handler /shop/lease
-    out-header default
-
-    input-param lot
-    input-param doors
-
-    @Leasing a car.
-    @Hello, you are interested in a <<p-out lot>> car with <<p-out doors>> doors!
-end-request-handler
-
-.EE
-.RE
-
-
-.B - Make application
-
-To make this into an application, use \fBvv\fP with "-q" option:
-
-.RS 4
-.EX
-
-vv -q
-
-.EE
-.RE
-
-
-.B - Using it
-
-Buying with financing:
-
-.RS 4
-.EX
-
-https://.../cars/_shop/buy/loan_/lot/new/interest-rate/3?doors=4
-
-.EE
-.RE
-
-Then to buy for cash:
-
-.RS 4
-.EX
-
-https://.../cars/_shop/buy/cash_/lot/new/doors/4
-
-.EE
-.RE
-
-and to lease:
-
-.RS 4
-.EX
-
-https://../cars/_shop/lease_/lot/new/doors/4
-
-.EE
-.RE
-
-Or from command line, for example:
-
-.RS 4
-.EX
-
-vv -r --req="/_shop/buy/loan_/lot/new/interest-rate/3?doors=4"  --exec --silent-header
-
-.EE
-.RE
-
-
-.LP
-.B ADD A CUSTOMER
-.LP
-
-This adds a customer to a SQL database and outputs newly created customer ID as JSON document. Customer's first and last name are input parameters. This is sample code, see \fBhere\fP for a complete example.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-// Create request handler
-request-handler /add-customer
-    out-header use content-type "application/json"
-
-    // Get input parameters
-    input-param first_name
-    input-param last_name
-
-    // Run database query 
-    run-query @db_shopping = \\
-      "insert into customers (firstName, lastName) values ('%s', '%s') returning customerID" \\
-      input first_name, last_name \\
-      output define customerID 
-
-        // Output JSON document
-        @"<<p-out customerID>>"
+        // construct table output with links to Show and Delete files
+        @<tr>
+        @    <td><<p-web file_name>></td><td><<p-web description>><td><<p-web file_size>></td>
+        @    <td><a href="<<p-path>>?req=download&amp;file_id=<<p-url file_ID>>">Show</a></td>
+        @    <td><a href="<<p-path>>?req=delete&amp;action=confirm&amp;file_id=<<p-url file_ID>>">Delete</a></td>
+        @</tr>
 
     end-query
+    @</table>
 end-request-handler
 
 .EE
 .RE
 
 
-.B - The application
+.LP
+.B DOWNLOAD A FILE
+.LP
 
-Let's name this application "shopping" and create it:
-
-.RS 4
-.EX
-
-sudo vf -i -u $(whoami) shopping
-
-.EE
-.RE
-
-And now build the application - Vely will automatically make all .vely files:
+Download selected file to the client.
 
 .RS 4
 .EX
 
-vv -q
+\[char35]include "vely.h"
+
+// Download a file
+request-handler /download
+    // Show or download a file (its ID is in the database)
+    input-param file_id
+
+    // get the local path and extension of the file
+    run-query @db_file_manager= \\
+        "select localPath,extension from files where fileID='%s'" \\
+        input file_id \\
+        output define local_path, ext \\
+        row-count define num_files
+
+            // display JPG or PDF files in the browser, or download any other kind
+            if (!strcmp (ext, ".jpg")) {
+                send-file local_path headers content-type "image/jpg"
+            } else if (!strcmp (ext, ".pdf")) {
+                send-file local_path headers content-type "application/pdf"
+            } else {
+                send-file local_path headers content-type "application/octet-stream" download
+            }
+    end-query
+
+    // check we can find the file
+    if (num_files != 1) {
+        out-header default
+        @Cannot find this file!<hr/>
+        return;
+    }
+
+end-request-handler
 
 .EE
 .RE
 
-This gives you a command-line program, and a server executable. You can test with either one, and they both work exactly the same. This makes it easy to automate tests. The little code example and the tools shown here exemplify Vely philosophy: simple, declarative and highly functional Vely code, with just a skeleton C. Of course, you can write any C code you like, but generally you don't need to. The result is easy to read, maintain, and of high performance. Same goes for Vely tools.
-
-.B - Using as a service
-
-To start your application as an application server, simply do:
-
-.RS 4
-.EX
-
-vf shopping
-
-.EE
-.RE
-
-You can talk to this server directly from another program or application (see \fBhere\fP or \fBhere\fP), with a \fButility\fP, or via standard web servers like Apache or Nginx, see \fBhere\fP for a complete example. Check out examples of using this service RESTfully, or as a URL query:
-
-.RS 4
-.EX
-
-https://.../add-customer/first-name/Roy/last-name/Delgado
-
-.EE
-.RE
-
-or
-
-.RS 4
-.EX
-
-https://.../add-customer?first-name=Roy&last-name=Delgado
-
-.EE
-.RE
-
-
-.B - From command-line
-
-A command line uses the same URL interface for input parameters; here's an example of executing it from command line:
-
-.RS 4
-.EX
-
-vv -r --app=/api/v1/shopping --req="/add-customer/first-name/Roy/last-name/Delgado" --method=GET --exec
-
-.EE
-.RE
-
-This is great for writing programs executed from command line, such as in scripts, or as utilities. It's also a great way to test your web applications, because a command line program and an application server serve the exact same requests, take the same input and output, and work the same. If you skip --exec option above, you'll get bash code to run the program directly (and faster), see \fBvv\fP.

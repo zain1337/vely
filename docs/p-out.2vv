@@ -80,7 +80,7 @@ Getting the length of "table_name":
 
 \fBfinish-output\fP  
 \fBflush-output\fP  
-\fBoutput_statement\fP  
+\fBoutput-statement\fP  
 \fBp-dbl\fP  
 \fBpf-out\fP  
 \fBpf-url\fP  

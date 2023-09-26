@@ -177,17 +177,17 @@ install:
 	install -m 0755 -d $(DESTDIR)$(V_VV_DOCS)
 	install -m 0755 -d $(DESTDIR)$(V_VV_EXAMPLES)
 	install -D -m 0644 docs/velydocker.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/hash_server.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/hash-server.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/cookies.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/create_table.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/create-table.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/form.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/sendmail.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/stock.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/file_manager.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/multitenant_SaaS.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/file-manager.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/multitenant-SaaS.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/utility.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/hello_world.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
-	install -D -m 0644 docs/write_report.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/hello-world.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
+	install -D -m 0644 docs/write-report.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/json.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	install -D -m 0644 docs/shopping.tar.gz -t $(DESTDIR)$(V_VV_EXAMPLES)/
 	echo -n "$(PCRE2_VER)" > pcre2_version; install -D -m 0755 pcre2_version -t $(DESTDIR)$(V_LIB)/

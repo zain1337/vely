@@ -1,8 +1,8 @@
 .TH VELY 2vv $VERSION $DATE Development Tools
 .SH NAME
-exit-code \-  (program_execution)
+exit-code \-  (program-execution)
 .SH PURPOSE
-Return exit code when running from the \fBcommand_line\fP.
+Return exit code when running from the \fBcommand-line\fP.
 
 .SH SYNTAX
 
@@ -15,7 +15,7 @@ exit-code <exit code>
 .RE
 
 .SH DESCRIPTION
-exit-code specifies <exit code> (which must be an integer expression) when the program runs from the \fBcommand_line\fP.
+exit-code specifies <exit code> (which must be an integer expression) when the program runs from the \fBcommand-line\fP.
 
 exit-code can be specified anywhere in the code, and does not mean exiting the program. To exit the program, either use \fBexit-request\fP or simply allow \fBrequest\fP function to reach its end.
 

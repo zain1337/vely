@@ -21,7 +21,7 @@ If you use "delete" clause, then all the internal memory of a <list> is freed, a
 
 Note that in any case, purge-fifo will not free any possibly \fBallocated memory\fP for keys or values stored in its elements (see \fBwrite-fifo\fP).
 
-See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 See \fBread-fifo\fP.

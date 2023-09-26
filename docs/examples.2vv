@@ -38,15 +38,15 @@ What's in it: request design, application design, command-line, web.
 
 .RS 4
 \[bu]    
-\fBWeb file manager in 170 lines of code\fP:
+\fBWeb file manager in 160 lines of code\fP:
 .RS 4
 \[bu]    
-Uploading and downloading files is one of the most common tasks in web applications. This article shows how to build a file manager application in about 170 lines of code. 
+Uploading and downloading files is one of the most common tasks in web applications. This article shows how to build a file manager application in about 160 lines of code. 
 .RE
 
 .RS 4
 \[bu]    
-What's in it: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 164 lines of code.
+What's in it: PostgreSQL; web browser; Apache; TCP sockets; 6 source files, 165 lines of code.
 .RE
 
 .RE
@@ -294,7 +294,7 @@ What's in it:  web browser; Apache; REST API; Unix sockets; 3 source files, 54 l
 
 .RS 4
 \[bu]    
-\fBHello_world\fP:
+\fBHello-world\fP:
 .RS 4
 \[bu]    
 This is a simple Hello World example. It explains basics of making applications as well as tracing and debugging them.
@@ -360,27 +360,27 @@ What's in it: Docker, MariaDB, web browser, Apache.
  
 .B - Examples
 
-\fBexample_client_API\fP  
-\fBexample_cookies\fP  
-\fBexample_create_table\fP  
-\fBexample_distributed_servers\fP  
-\fBexample_docker\fP  
-\fBexample_encryption\fP  
-\fBexample_file_manager\fP  
-\fBexample_form\fP  
-\fBexample_hash_server\fP  
-\fBexample_hello_world\fP  
-\fBexample_how_to_design_application\fP  
-\fBexample_json\fP  
-\fBexample_multitenant_SaaS\fP  
-\fBexample_postgres_transactions\fP  
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
 \fBexamples\fP  
-\fBexample_sendmail\fP  
-\fBexample_shopping\fP  
-\fBexample_stock\fP  
-\fBexample_uploading_files\fP  
-\fBexample_using_mariadb_mysql\fP  
-\fBexample_utility\fP  
-\fBexample_write_report\fP    
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
 See all 
 \fBdocumentation\fP

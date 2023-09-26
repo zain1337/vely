@@ -72,7 +72,7 @@ split-string is useful for parsing CSV (Comma Separated Values) or any other kin
 .B ALLOCATED INTERNALS
 .LP
 
-<result> is \fBallocated memory\fP along with additional internal memory, which can be released if "delete" clause is used on a <result> from a previously executed split-string. See \fBmemory_handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+<result> is \fBallocated memory\fP along with additional internal memory, which can be released if "delete" clause is used on a <result> from a previously executed split-string. See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
 
 .SH EXAMPLES
 The following will parse a string containing name/value pairs (such as "name=value") separated by string "&amp;":
