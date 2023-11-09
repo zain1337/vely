@@ -527,7 +527,7 @@ The basis of any multi-tenant system is the ability for a user to sign up, and o
 
 Typically, signing up involves verifying email address, and more often than not, the very same email address is used as a user name. That will be the case here.
 
-There are several sub\fBrequest\fPs implemented here that are necessary to perform the functionality. Each has its own "URL request signature".
+There are several tasks implemented here that are necessary to perform the functionality. Each has its own "URL request signature" or a URL path.
 
 .RS 4
 \[bu]    
@@ -768,7 +768,7 @@ void _show_home() {
 .B - Notes application (notes.vely)
 
 
-The application will be able to add notes, list them, and delete any given note. It operates under a request "notes", and the sub-requests it serves are:
+The application will be able to add notes, list them, and delete any given note. It operates under a request "notes", and the tasks it serves are:
 
 .RS 4
 \[bu]    
@@ -903,6 +903,7 @@ while a few other tasks are user-interface-only, such as:
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -911,6 +912,7 @@ while a few other tasks are user-interface-only, such as:
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

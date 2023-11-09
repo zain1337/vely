@@ -215,6 +215,8 @@ void vely_get_stack(char *fname)
 // This way at run time we know which signal was caught. We also core dump for 
 // more information.
 // NO VELY MEMORY HANDLING HERE
+// This will either end program (due to request to end it, or some fatal condition), or set the flag
+// to end it once the current request completes, and that's all it can do.
 //
 void signal_handler(int sig)
 {
@@ -233,6 +235,7 @@ void signal_handler(int sig)
     // set to make sure vely_report_error does not exit, but lets this function go through the end to report
     // on what's really happening
     vely_in_fatal_exit = 1;
+
 
     switch(sig)
     {

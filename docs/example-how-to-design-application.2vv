@@ -62,7 +62,7 @@ Consequently, "/cars" is the application path, and "/shop" is the request path.
 .B INPUT PARAMETERS
 .LP
 
-While a request can be without any parameters, typically there are some parameters your program needs to fullfill the request. These parameters are passed in a URL right after the request name, for instance:
+While a request can be without any parameters, typically there are some parameters your program needs to fulfill the request. These parameters are passed in a URL right after the request name, for instance:
 
 .RS 4
 .EX
@@ -237,32 +237,6 @@ export QUERY_STRING=""
 You can copy and paste this to execute in command line or a shell script.
 
 .LP
-.B CUSTOM APPLICATION PATH
-.LP
-
-Note that the application path doesn't necessarily have to be just the application name, but it has end with it. For instance, it could be "/api/v2/cars". To have a custom application path like this, you'd specify this path when building your application with \fBvv\fP as a "--path" option:
-
-.RS 4
-.EX
-
-vv -q --path="/api/v2/cars"
-
-.EE
-.RE
-
-The URL then might be:
-
-.RS 4
-.EX
-
-https://webserver.com/api/v2/cars/shop?lot=used&doors=4
-
-.EE
-.RE
-
-This example will stick to a simple case of just using application name, but I thought to mention it so you know it's possible (and easy) to do otherwise if you want to. Often, this is done to version the API for an application; to get started you probably won't need this, but perhaps you might in the future.
-
-.LP
 .B RUN YOUR APPLICATION SERVER
 .LP
 
@@ -399,7 +373,7 @@ A task is some action your request executes. When you created "shop.vely" reques
 
 As you design your application, you might want to keep each request to perform a single task (in which case you don't need to use tasks at all!), or you may want to perform different (but related) actions within the same request handler. It's a matter of how you'd like to structure your code. You may have tasks in only some of your request handlers (maybe those that are a bit more involved but you still want them in a single handler), and the rest of your handlers would not use tasks (since they serve just a single purpose).
 
-Here's an example of using tasks. In this case you might want to have two particular actions related to cars: buy and lease. To do that, you might add an input parameter "type" (meaning a type of shopping) with the intent to have two possible values: "buy" and "lease":
+Here's an example of using tasks. In this case you might want to have two particular actions related to cars: buy and lease. To do that, you might add an input parameter "type" (meaning a type of shopping) with the intent to have two possible values: "buy" and "lease". Copy and paste this to file "shop.vely":
 
 .RS 4
 .EX
@@ -449,7 +423,7 @@ http://127.0.0.1/cars/shop/type/lease/lot/used?doors=4
 .EE
 .RE
 
-You can have any number of tasks. A sub-task is just a task that's evaluated within another task - so basically, it's a task-param within an if-task. Hence, the distinction between a task and a subtask is purely logical, meaning it depends on your own vision of task hierarchy. For example, you might add a subtask "financing" that only applies if the car is bought (i.e. not leased), and it would have values of "loan" and "cash"; in this case there's an additional input parameter "interest_rate" but only if "financing" subtask is "loan". Here's what that looks like in Vely:
+You can have any number of tasks. A sub-task is just a task that's evaluated within another task - so basically, it's a task-param within an if-task. Hence, the distinction between a task and a subtask is purely logical, meaning it depends on your own vision of task hierarchy. For example, you might add a subtask "financing" that only applies if the car is bought (i.e. not leased), and it would have values of "loan" and "cash"; in this case there's an additional input parameter "interest_rate" but only if "financing" subtask is "loan". Here's what that looks like in file "shop.vely":
 
 .RS 4
 .EX
@@ -653,6 +627,52 @@ vv -r --req="/_shop/buy/loan_/lot/new/interest-rate/3?doors=4"  --exec --silent-
 
 
 .LP
+.B CUSTOM APPLICATION PATH
+.LP
+
+Note that the application path doesn't necessarily have to be just the application name, but it has to end with it. For instance, it could be "/api/v2/cars". To have a custom application path like this, you'd specify this path when building your application with \fBvv\fP as a "--path" option:
+
+.RS 4
+.EX
+
+vv -q --path="/api/v2/cars"
+
+.EE
+.RE
+
+In this case you'd change the web server reverse proxying. For Nginx:
+
+.RS 4
+.EX
+
+location /api/v2/cars { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/cars/sock/sock; }
+
+.EE
+.RE
+
+and for Apache, the following would be in Apache's configuration file:
+
+.RS 4
+.EX
+
+ProxyPass "/api/v2/cars" unix:///var/lib/vv/cars/sock/sock|fcgi://localhost/api/v2/cars
+
+.EE
+.RE
+
+The URL then might be for instance:
+
+.RS 4
+.EX
+
+http://127.0.0.1/api/v2/cars/_shop/lease_/lot/new/doors/4
+
+.EE
+.RE
+
+Often, this is done to version the API for an application; to get started you probably won't need this, but perhaps you might in the future. 
+
+.LP
 .B STRUCTURING OF REQUESTS AND TASKS
 .LP
 
@@ -676,6 +696,7 @@ In this article, you've learned how to get started writing a Vely application. R
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -684,6 +705,7 @@ In this article, you've learned how to get started writing a Vely application. R
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

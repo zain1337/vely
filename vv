@@ -599,7 +599,11 @@ export QUERY_STRING=\"$_REQ_QUERY\""> $_TOEXEC
     fi
     if [ "$_REQ_EXEC" == "1" ]; then
        chmod +x $_TOEXEC
-       . $_TOEXEC
+       RCODE=0
+       . $_TOEXEC || RCODE=$?
+       if [ "$RCODE" != "0" ]; then
+           exit $RCODE
+       fi
     else
         cat $_TOEXEC
     fi
@@ -756,7 +760,7 @@ function error() {
 #
 function read_modules() {
 
-#Set _ISMOD_* variables and call set_modules to set variables for building of application.
+#Set _ISMOD_* variables and call set_modules to set variables for building of application. This is for databases only.
     for _i in $(echo "$VV_C_MODULES"); do
         if [ "$_i" == "mariadb" ]; then
             _ISMOD_MARIADB="1"
@@ -786,9 +790,11 @@ function read_modules() {
 #
 
 #first look for all possible statements
-    grep -h -o "^[[:space:]]*\(call-web \|match-regex \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \|new-server \)" *.vely>$VV_BLD/.findmod || true
+    grep -h -o "^[[:space:]]*\(call-web \|match-regex \|[a-z]\+-tree \|hash-string \|decrypt-data \|encrypt-data \|decode-base64 \|encode-base64 \|random-crypto \|new-server \)" *.vely>$VV_BLD/.findmod || true
 #then from occurrances, look for curl
     if [[ $(grep -m 1 -o "^[[:space:]]*call-web " $VV_BLD/.findmod) != "" ]]; then _ISMOD_CURL="1"; fi
+#then from occurrances, look for tree
+    if [[ $(grep -m 1 -o "^[[:space:]]*[a-z]\+-tree " $VV_BLD/.findmod) != "" ]]; then _ISMOD_TREE="1"; fi
 #then from occurrances, look for pcre2
     if [[ $(grep -m 1 -o "^[[:space:]]*match-regex " $VV_BLD/.findmod) != "" ]]; then _ISMOD_PCRE2="1"; fi
 #then from occurrances, look for fcgi
@@ -874,6 +880,15 @@ function read_modules() {
         VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_pcre2.o"
         VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES pcre2"
     fi
+#tree module
+    if [ "$_ISMOD_TREE" == "1" ]; then
+        VV_TREE_USED="-DVV_TREE_INCLUDE"
+        VV_MOD_LIBS="$VV_MOD_LIBS -lvelytree"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES tree"
+    else
+        VV_STUBS="$VV_STUBS $VV_LIBRARY_PATH/stub_tree.o"
+        VV_LIST_ALL_MODULES="$VV_LIST_ALL_MODULES tree"
+    fi
 #curl module
     if [ "$_ISMOD_CURL" == "1" ]; then
         VV_CURL_USED="-DVV_CURL_INCLUDE"
@@ -911,6 +926,7 @@ function read_modules() {
     export VV_MARIADB_USED
     export VV_FCGI_USED
     export VV_CURL_USED
+    export VV_TREE_USED
     export VV_PCRE2_USED
     export VV_CRYPTO_USED
 }

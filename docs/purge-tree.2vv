@@ -1,0 +1,62 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+purge-tree \-  (tree-search)
+.SH PURPOSE
+Delete a tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+purge-tree <tree> 
+
+.EE
+.RE
+
+.SH DESCRIPTION
+purge-tree will delete a <tree> created with \fBnew-tree\fP. All of <tree>'s nodes, and their keys/values (if allocated) must be deleted prior to purge-tree. Here's an example of doing that, by finding a node with the minimum key, deleting it, and repeating the process:
+
+.RS 4
+.EX
+
+while (1) {
+    read-tree mytree min-key old-key define mk value define mv status define ms
+    if (ms == VV_OKAY) {
+        delete-tree mytree key mk
+        delete-mem mk
+        delete-mem mv
+    } else break;
+}
+
+.EE
+.RE
+
+See \fBmemory-handling\fP for more on when (not) to delete memory explicitly like this; the same rules apply as for \fBdelete-mem\fP.
+
+.SH EXAMPLES
+Delete a tree entirely:
+
+.RS 4
+.EX
+
+new-tree define mytree
+\[char46]..
+purge-tree mytree 
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

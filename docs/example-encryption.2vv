@@ -562,6 +562,7 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -570,6 +571,7 @@ You have learned how to encrypt and decrypt data using different ciphers, digest
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

@@ -51,6 +51,7 @@ void my_function () {
  
 .B - Program flow
 
+\fBdo-once\fP  
 \fBexit-request\fP    
 See all 
 \fBdocumentation\fP

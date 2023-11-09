@@ -1,7 +1,19 @@
-Vely release notes for 18.4.0
+Vely release notes for 19.0.0
 
-- Notes: minor release that allows hyphens to be used in application name, plus a few minor enhancements. A commonly asked enhancement is implemented here: if the request handler does not match the name of .vely file, emit an error specifically to that effect; previous error was somewhat unrelated to the cause and was confusing.
-- Minor: application name can have a hyphen in it, which is useful for common URL notations (such as REST).
-- Release: vv will report if no request handlers found in the build.
-- Release: vv will show error message if request handler does not match the name of .vely file
+- Notes: Vely 19 brings major new feature: balanced binary (AVL/B) memory trees, which enable fast data access even in very large data sets (with O(log N)). Tree support includes inserting, updating, deleting and searching of data in a variety of ways (equal, lesser, greater, lesser or equal, greater or equal, minimum, maximum), and also provides a fast (with O(1)) access for range-searches due to a double-linked sorted list (optional). Also included is cursor support, where searching of lesser or greater keys can be done with best possible performance, something that is important for range searches. Additionally, new "process-scope" clause is added for trees and hashes, which makes it easier to build in-memory key servers that allow for a wide range of capabilities. do-once statement is added to allow for simple execution of code that runs only once in a process, such as initializations and creation of structures such as trees or hashes etc. The only change that forced bumping up version to 19 is that num-string no longer allows fixed buffers as a result, but rather always allocates memory, which was done to make this statement the same as a number of similar others and to improve safety. A convenience of not having to write "include vely.h" has been added, as Vely will do that automatically. Improvements have been made to memory handling, reducing the memory usage. A number of bug fixes is included in this release. Full list of changes below.
+- Minor: added AVL/B memory tree statements: new-tree, write-tree, read-tree, delete-tree, purge-tree, get-tree, as well as tree cursor statement use-cursor.
+- Minor: added process-scoped memory for hash and tree statements, allowing easy creation of hash and tree servers.
+- Release: improved error reporting to emit a proper error when statement object is not specified.
+- Release: added mechanisms for easier handling of deprecated features in the future.
+- Major: num-string now always allocates memory, in order to be consistent with other similar features and prevent accidental buffer overflows.
+- Release: added warnings to diagnostics.
+- Minor: added do-once statement to allow code that executes only once in process.
+- Minor: including "vely.h" file is no longer necessary.
+- Release: fixed a bug in comment processing where @ and ! output statements would not be processed with C-style comments.
+- Release: fixed a bug in processing of request-handler statement where request name is sometimes not recognized.
+- Release: fixed bug where realloc-ed memory would cause a small memory leak.
+- Release: improved write-string to use less memory.
+- Release: random-string is about 5% faster now.
+- Release: fixed a bug in 'vv -r --req --exec' where status code from executed program is passed to caller.
+- Release: fixed a bug where specifying --lflag would not work due to incorrect placement in the make call.
 

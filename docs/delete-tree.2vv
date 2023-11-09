@@ -1,0 +1,59 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+delete-tree \-  (tree-search)
+.SH PURPOSE
+Delete a node from a tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+delete-tree <tree> key <key> \\
+    [ status [ define ] <status> ] \\
+    [ value [ define ] <value> ] \\
+    [ old-key [ define ] <old key> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+delete-tree will search for <key> and if found, delete its node and set optional <status> (in "status" clause) to VV_OKAY. If <key> is not found, <status> will be VV_ERR_EXIST.
+
+The key of the deleted node can be obtained in optional "old-key" clause in <old key> string; while its value in <value> in optional "value" clause, which can be a pointer of any type. Even though the value of <old key> will match <key> when deletion is successful, the two pointers may differ. Thus you may want to obtain <old key> if you need to release memory for the key, though in many cases you don't need to (see \fBmemory-handling\fP). If <status> is not VV_OKAY, <value> and <old key> are unchanged.
+
+Note that <status>, <value> and <old key> can be created with optional "define".
+
+.SH EXAMPLES
+Delete node with key "123", and obtain its value and (the original) key.
+
+.RS 4
+.EX
+
+char *k = "123";
+delete-tree mytree key k value define val old-key define old_k status define st
+if (st != VV_OKAY){
+   @Could not find key <<p-out k>>
+   exit-request
+}
+// delete the original key and value
+delete-mem old_k
+delete-mem val
+@Deleted key <<p-out k>> with value <<p-out val>>
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

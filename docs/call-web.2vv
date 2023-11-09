@@ -48,7 +48,7 @@ The response code (such as 200 for "OK", 404 for "Not Found" etc.) is available 
 
 The optional "response-headers" clause allows for retrieval of response headers (such as HTTP headers) in <headers> variable, as a single string variable. <headers> is \fBallocated memory\fP.
 
-Each of <result>, <response code>, <headers> and <status> can be created if they don't exist with the corresponding "define".
+Each of <result>, <response code>, <headers> and <status> can be created with the corresponding optional "define".
 
 .LP
 .B REQUEST METHOD
@@ -60,7 +60,7 @@ You can specify the request method using "method" clause. <method> has a string 
 .B STATUS
 .LP
 
-In case of error, <status> is negative, and has value of VV_ERR_FAILED (typically indicating system issue, such as lack of memory, library or system issue or local permissions), VV_ERR_WEB_CALL (error in accessing URL or obtaining data) - otherwise <status> is the length in bytes of the response (0 or positive). Optionally, you can obtain the error message (if any) via "error" clause in <error> variable (which can also be created with "define" if it doesn't exist). Error is an empty string ("") if there is no error. <error> is \fBallocated memory\fP.
+In case of error, <status> is negative, and has value of VV_ERR_FAILED (typically indicating system issue, such as lack of memory, library or system issue or local permissions), VV_ERR_WEB_CALL (error in accessing URL or obtaining data) - otherwise <status> is the length in bytes of the response (0 or positive). Optionally, you can obtain the error message (if any) via "error" clause in <error> variable (which can also be created with optional "define"). Error is an empty string ("") if there is no error. <error> is \fBallocated memory\fP.
 
 .LP
 .B TIMEOUT

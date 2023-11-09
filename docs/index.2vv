@@ -2,102 +2,313 @@
 .SH NAME
 index \- Vely documentation ()
 .SH DESCRIPTION
-Vely is a general-purpose framework for rapid development of high-performance software. It is especially well suited for web applications, and it's Free Open Source. Read more \fBabout-Vely\fP.
 
-Vely is unlike typical programming languages or frameworks you may have used. It might remind you of SQL, as it is declarative and simple, yet powerful. Vely brings rich functionality, great productivity and ergonomics, and most importantly, high performance. It generates C code from statements that perform entire tasks. 
+Vely is an easy pseudocode-like language and a high-performance framework, accelerating both software development and run-time performance. This philosophy is in the name - "Vely" stands for Vel(ocit)y. Vely makes native applications by generating C code which is then compiled. Because of that, you can use C directly, or you may not use it at all as many of examples here don't. 
 
-Want more performance? \fBTry\fP Vely from prebuilt packages or from a source build, then head over to plenty of \fBexamples\fP. Check out the article about Vely on \fBSoftware Development Times\fP and the latest \fBHackernoon\fP!
+Why generate C? Because C is the \fBfastest and most efficient\fP language there is. Fear not however, you don't need to be an expert in C, in fact you don't need to know much C at all.
 
+Vely balances safety, ease of use and performance in a way no other language or framework does. It is safer than C, as it handles memory for complex tasks and releases it automatically. Writing Vely code is as easy as writing pseudocode, except of course that it works! 
+
+You can develop applications fast, including web applications. All the while, you keep the superior performance and low footprint of C, without added complexity that makes other highly abstracted languages slower both at run-time and more difficult to develop with. 
+
+1icoic_radio.pngeico
 .LP
-.B SAMPLE VELY CODE
-.LP
-
-Take a look at sample Vely code to get a feel for it. Vely isn't just about performance; it's about ergonomics, readability and being able to do a lot in just a single line of code. This code is excerpted from an example on how to \fBbuild a web file manager in just 160 lines of code\fP.
-
-.LP
-.B LIST UPLOADED FILES
+.B LATEST
 .LP
 
-List files that have been saved on the server:
+
+\fBVely 19.0\fP is out, with major support for in-memory tree structures, and a host of other features and improvements! Check out the new article about \fBusing regex\fP, and about Vely on \fBSoftware Development Times\fP
+
+1icoic_book.pngeico
+.LP
+.B RESOURCES
+.LP
+
+
+There's plenty of step-by-step and hands-on \fBexamples\fP, and a well-written \fBdocumentation\fP.
+
+Vely has a vast (and growing) functionality that makes for rapid development of virtually any application. Here's some of what's included:
+
+.RS 4
+\[bu]    
+automatic memory handling,
+
+.RE
+
+.RS 4
+\[bu]    
+database support (mySQL/MariaDB, PostgreSQL, SQLite), 
+
+.RE
+
+.RS 4
+\[bu]    
+web programming (REST, uploading/downloading, cookies, HTTP requests and headers, URL and message body handling, calling URLs, web support such as Apache/Nginx/others etc.), 
+
+.RE
+
+.RS 4
+\[bu]    
+distributed computing including FastCGI support,
+
+.RE
+
+.RS 4
+\[bu]    
+easy creation and management of server applications,
+
+.RE
+
+.RS 4
+\[bu]    
+program execution with input/output support,
+
+.RE
+
+.RS 4
+\[bu]    
+data structures (trees, hash, fifo), 
+
+.RE
+
+.RS 4
+\[bu]    
+string building and manipulation (such as regex),
+
+.RE
+
+.RS 4
+\[bu]    
+JSON support,
+
+.RE
+
+.RS 4
+\[bu]    
+encryption and encoding,
+
+.RE
+
+.RS 4
+\[bu]    
+file operations,
+
+.RE
+
+.RS 4
+\[bu]    
+diagnostic and debugging support,
+
+.RE
+
+.RS 4
+\[bu]    
+error handling and tracing.
+.RE
+
+
+2icoic_wand.pngeico 
+.LP
+.B RAPID DEVELOPMENT
+.LP
+
+
+Rapidly develop high-performance web applications or any back-end software. Free Open Source with a \fBlicense\fP you can use with any project, including commercial. Read more \fBabout-Vely\fP.
+
+2icoic_zoom-code.pngeico
+.LP
+.B WRITE LESS CODE
+.LP
+
+
+Vely code looks like pseudocode, but it isn't. That's how easy it is to read and write. A few lines of code will do a whole lot. It's about saving you time and frustration, and not compromising performance in doing so.
+
+2icoic_comet.pngeico 
+.LP
+.B MORE PERFORMANCE
+.LP
+
+
+Vely turns your code directly into native C, without run-time layers of abstraction that may cost you dearly in performance. C is the \fBfastest and most energy-efficient\fP programming language.
+
+Here's a snippet of Vely code. It's from \fBSQLite\fP example. It records temperatures and time they were taken (request URL "/temphist/action/record"), and also lists a history of recordings (request URL "/temphist/action/list"). Check out how easy it is to get input parameters from the web or command line and to run a database query:
 
 .RS 4
 .EX
 
-\[char35]include "vely.h" // must always be here
-
-// List files
-request-handler /list
-    // List current files in the database
+request-handler /temphist
     out-header default
-    @<h2>List of files</h2>
-    @To add a file, <a href="<<p-path>>?req=start">click here</a><br/><br/>
-    @<table border="1">
-    @<tr>
-    @    <td>File</td><td>Description</td><td>Size</td><td>Show</td><td>Delete</td>
-    @</tr>
 
-    // get the list of files from the database
-    run-query @db_file_manager= \\
-        "select fileName, description, fileSize, fileID from files order by fileSize desc" \\
-        output define file_name, description, file_size, file_ID
+    task-param action
 
-        // construct table output with links to Show and Delete files
-        @<tr>
-        @    <td><<p-web file_name>></td><td><<p-web description>><td><<p-web file_size>></td>
-        @    <td><a href="<<p-path>>?req=download&amp;file_id=<<p-url file_ID>>">Show</a></td>
-        @    <td><a href="<<p-path>>?req=delete&amp;action=confirm&amp;file_id=<<p-url file_ID>>">Delete</a></td>
-        @</tr>
-
-    end-query
-    @</table>
+    if-task "record"
+        input-param temp
+        run-query @db_utility = "insert into temps (temp, timest) values ('%s', current_timestamp)" : temp \\
+            affected-rows define rc error-text define er no-loop
+        if (rc != 1) {
+            @Could not insert temperature reading, error <<p-out er>>.
+        } else {
+            @Temperature reading stored.
+        }
+    else-task "list"
+        run-query @db_utility = "select temp, timest from temps order by timest" output temp, timest
+            @Date: <<query-result  timest>>
+            @Temperature: <<query-result  temp>>
+        end-query
+    end-task
 end-request-handler
 
 .EE
 .RE
 
 
+1icoic_shield-check-filled.pngeico
 .LP
-.B DOWNLOAD A FILE
+.B BETTER SAFETY
 .LP
 
-Download selected file to the client.
+
+No need to manage memory and worry about leaks and buffer overflows. You can still use C however you want, though likely you won't need to as Vely offers vast functionality already.
+
+1icoic_rocket.pngeico 
+.LP
+.B BOOST EVERYTHING
+.LP
+
+
+Skip tedious work with simpler and declarative statements that perform entire tasks. Develop in less time, with more confidence, and with better productivity.
+
+1icoic_download.pngeico
+.LP
+.B TRY NOW
+.LP
+
+
+\fBTry Vely\fP from prebuilt packages or from a source build.
+
+You can download source code and make Vely, or you can use standard apt, dnf, zypper or pacman packagers to install it.
+
+In another example (\fBweb file manager (with PostgreSQL)\fP), here's how simple it is to upload a file to the server and save its information to the database:
 
 .RS 4
 .EX
 
-\[char35]include "vely.h"
+request-handler /upload
+   out-header default
 
-// Download a file
-request-handler /download
-    // Show or download a file (its ID is in the database)
-    input-param file_id
+   input-param filedesc      // file description from the upload form
+   input-param file_filename // file name
+   input-param file_location // the path to uploaded file
+   input-param file_size     // size in bytes
+   input-param file_ext      // the file extension
 
-    // get the local path and extension of the file
-    run-query @db_file_manager= \\
-        "select localPath,extension from files where fileID='%s'" \\
-        input file_id \\
-        output define local_path, ext \\
-        row-count define num_files
+   @<h2>Uploading file</h2>
 
-            // display JPG or PDF files in the browser, or download any other kind
-            if (!strcmp (ext, ".jpg")) {
-                send-file local_path headers content-type "image/jpg"
-            } else if (!strcmp (ext, ".pdf")) {
-                send-file local_path headers content-type "application/pdf"
-            } else {
-                send-file local_path headers content-type "application/octet-stream" download
-            }
-    end-query
+   // insert the information about the file into the database
+   run-query @db_file_manager= \\
+        "insert into files (fileName, localPath, extension, description, fileSize) \\
+            values ('%s', '%s', '%s', '%s', '%s')" \\
+        input file_filename, file_location, file_ext, filedesc, file_size
+   end-query
 
-    // check we can find the file
-    if (num_files != 1) {
-        out-header default
-        @Cannot find this file!<hr/>
-        return;
-    }
-
+   @File <<p-web file_filename>> of size <<p-web file_size>> \\
+        is stored on server at <<p-web file_location>>. \\
+        File description is <<p-web filedesc>>.<hr/>
 end-request-handler
 
 .EE
 .RE
 
+
+6icoic_radio.pngeico
+.LP
+.B MOORE'S LAW
+.LP
+
+
+Performance matters, especially in the Cloud. Faster CPUs are taking more time and money to develop due to physical limitations, and Moore's Law may expire soon. Performance will matter even more in the future. 
+
+6icoic_book.pngeico
+.LP
+.B QUALITY
+.LP
+
+
+Each Vely release passes continuous functional tests before it goes out. There's currently 2186 such tests.
+
+
+Tasks you'd normally have to write lots of complex code are easy with Vely. Take a look at distributed computing, in this case making a request to another server (from \fBdistributed computing example\fP):
+
+.RS 4
+.EX
+
+request-handler /status
+   silent-header
+   out-header default
+   input-param server
+   input-param days
+
+   // Create URL payload for remote server
+   pf-out "/days/%s", days to define payload
+   // Create a string describing the remote server with IP and port
+   pf-out "%s:3800", server to define srv_location
+
+   // Create a remote server connection
+   new-server define srv location srv_location \\
+       method "GET" app-path "/server" \\
+       request-path "/remote_status" \\
+       url-payload payload \\
+       timeout 30
+
+   // Call the remote server
+   call-server srv
+   // Get the results from remote server
+   read-server srv data define dt
+   // Print out the results
+   @Output is: [<<p-out dt>>]
+end-request-handler
+
+.EE
+.RE
+
+
+1icoic_hexagon-letter-c.pngeico
+.LP
+.B IF YOU USE C PROGRAMMING LANGUAGE
+.LP
+
+
+If you develop in C programming language (or thinking about it), Vely is a great choice. Vely generates C code much like an experienced C developer would write it. And for anything you need that Vely doesn't have you can write your own code.
+
+This example will calculate a factorial of a number and then its square root (\fBsee here\fP for a complete example). This demonstrates writing C code with Vely, which can be freely mixed together. In fact, all Vely expressions are indeed C expressions. You can create an application web server from this code in minutes, or run it in a command line just like any other program.
+
+.RS 4
+.EX
+
+\[char35]include <math.h>
+
+int factorial(int num);
+
+%% /using-c
+    out-header default
+    input-param inp
+    int res = factorial (atoi(inp));
+    @Factorial of <<p-out inp>> is <<p-num res>>!
+    double sr = sqrt ((double)res);
+    @And its square root is <<p-dbl sr>>!
+%%
+
+int factorial(int num)
+{
+    int res = 1;
+    int i;
+    for (i = 2; i <= num; i++) {
+        res *= i;
+    }
+    return res;
+}
+
+.EE
+.RE
+
+Contact email vely@vely.dev

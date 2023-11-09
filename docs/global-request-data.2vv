@@ -136,7 +136,6 @@ void mycode () {
 \fBafter-request-handler\fP  
 \fBbefore-request-handler\fP  
 \fBbuilding-URL\fP  
-\fBend-request-handler\fP  
 \fBgetting-URL\fP  
 \fBglobal-request-data\fP  
 \fBnon-request\fP  

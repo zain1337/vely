@@ -328,7 +328,7 @@ The following are the source files in this application:
 
 .B - Send email on the web (mail.vely)
 
-Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with sub\fBrequest\fP "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
+Here, the user can enter information necessary to send an email, such as the recipient email, the subject and message etc. The form to do this is displayed with task "show_form". When the user clicks Submit, the request is sent back to fulfill task "submit_form" which uses \fBinput-param\fP to collect all the user data, construct an email string and then execute "sendmail" program to send email.
 
 This shows usage of "%%" as a shortcut for \fBrequest-handler\fP, as well as using just the request name ("mail") instead of a request path (which would be "/mail").
 
@@ -424,6 +424,7 @@ Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix 
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -432,6 +433,7 @@ Note that you must have an MTA (Mail Transfer Agent) installed (such as postfix 
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

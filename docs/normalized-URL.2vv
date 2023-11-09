@@ -34,7 +34,6 @@ Note that parameter name "req" has a special meaning only in normalized URLs. Yo
 \fBafter-request-handler\fP  
 \fBbefore-request-handler\fP  
 \fBbuilding-URL\fP  
-\fBend-request-handler\fP  
 \fBgetting-URL\fP  
 \fBglobal-request-data\fP  
 \fBnon-request\fP  

@@ -1,0 +1,274 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-how-to-use-regex \- Vely documentation (examples)
+.SH DESCRIPTION
+How to use regular expressions
+(Image regex.png not available in man page, see web page documentation)
+Regular expression (or regex) is a way to search and replace text with very little code. Typically, regex is used when a free format text is obtained and you wish to analyze it or transform it in some way.
+
+Regex is considered a standard technology, because you can use it pretty much across the board: in shell scripts, and in various languages and frameworks. 
+
+For example, you might want to find word "cats" and replace it with "dogs". Or you might need to find all words that start with some prefix and remove them. Other times, you'd be interested in doing something like this but only if the target text is preceded by another word. Or you may want to look only for a certain repetition in the text. There's lots of ways to make use of regex.
+
+.LP
+.B TINY APPLICATION WITH REGEX IN IT
+.LP
+
+Your \fBVely\fP applications can use regex with \fBmatch-regex\fP statement. Here's a simple example. Create a new application called "regex" in a new directory:
+
+.RS 4
+.EX
+
+mkdir -p regex
+cd regex
+sudo vf -i -u $(whoami) regex
+
+.EE
+.RE
+
+The \fBvf\fP command is a Vely program manager and it will create a new application (see \fBhow-vely-works\fP). Then make a source code file "regex_example.vely":
+
+.RS 4
+.EX
+
+vi regex_example.vely
+
+.EE
+.RE
+
+and copy and paste this to it (use "vv -m" for syntax highlighting):
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+%% /regex-example
+    out-header default
+    input-param str
+    match-regex "[a-zA-Z]{3}[0-9]{1,3}" \\
+        in str \\
+        replace-with "XXXX" \\
+        result define res \\
+        cache
+   @Result is <<p-out res>>
+%%
+
+.EE
+.RE
+
+Note that the source file name ("regex_example.vely") should match the request name, which is "regex-example". If you're using hyphens (which is useful for web applications), just substitute with underscore. The fact that a request is implemented in a file with the same name helps keep your applications neat, tidy and easy to peruse.
+
+.LP
+.B WHAT DOES IT DO
+.LP
+
+Your \fBmatch-regex\fP statement will search for a pattern that consists of 3 characters followed by a number between 1 and 3 digits long. This search for a pattern will be performed on string variable "str", and if the pattern is found, it will be replaced with string "XXXX". The result will be stored in string variable "res". Finally, "cache" clause is here for performance, and what it means is that the parsing of a pattern will be done only once and then the whole process of matching and substituting cached, so that repeated executions are very fast. 
+
+.LP
+.B HOW DOES IT WORK
+.LP
+
+Take a look at a pattern in match-regex. This is what you want to be matched. Start with matching a single character:
+
+.RS 4
+.EX
+
+[a-zA-Z]
+
+.EE
+.RE
+
+This means match any character ranging from 'a' to 'z', and from 'A' to 'Z' (to cover both lower and upper case letters). Square brackets "[" and "]" simply state to match characters or ranges within them; that's called a "character class". Next, you'd want this character class to repeat 3 times:
+
+.RS 4
+.EX
+
+[a-zA-Z]{3}
+
+.EE
+.RE
+
+Repetition is a powerful way to specify not just a simple number of repeated patterns, but also a range of repetitions as well, so for example you could say {2-4} to allow 2, 3 or 4 repetitions. And you'd use just that in the next part of your regex pattern:
+
+.RS 4
+.EX
+
+[a-zA-Z]{3}[0-9]{1,3}
+
+.EE
+.RE
+
+Example of a matching string would be "Hey777" or "ABC1" or "XYZ23". You can see even in a simple example like this that regex can be very useful to quickly specify what you want done and just do it.
+
+.LP
+.B CREATE EXECUTABLE APPLICATION 
+.LP
+
+Now, make a native executable:
+
+.RS 4
+.EX
+
+vv -q
+
+.EE
+.RE
+
+
+.LP
+.B RUN IT
+.LP
+
+You can now run your program! First provide a matching string, in this case "Trying Hey777 string":
+
+.RS 4
+.EX
+
+vv -r --req="/regex-example/str/Trying Hey777 string" --exec --silent-header
+
+.EE
+.RE
+
+The result:
+
+.RS 4
+.EX
+
+Trying XXXX string
+
+.EE
+.RE
+
+That was a success because Hey777 was replaced with XXXX just like you specified. Now try a non-matching string:
+
+.RS 4
+.EX
+
+vv -r --req="/regex-example/str/Trying H777 string" --exec --silent-header
+
+.EE
+.RE
+
+The result:
+
+.RS 4
+.EX
+
+Trying H777 string
+
+.EE
+.RE
+
+Since H777 does not match the pattern you have in match-regex, there was no substitution, and that's how it should be.
+
+Note that \fBvv\fP is used here to run a program for convenience. If you skip "--exec" option, it will output a bash script you can copy and paste to run your program's executable directly.
+
+.LP
+.B CHOOSING DIFFERENT REGEX FLAVORS
+.LP
+
+Regex is by default parsed as a PCRE2 (Perl-compatible Regular Expressions v2) regular expression, but you can also use use Posix ERE (or extended regex syntax) if you use "--posix-regex" when building your application. 
+
+.LP
+.B WRITING REGEX WITH VELY
+.LP
+
+Since Vely is based on C programming language, the only character you need to escape is the backslash. For example, in this regex:
+
+.RS 4
+.EX
+
+match-regex "(good).*(day)" \\
+    in "Hello, good day!" \\
+    replace-with "\\e2 \\e1" \\
+    result res
+
+.EE
+.RE
+
+you're using what's called "subexpressions". That's a very nifty feature of regex, where you place a sub-pattern in parenthesis (such as (good) for instance), and then you can reference those in a replacement string with \e1, \e2 etc., where \e1 is the first such subexpression, \e2 is the second etc. So in the above example, the transformation of string "Hello, good day" would give you:
+
+.RS 4
+.EX
+
+Hello, day good!
+
+.EE
+.RE
+
+Notice the use of \\e instead of \e in the code. That's because \e has a special meaning in a C string, so you'd escape it and use \\e instead. That's it!
+
+.LP
+.B CACHING AND PERFORMANCE
+.LP
+
+Caching is important with regex. If you have no capability to cache it, then each time you search for a pattern, the regular expression is parsed anew and a plan of parsing created. If your application serves as a server, that's inefficient, so in that case you can use "cache" clause in match-pattern, as it's done here. This will parse the pattern only once and use the saved execution plan every single time in the future. This greatly increases performance (about 5x in testing), and it comes close to theoretical limits of parsing speed. 
+
+.LP
+.B RUN AS BACKGROUND PROCESSES
+.LP
+
+Speaking of application servers, you can run your program as a native-executable application server just by doing:
+
+.RS 4
+.EX
+
+vf -w 5 regex
+
+.EE
+.RE
+
+This will start 5 application server processes to serve incoming requests (you can also have a dynamic number of processes too, see \fBvf\fP). Testing your server is easy:
+
+.RS 4
+.EX
+
+vv -r --req="/regex-example/str/This is BCD312 account" --exec --silent-header --server
+
+.EE
+.RE
+
+Note the "--server" option. It says to contact a server and execute the same request as before. But now, each of the 5 processes you started is staying resident in memory and serving the incoming requests. This way, your server can serve a large number of concurrent requests in parallel. Because each process stays alive, so does the cache for your regex pattern matching. As a result, you get a better performance for string parsing and manipulation in your applications.
+
+.LP
+.B RUN FROM THE WEB
+.LP
+
+Of course, your application server will probably serve web requests. Check out \fBconnect-apache-unix-socket\fP on how to connect Apache web server to your application server, or the same for Nginx: \fBconnect-nginx-unix-socket\fP. \fBFastCGI\fP is supported widely among web servers, so you can use pretty much a web server of your choice.
+
+.LP
+.B LEARN REGEX
+.LP
+
+Regex is a pretty large topic, even if you'd typically use short regular expressions, like the one in this example. Keep in mind, there's a huge number of things you can do with it, and so describing regex in full in one article is impossible. Try regex tutorials, like \fBthis one\fP. Then you can use what you learned here to make use of regex in your future applications.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

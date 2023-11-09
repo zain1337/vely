@@ -74,6 +74,22 @@ CURLcode curl_global_init(long flags)
 }
 #endif
 
+#ifdef VV_TREE
+num vv_tree_bal (vv_tree_node *tree) { VV_UNUSED(tree); return 1; }
+void vv_tree_create_root (vely_tree *res, bool sorted) { VV_UNUSED(res); VV_UNUSED(sorted); }
+vely_tree *vv_tree_create(vely_tree_eval ef, char key_type, bool sorted, bool process) { VV_UNUSED(ef); VV_UNUSED(key_type); VV_UNUSED(sorted); VV_UNUSED(process); return NULL;}
+void vv_tree_insert_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len, void *data) {VV_UNUSED(lcurs);VV_UNUSED(orig_tree);VV_UNUSED(key);VV_UNUSED(key_len);VV_UNUSED(data);}
+void vv_tree_search_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len) {VV_UNUSED(lcurs);VV_UNUSED(orig_tree);VV_UNUSED(key);VV_UNUSED(key_len);}
+void vv_tree_delete_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len) {VV_UNUSED(lcurs);VV_UNUSED(orig_tree);VV_UNUSED(key);VV_UNUSED(key_len);}
+void vv_tree_search_greater_equal_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, bool equal, char *key, num key_len) {VV_UNUSED(lcurs); VV_UNUSED(orig_tree); VV_UNUSED(equal);VV_UNUSED(key);VV_UNUSED(key_len);}
+void vv_tree_search_lesser_equal_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, bool equal, char *key, num key_len) {VV_UNUSED(lcurs); VV_UNUSED(orig_tree); VV_UNUSED(equal); VV_UNUSED(key); VV_UNUSED(key_len);}
+void vv_tree_max_f (vely_tree_cursor *lcurs, vely_tree *orig_tree) {VV_UNUSED(lcurs); VV_UNUSED(orig_tree); }
+void vv_tree_min_f (vely_tree_cursor *lcurs, vely_tree *orig_tree) {VV_UNUSED(lcurs); VV_UNUSED(orig_tree);}
+void vv_tree_purge_f (vely_tree *parent_tree) {VV_UNUSED(parent_tree); }
+
+#endif
+
+
 
 #ifdef VV_STUB_GENDB
 void vely_check_transaction(num check_mode)

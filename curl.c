@@ -132,7 +132,7 @@ num vely_web_set_header (curlcall *cc, num *tries, char *name, char *val)
             snprintf (eopt, sizeof(eopt), "Cannot add [%s] to header list", opt);
             *(cc->error) = vely_strdup (eopt);
         }
-        VERR0;
+        VELY_ERR0;
         return VV_ERR_FAILED;
     }
     cc->hlist = tmp;

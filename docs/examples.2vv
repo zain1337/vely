@@ -182,6 +182,22 @@ What's in it: encryption, decryption, OpenSSL.
 
 .RS 4
 \[bu]    
+\fBHow to use Regex\fP :
+.RS 4
+\[bu]    
+Use regex for high-performance search and replace in your applications.
+.RE
+
+.RS 4
+\[bu]    
+What's in it: match-regex statement, search, replace.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
 \fBJSON parsing and searching\fP:
 .RS 4
 \[bu]    
@@ -278,15 +294,31 @@ What's in it: PostgreSQL; command line; web browser; Nginx; Unix sockets; 2 sour
 
 .RS 4
 \[bu]    
-\fBHashed key/value server\fP:
+\fBWrite C programs\fP :
 .RS 4
 \[bu]    
-You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form. This is an extremely fast, single-process hash server.
+Shows how easy it is to mix Vely and C code, along with a fully functional example that makes command line program, application server and a web application.
 .RE
 
 .RS 4
 \[bu]    
-What's in it:  web browser; Apache; REST API; Unix sockets; 3 source files, 54 lines of code.
+What's in it: C code, command line, application server, Nginx example.
+.RE
+
+.RE
+
+
+.RS 4
+\[bu]    
+\fBHashed key/value server\fP:
+.RS 4
+\[bu]    
+You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form (such as with SQLite). This is an extremely fast, single-process hash server.
+.RE
+
+.RS 4
+\[bu]    
+What's in it:  web browser; Apache; REST API; Unix sockets; 2 source files, 47 lines of code.
 .RE
 
 .RE
@@ -363,6 +395,7 @@ What's in it: Docker, MariaDB, web browser, Apache.
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -371,6 +404,7 @@ What's in it: Docker, MariaDB, web browser, Apache.
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

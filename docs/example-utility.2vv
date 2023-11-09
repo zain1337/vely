@@ -8,15 +8,6 @@ In this example, a temperature measuring device will periodically insert tempera
 In a nutshell: SQLite; command line; Unix sockets; 2 source files, 25 lines of code.
 
 .LP
-.B SCREENSHOTS OF APPLICATION
-.LP
-
-Adding a record to the database, for example to record a temperature reading of 91F:
-(Image utility_show_insert.png not available in man page, see web page documentation)
-To view the current database in chronological order:
-(Image utility_list.png not available in man page, see web page documentation)
-
-.LP
 .B SETUP PREREQUISITES
 .LP
 
@@ -143,16 +134,7 @@ vv -r --app='/utility' --req='/temphist?action=list' --method=GET --exec
 .EE
 .RE
 
-You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
-
-.RS 4
-.EX
-
-export VV_SILENT_HEADER=yes
-
-.EE
-.RE
-
+You can also omit "--exec" option to output the bash code that's executed; you can then copy that code to your own script. Note: to suppress output of HTTP headers, add "--silent-header" option to the above.
 
 
 .LP
@@ -176,7 +158,7 @@ create table temps (temp integer, timest text primary key);
 
 .B - Utility for recording temperatures (temphist.vely)
 
-This application will record temperatures, as well as list them. The source code in "temphist.vely" file is fairly self-explanatory. If input parameter "action" is "record", store the temperature into table "temps" and check for any errors. If it is "list", just display all the temperature records in a historical order.
+This application will record temperatures, as well as list them. If task parameter "action" is "record", store the temperature into table "temps" and check for any errors. If it is "list", just display all the temperature records in a historical order.
 
 .RS 4
 .EX
@@ -215,6 +197,7 @@ This application will record temperatures, as well as list them. The source code
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -223,6 +206,7 @@ This application will record temperatures, as well as list them. The source code
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

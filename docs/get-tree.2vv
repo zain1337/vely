@@ -1,0 +1,59 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+get-tree \-  (tree-search)
+.SH PURPOSE
+Get information about tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+get-tree <tree> \\
+    ( count | hops ) \\
+    to [ define ] <result>
+
+.EE
+.RE
+
+.SH DESCRIPTION
+get-tree provides information about <tree> (created by \fBnew-tree\fP), which is stored in <result> (in "to" clause):
+
+.RS 4
+\[bu]    
+"count" clause provides the number of keys (i.e. nodes) in the tree. 
+
+.RE
+
+.RS 4
+\[bu]    
+"hops" clause provides the number of nodes accessed to find a key in the last tree statement executed prior to get-tree. Note that "hops" is available only in debug Vely build (see installing from \fBsource\fP); otherwise it is always zero.
+
+<result> can be created with optional "define".
+
+.SH EXAMPLES
+Get the number of nodes (keys) in a tree:
+
+.RS 4
+.EX
+
+new-tree mytree
+\[char46]..
+get-tree mytree count to define c
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

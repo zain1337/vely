@@ -150,6 +150,7 @@ void vely_write_to_string (char **str)
             while (isspace(VV_WRSTR_BUF[VV_WRSTR_POS-1])) VV_WRSTR_POS--;  
             VV_WRSTR_BUF[VV_WRSTR_POS] = 0;
         }
+        VV_WRSTR_BUF = vely_realloc (VV_WRSTR_BUF, VV_WRSTR_POS+1); // resize memory to just what's needed
         *(VV_WRSTR.user_string) =  VV_WRSTR_BUF;
         // Do NOT set VV_WRSTR_POS = 0 because then function vely_write_to_string_length()
         // couldn't possibly work
@@ -798,7 +799,7 @@ num vely_lockfile(char *filepath, num *lock_fd)
     /* Invalid path? */
     if (filepath == NULL || *filepath == '\0')
     {
-        VERR0;
+        VELY_ERR0;
         return VV_ERR_INVALID;
     }
 
@@ -807,7 +808,7 @@ num vely_lockfile(char *filepath, num *lock_fd)
 
     if (fd == -1)
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_CREATE;
     }
 
@@ -820,7 +821,7 @@ num vely_lockfile(char *filepath, num *lock_fd)
     lock.l_len = 0;
     if (fcntl(fd, F_SETLK, &lock) == -1)
     {
-        VERR;
+        VELY_ERR;
         /* Lock failed. Close file and report locking failure. */
         close(fd);
         return VV_ERR_FAILED;
@@ -2660,14 +2661,14 @@ num vely_copy_file (char *src, char *dst)
 
     num f_src = open(src, O_RDONLY);
     if (f_src < 0) {
-        VERR; 
+        VELY_ERR; 
         VV_TRACE ("Cannot open [%s] for reading, error [%s]", src, strerror(errno));
         return VV_ERR_OPEN;
     }
     num f_dst = open(dst, O_WRONLY|O_CREAT, S_IRWXU);
     if (f_dst < 0) 
     {
-        VERR;
+        VELY_ERR;
         VV_TRACE ("Cannot open [%s] for writing, error [%s]", dst, strerror(errno));
         close (f_src);
         return VV_ERR_CREATE;
@@ -2677,7 +2678,7 @@ num vely_copy_file (char *src, char *dst)
 
     if (ftruncate64 (f_dst, 0) != 0) 
     {
-        VERR;
+        VELY_ERR;
         VV_TRACE ("Cannot read [%s], error [%s]", src, strerror(errno));
         close (f_src);
         close (f_dst);
@@ -2691,7 +2692,7 @@ num vely_copy_file (char *src, char *dst)
         if (res == 0) break;
         if (res < 0) 
         {
-            VERR;
+            VELY_ERR;
             VV_TRACE ("Cannot read [%s], error [%s]", src, strerror(errno));
             close (f_src);
             close (f_dst);
@@ -2700,7 +2701,7 @@ num vely_copy_file (char *src, char *dst)
         ssize_t rwrite= write(f_dst, &buf[0], res);
         if (rwrite != res) 
         {
-            VERR;
+            VELY_ERR;
             VV_TRACE ("Cannot write [%s], error [%s]", dst, strerror(errno));
             close(f_src);
             close(f_dst);
@@ -3814,13 +3815,10 @@ void vely_make_random (char **rnd, num rnd_len, char type, bool crypto)
 
     num i;
     // get number of random characters requested
-    for (i = 0; i < rnd_len - 1; i++) 
-    {
-       if (type == VV_RANDOM_STR) (*rnd)[i] = rangea[random()%62]; // 62 chars in rangea[], start with default
-       else if (type == VV_RANDOM_NUM) (*rnd)[i] = ranged[random()%10]; // number 0-9 
-       else if (type == VV_RANDOM_BIN) (*rnd)[i] = rangeb[random()%256]; // 256 values, from 0 to 255
-       else vely_report_error ("Unknown random type [%d]", type);
-    }
+    if (type == VV_RANDOM_STR) for (i = 0; i < rnd_len - 1; i++) (*rnd)[i] = rangea[random()%62]; // 62 chars in rangea[], start with default
+    else if (type == VV_RANDOM_NUM) for (i = 0; i < rnd_len - 1; i++) (*rnd)[i] = ranged[random()%10]; // number 0-9 
+    else if (type == VV_RANDOM_BIN) for (i = 0; i < rnd_len - 1; i++) (*rnd)[i] = rangeb[random()%256]; // 256 values, from 0 to 255
+    else vely_report_error ("Unknown random type [%d]", type);
     (*rnd)[i] = 0; // finish with zero for sanity, this is byte rnd[rnd_len], not a part of random data
 
 }
@@ -3858,7 +3856,7 @@ char *vely_realpath (char *path)
     } 
     else 
     {
-        VERR;
+        VELY_ERR;
         vely_free (pcopy);
         return VV_EMPTY_STRING;
     }
@@ -3949,10 +3947,9 @@ char *vely_getheader(char *h)
 
 
 //
-// Convert number al to string. If alloc is true, a new string is allocated and returned.
-// If alloc is false, string out_res with storage of in_len bytes is available to do the job.
-// base is the base of a number (2-36). If alloc is false and not enough space, NULL is returned and
-// res_len is set to 0, otherwise the result is returned. *res_len is the length of the result. 
+// Convert number al to string. A new string is allocated and returned.
+// base is the base of a number (2-36). 
+// *res_len is the length of the result. 
 // Also, if base is not between 2 and 36 (inclusive), NULL is returned and res_len is set to 0.
 // NOTE: For this (and others like it) function to be the fastest, it would have  to be in a header, i.e.
 // compiled with the source as static. If done so, the 100,000,000 executions of this functions take
@@ -3962,9 +3959,9 @@ char *vely_getheader(char *h)
 // Of course, this makes code bigger, and in a large application made of many modules, it starts to
 // show. Thus, the performance taken at such face value may not be pertinent to real world applications.
 // This particular function is the new algorithm I wrote, that in my tests is faster than any other implementation
-// I tried. It also has the most functionality.
+// I tried. It also has the most (or equal) functionality.
 //
-char *vely_num2str (num al, char *out_res, num in_len, num *res_len, bool alloc, int base)
+inline char *vely_num2str (num al, num *res_len, int base)
 {
     if (base < 2 || base > 36) { if (res_len != NULL) *res_len = 0; return NULL;}
     num len; // length of result
@@ -3978,17 +3975,7 @@ char *vely_num2str (num al, char *out_res, num in_len, num *res_len, bool alloc,
     int k;
     // get the length of the rest of the number (as a string), calculate mods array
     if (al == 0) len = 1; else { for (k = 0; a != 0; mods[k++] = (a%base), a/=base){} len += k; }
-    if (alloc) res = vely_malloc(len + 1); // if the result is to be allocated, do so
-    else 
-    { 
-        // otherwise check if buffer is big enough, if not, return NULL 
-        if (in_len <= len) 
-        {
-            if (res_len != NULL) *res_len = 0; 
-            return NULL;
-        } 
-        res = out_res; 
-    } 
+    res = vely_malloc(len + 1); // if the result is to be allocated, do so
     res[len] = 0; // place null at the end of string that's about to be built
     if (al == 0) { res[0] = '0'; if (res_len != NULL) *res_len = 1; return res; } // for zero, make it '0' and return
     num wlen = len; // wlen is the length of actual digits, so for negatives, it's one less due to '-'

@@ -1,0 +1,119 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+write-tree \-  (tree-search)
+.SH PURPOSE
+Insert a key/value pair into a tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+write-tree <tree> key <key> value <value> \\
+    [ status [ define ] <status> ] \\
+    [ new-cursor [ define ] <cursor> ]
+    [ process-key ]
+    [ process-value ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+write-tree inserts string <key> and associated <value> (a pointer to any type) into <tree> created by \fBnew-tree\fP.
+
+If <key> already exists in <tree>, <status> (in optional "status" clause) will be VV_ERR_EXIST and nothing is inserted into <tree>, otherwise it is VV_OKAY.
+
+If optional "new-cursor" clause is used, then a <cursor> will be positioned on a newly inserted tree node. You can use \fBuse-cursor\fP to iterate to nodes with lesser and greater key values. A cursor is a pointer to type "vely_tree_cursor".
+
+<status> and <cursor> can be created with optional "define".
+
+If a <tree> was created with "process-scope" clause (see \fBnew-tree\fP), then:
+
+.RS 4
+\[bu]    
+if <key> and/or <value> are Vely \fBallocated memory\fP, then they will not be freed when the current request ends, rather they will persist while the process stays up, unless they are deleted (see \fBdelete-mem\fP, \fBdelete-tree\fP, \fBpurge-tree\fP),
+
+.RE
+
+.RS 4
+\[bu]    
+if <key> and/or <value> are otherwise global variables (see \fBnew-tree\fP), then you must use "process-key" clause to specify that <key> is a global variable, and "process-value" to specify that <value> is a global variable. If you do not, it will be assumed that <key> and/or <value> are allocated by Vely and your program will likely \fBerror out\fP.
+.RE
+
+If a <tree> was not created with "process-scope", then "process-key" and "process-data" have no effect.
+
+.SH EXAMPLES
+Insert key "k" with value "d" into "mytree", and obtain status in "st":
+
+.RS 4
+.EX
+
+write-tree mytree key k value d status define st
+
+.EE
+.RE
+
+The following is an example of a process-scoped tree. Such a tree keeps its data across the requests, for as long as the process is alive:
+
+.RS 4
+.EX
+
+%% /treesrv
+    out-header default
+
+    do-once 
+    new-tree define t process-scope  
+    end-do-once
+
+    // Get input parameters
+    task-param op
+    input-param key
+    input-param data
+
+    if-task "add" // Add data to tree
+        // Make a copy of key,data so they are Vely-allocated
+        copy-string key to define c_key
+        copy-string data to define c_data
+        write-tree t key c_key value c_data status define st
+        if (st == VV_ERR_EXIST) {
+            delete-mem c_key
+            delete-mem c_data
+        }
+        @Added [<<p-out key>>]
+    else-task "delete" // Delete data and obtain the value deleted
+        delete-tree t key (key) value define val old-key define okey status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found [<<p-out key>>]
+        } else {
+            // If found, then delete key and value
+            @Deleted [<<p-out val>>]
+            delete-mem val
+            delete-mem okey
+        }
+    else-task "query" // Query tree based on key value
+        read-tree t key (key) value define val status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found, queried [<<p-out key>>]
+        } else {
+            @Value [<<p-out val>>]
+        }
+    end-task
+%%
+
+.EE
+.RE
+
+See \fBread-tree\fP for more examples.
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

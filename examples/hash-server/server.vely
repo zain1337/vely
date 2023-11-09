@@ -1,27 +1,33 @@
-#include "vely.h"
-
-request-handler /server
+%% /server
     out-header default
 
-    // Unmanaged memory, i.e. not released at the end of the request
-    manage-memory off
-
-    // Get hash allocated in _startup.vely
-    vely_hash *h;
-    get-app process-data to h
+    do-once 
+    new-hash define h size 1024 process-scope
+    end-do-once
 
     // Get input parameters
     task-param op
     input-param key
     input-param data
 
-    if-task "add" // Add data to hash, make a copy as input params are request-scoped
+    if-task "add" // Add data to hash, 
+        // Make a copy of input params are they are request-scoped
         copy-string key to define c_key
         copy-string data to define c_data
-        write-hash h key c_key value c_data
+        write-hash h key c_key value c_data \
+            old-value define old_data old-key define old_key \
+            status define st
+        if (st == VV_ERR_EXIST) {
+            // delete old key/value if replaced by new
+            delete-mem old_key
+            delete-mem old_data
+        }
         @Added [<<p-out key>>]
     else-task "delete" // Delete data and obtain the value deleted
-        read-hash h key (key) value define val old-key define okey delete status define st
+        read-hash h key (key) value define val \
+            old-key define okey \
+            delete \
+            status define st
         if (st == VV_ERR_EXIST) {
             @Not found [<<p-out key>>]
         } else {
@@ -38,4 +44,4 @@ request-handler /server
             @Value [<<p-out val>>]
         }
     end-task
-end-request-handler
+%%

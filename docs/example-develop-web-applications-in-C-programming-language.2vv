@@ -1,0 +1,331 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+example-develop-web-applications-in-C-programming-language \- Vely documentation (examples)
+.SH DESCRIPTION
+Develop web applications in C programming language
+Vely is a framework and language that generates C code underneath. Because it has lots of functionality, you may not need to write much C code, if any. However, if you need to, you can write as much C code as necessary. The example here demonstrates this.
+
+.LP
+.B YOUR C APPLICATION
+.LP
+
+Create new "c-app" application first, in a new directory (you can name it anything you like):
+
+.RS 4
+.EX
+
+mkdir -p vely_c
+cd vely_c
+
+.EE
+.RE
+
+The \fBvf\fP command is a Vely program manager and it will create a new application (see \fBhow-vely-works\fP) named "c-app":
+
+.RS 4
+.EX
+
+sudo vf -i -u $(whoami) c-app
+
+.EE
+.RE
+
+To get vim highlighting of Vely syntax:
+
+.RS 4
+.EX
+
+vv -m
+
+.EE
+.RE
+
+Create a source code file "using_c.vely":
+
+.RS 4
+.EX
+
+vi using_c.vely
+
+.EE
+.RE
+
+and copy and paste this to it:
+
+.RS 4
+.EX
+
+\[char35]include <math.h>
+
+int factorial(int num);
+
+%% /using-c
+    out-header default
+    input-param inp 
+    int res = factorial (atoi(inp)); // call C function
+    @Factorial of <<p-out inp>> is <<p-num res>>!
+    double sr = sqrt ((double)res); // call standard C's sqrt
+    @And its square root is <<p-dbl sr>>!
+%%
+
+// C function to calculate factorial of a number 'num'
+int factorial(int num)
+{
+    int res = 1;
+    int i;
+    for (i = 2; i <= num; i++) {
+        res *= i;
+    }
+    return res;
+}
+
+.EE
+.RE
+
+Note that the source file name ("using_c.vely") should match the request name, which is "using-c". If you're using hyphens (which is useful for web applications), just substitute with underscore. The fact that a request is implemented in a file with the same name helps keep your applications neat, tidy and easy to peruse.
+
+The code here is pretty self-explanatory. You'd get an \fBinput-param\fPeter "inp", call a C function "factorial()", then get the square root of it. As you go along, you output the results of computation. Included is C's header file "math.h" since you're using math function here to calculate a square root. Just like in any other C program, you'd declare the function up top. The request itself (between "%%" signs) will translate into a C function with the name that's a decorated version of a request name "/using-c", in this case just "using_c()", see \fBrequest-handler\fP for more.
+
+.LP
+.B MAKE AN EXECUTABLE PROGRAM
+.LP
+
+Now, make a native executable:
+
+.RS 4
+.EX
+
+vv -q --lflag=-lm
+
+.EE
+.RE
+
+Note the use of "--lflag" option that lets you specify additional C linker options, in this case you're using the math library ("-lm"). You can also add C flags for compilations (like -D for defines for instance) using "--cflag".
+
+.LP
+.B EXECUTE FROM COMMAND LINE
+.LP
+
+You can now run your program! Here's how to do it from command line - you'd specify input parameter "inp" to have value of "5":
+
+.RS 4
+.EX
+
+vv -r --req="/using-c?inp=5" --exec --silent-header
+
+.EE
+.RE
+
+The result:
+
+.RS 4
+.EX
+
+Factorial of 5 is 120!
+And its square root is 10.954451!
+
+.EE
+.RE
+
+That's a success right there! How did this work? Here you're using \fBvv\fP utility to call a program for convenience, but if you omit "--exec" option:
+
+.RS 4
+.EX
+
+vv -r --req="/using-c?inp=5" --silent-header
+
+.EE
+.RE
+
+here's what you get:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=yes
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/c-app"
+export PATH_INFO="/using-c"
+export QUERY_STRING="inp=5"
+/var/lib/vv/bld/c-app/c-app
+
+.EE
+.RE
+
+This is what's executed with "--exec" option. The above output you can copy and paste to your bash scripts to directly execute your program, which is located at "/var/lib/vv/bld/c-app/c-app". You can see that input parameter "inp" is provided as query string "inp=5". This is all very neat, because this is how web programs work and you can run this program from the web without modifications! That's next.
+
+.LP
+.B RUN AS APPLICATION SERVER
+.LP
+
+First, try running your program as an application server. That means a daemon, a resident server process that remains in memory and can serve many requests simultaneously. With Vely, that's a breeze, because it will take care of all the infrastructure (that's why it's a "framework"). Here's how you do that:
+
+.RS 4
+.EX
+
+vf -w 5 c-app
+
+.EE
+.RE
+
+The above will start 5 application server processes to serve incoming requests (you can also have a dynamic number of processes too, see \fBvf\fP). Testing your server is easy:
+
+.RS 4
+.EX
+
+vv -r --req="/using-c?inp=5" --exec --server --silent-header
+
+.EE
+.RE
+
+Note the "--server" option. It says to contact a server and execute the same request as before. But now, each of the 5 processes you started is staying resident in memory and serving the incoming requests. This way, your server can serve a large number of concurrent requests in parallel. Because each process stays alive, you get great performance.
+
+Again, you can see what's going on behind scenes by omitting "--exec":
+
+.RS 4
+.EX
+
+vv -r --req="/using-c?inp=5" --server --silent-header
+
+.EE
+.RE
+
+The result being:
+
+.RS 4
+.EX
+
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=yes
+export REQUEST_METHOD=GET
+export SCRIPT_NAME="/c-app"
+export PATH_INFO="/using-c"
+export QUERY_STRING="inp=5"
+cgi-fcgi -connect /var/lib/vv/c-app/sock/sock  /c-app
+
+.EE
+.RE
+
+Here a "cgi-fcgi" client program will contact the server you started, get a response, and print it out. You can make your own client application by using \fBFastCGI-API\fP; this way you can do whatever you want with the response, and you can do so in a multi-threaded application, since Vely's FastCGI API is MT-safe.
+
+.LP
+.B RUN AS WEB APPLICATION
+.LP
+
+Of course, your application server will probably serve web requests. Check out \fBconnect-apache-unix-socket\fP on how to connect Apache web server to your application server, or the same for Nginx: \fBconnect-nginx-unix-socket\fP. \fBFastCGI\fP is supported widely among web servers, so you can use pretty much any web server of your choice.
+
+Here's a brief intro for Nginx:
+
+.LP
+.B SETUP WEB SERVER
+.LP
+
+This shows how to connect your application listening on a Unix socket (started with \fBvf\fP) to Nginx web server.
+
+
+.B - Step 1
+:
+You will need to edit the Nginx configuration file. For Ubuntu and similar:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/sites-enabled/default
+
+.EE
+.RE
+
+while on Fedora and other systems it might be at:
+
+.RS 4
+.EX
+
+sudo vi /etc/nginx/nginx.conf
+
+.EE
+.RE
+
+
+Add the following in the "server {}" section ("/c-app" is the application path (see \fBrequest-URL\fP) and "c-app" is your application name):
+
+.RS 4
+.EX
+
+location /c-app { include /etc/nginx/fastcgi_params; fastcgi_pass  unix:///var/lib/vv/c-app/sock/sock; }
+
+.EE
+.RE
+
+
+.B - Step 2
+:
+Finally, restart Nginx:
+
+.RS 4
+.EX
+
+sudo systemctl restart nginx
+
+.EE
+.RE
+
+Note: you must not have any other URL resource that starts with "/c-app" (such as for example "/c-app.html" or "/c-app_something" etc.) as the web server will attempt to pass them as a reverse proxy request, and they will likely not work. If you need to, you can change the application path to be different from "/c-app", see \fBrequest-URL\fP.
+
+.LP
+.B ACCESS APPLICATION SERVER FROM THE BROWSER
+.LP
+
+Use the following URL(s) to access your application server from a client like browser (see \fBrequest-URL\fP). Use actual IP or web address instead of 127.0.0.1 if different.
+
+.RS 4
+.EX
+
+\[char35] Call your application server to calculate factorial of 5 
+http://127.0.0.1/c-app/using-c?inp=5
+
+.EE
+.RE
+
+Note: if your server is on the Internet and it has a firewall, you may need to allow HTTP traffic - see \fBufw\fP, \fBfirewall-cmd\fP etc.
+
+The result is, from the browser:
+(Image cwebapp.png not available in man page, see web page documentation)
+
+.LP
+.B CONCLUSION
+.LP
+
+In this article you've learned how to build web applications in C programming language. The same code makes a command line program, application server and a web application.
+.SH SEE ALSO
+ 
+.B - Examples
+
+\fBexample-client-API\fP  
+\fBexample-cookies\fP  
+\fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
+\fBexample-distributed-servers\fP  
+\fBexample-docker\fP  
+\fBexample-encryption\fP  
+\fBexample-file-manager\fP  
+\fBexample-form\fP  
+\fBexample-hash-server\fP  
+\fBexample-hello-world\fP  
+\fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
+\fBexample-json\fP  
+\fBexample-multitenant-SaaS\fP  
+\fBexample-postgres-transactions\fP  
+\fBexamples\fP  
+\fBexample-sendmail\fP  
+\fBexample-shopping\fP  
+\fBexample-stock\fP  
+\fBexample-uploading-files\fP  
+\fBexample-using-mariadb-mysql\fP  
+\fBexample-utility\fP  
+\fBexample-write-report\fP    
+See all 
+\fBdocumentation\fP

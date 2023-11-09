@@ -409,7 +409,7 @@ num vely_file_type (char *dir)
     }
     else 
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_FAILED;
     }
 }
@@ -424,7 +424,7 @@ num vely_get_file_pos(FILE *f, num *pos)
     VV_TRACE("");
     long p = ftell (f);
     if (p == -1) {
-        VERR;
+        VELY_ERR;
         VV_TRACE("Cannot get position in file, errno [%d]", errno);
         return VV_ERR_POSITION;
     }
@@ -440,7 +440,7 @@ num vely_set_file_pos(FILE *f, num pos)
 {
     VV_TRACE("");
     if (fseek (f,pos,SEEK_SET) != 0) {
-        VERR;
+        VELY_ERR;
         VV_TRACE("Cannot position in file to [%lld], errno [%d]", pos, errno);
         return VV_ERR_POSITION;
     }
@@ -473,7 +473,7 @@ num vely_get_file_size(char *fn)
     struct stat st;
     if (stat(fn, &st) != 0) 
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_FAILED;
     }
     return (num)(st.st_size);
@@ -671,18 +671,18 @@ num vely_read_file (char *name, char **data, num pos, num len)
 {
     VV_TRACE ("");
 
-    if (pos < 0) {VERR0; return VV_ERR_POSITION;} // len is negative
-    if (len < 0) {VERR0; return VV_ERR_READ;} // pos is negative
+    if (pos < 0) {VELY_ERR0; return VV_ERR_POSITION;} // len is negative
+    if (len < 0) {VELY_ERR0; return VV_ERR_READ;} // pos is negative
 
     FILE *f = vely_fopen (name, "r");
     if (f == NULL)
     {
-        //vely_fopen sets VERR
+        //vely_fopen sets VELY_ERR
         return VV_ERR_OPEN;
     }
     num sz;
     if (len > 0) sz = len; else sz = vely_get_open_file_size(f) - pos;
-    if (sz < 0) { VERR0; return VV_ERR_POSITION;} // pos is beyond size
+    if (sz < 0) { VELY_ERR0; return VV_ERR_POSITION;} // pos is beyond size
     if (sz == 0) 
     {
         *data = VV_EMPTY_STRING;
@@ -691,7 +691,7 @@ num vely_read_file (char *name, char **data, num pos, num len)
     if (pos > 0)
     {
         if (fseek (f,pos,SEEK_SET) != 0) { 
-            VERR;
+            VELY_ERR;
             VV_TRACE("File [%s], cannot position to [%lld], errno [%d]", name, pos, errno);
             fclose (f);
             return VV_ERR_POSITION;
@@ -702,7 +702,7 @@ num vely_read_file (char *name, char **data, num pos, num len)
     rd = fread (*data, 1, sz, f);
     if (ferror (f))
     {
-        VERR;
+        VELY_ERR;
         fclose(f);
         return VV_ERR_READ;
     }
@@ -727,12 +727,12 @@ num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos)
 {
     VV_TRACE ("");
 
-    if (ispos && pos < 0) {VERR0; return VV_ERR_POSITION;} // len is negative
-    if (len < 0) {VERR0; return VV_ERR_READ;} // len is negative
+    if (ispos && pos < 0) {VELY_ERR0; return VV_ERR_POSITION;} // len is negative
+    if (len < 0) {VELY_ERR0; return VV_ERR_READ;} // len is negative
 
     if (f == NULL)
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_OPEN;
     }
     num sz;
@@ -745,7 +745,7 @@ num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos)
         }
         sz = vely_get_open_file_size(f) - pos;
     }
-    if (sz < 0) {VERR0; return VV_ERR_POSITION;} // pos is beyond size
+    if (sz < 0) {VELY_ERR0; return VV_ERR_POSITION;} // pos is beyond size
     if (sz == 0) 
     {
         *data = VV_EMPTY_STRING;
@@ -754,7 +754,7 @@ num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos)
     if (ispos)
     {
         if (fseek (f,pos,SEEK_SET) != 0) { 
-            VERR;
+            VELY_ERR;
             VV_TRACE("File cannot position to [%lld], errno [%d]", pos, errno);
             return VV_ERR_POSITION;
         }
@@ -764,7 +764,7 @@ num vely_read_file_id (FILE *f, char **data, num pos, num len, bool ispos)
     rd = fread (*data, 1, sz, f);
     if (ferror (f))
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_READ;
     }
     (*data)[rd] = 0;
@@ -862,14 +862,14 @@ num vely_core_write_file(FILE *f, num content_len, char *content, char ispos, nu
     if (ispos == 1)  // positioning beyond the end of file is allowed. The gap will be filled with \0
     {
         if (fseek (f,pos,SEEK_SET) != 0) {
-            VERR;
+            VELY_ERR;
             VV_TRACE("File writing, cannot position to [%lld], errno [%d]", pos, errno);
             return VV_ERR_POSITION;
         }
     }
     if (fwrite(content, (size_t)content_len, 1, f) != 1)
     {
-        VERR;
+        VELY_ERR;
         VV_TRACE("Cannot write file, errno [%d]", errno);
         return VV_ERR_WRITE;
     }
@@ -893,7 +893,7 @@ num vely_write_file (char *file_name, char *content, num content_len, char appen
 
     if (ispos ==1 && pos < 0)  // any position that is not 0 or positive is an error
     {
-        VERR0;
+        VELY_ERR0;
         return VV_ERR_POSITION;
     }
 
@@ -904,7 +904,7 @@ num vely_write_file (char *file_name, char *content, num content_len, char appen
 
     if (f==NULL)
     {
-        //vely_fopen sets VERR
+        //vely_fopen sets VELY_ERR
         return VV_ERR_OPEN;
     }
     num retw = vely_core_write_file(f, content_len, content, ispos, pos);
@@ -929,12 +929,12 @@ num vely_write_file_id (FILE *f, char *content, num content_len, char append, nu
 
     if (f==NULL)
     {
-        VERR;
+        VELY_ERR;
         return VV_ERR_OPEN;
     }
     if (ispos ==1 && pos < 0)  // any position that is not 0 or positive is an error
     {
-        VERR0;
+        VELY_ERR0;
         return VV_ERR_POSITION;
     }
 
@@ -942,7 +942,7 @@ num vely_write_file_id (FILE *f, char *content, num content_len, char append, nu
     {
         num ef =  vely_get_open_file_size(f);
         if (fseek (f,ef,SEEK_SET) != 0) {
-            VERR;
+            VELY_ERR;
             VV_TRACE("File writing, cannot position to [%lld], errno [%d]", ef, errno);
             return VV_ERR_POSITION;
         }
@@ -974,10 +974,10 @@ num vely_reg_file(FILE **f)
 int vely_fclose (FILE *f)
 {
     VV_TRACE ("");
-    if (f == NULL) { VERR0; return VV_ERR_CLOSE; }
+    if (f == NULL) { VELY_ERR0; return VV_ERR_CLOSE; }
     int res= fclose (f);
     if (res == EOF) {
-        VERR;
+        VELY_ERR;
         return VV_ERR_CLOSE;
     }
     return VV_OKAY;
@@ -1005,7 +1005,7 @@ FILE *vely_fopen (char *file_name, char *mode)
     } 
     else
     {
-        VERR;
+        VELY_ERR;
     }
     return f;
 }

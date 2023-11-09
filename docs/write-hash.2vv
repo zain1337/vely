@@ -15,6 +15,8 @@ write-hash <hash> \\
     [ status [ define ] <status> ] \\
     [ old-value [ define ] <old value> ] 
     [ old-key [ define ] <old key> ] 
+    [ process-key ]
+    [ process-value ]
 
 .EE
 .RE
@@ -29,6 +31,21 @@ If <key> already exists in the hash table, then the pointer to old value associa
 If <key> did not exist, <status> will be VV_OKAY and <old value>/<old key> are NULL. Both <status> and <old value>/<old key> can be created with "define" clause.
 
 Note that while <key> and <old key> will contain matching strings when <status> is VV_ERR_EXIST, the <old key> will contain a pointer to a key used in the previous write-string statement.
+
+If a <hash> was created with "process-scope" clause (see \fBnew-hash\fP), then:
+
+.RS 4
+\[bu]    
+if <key> and/or <value> are Vely \fBallocated memory\fP, then they will not be freed when the current request ends, rather they will persist while the process runs, unless they are deleted (see \fBdelete-mem\fP),
+
+.RE
+
+.RS 4
+\[bu]    
+if <key> and/or <value> are otherwise global variables (see \fBnew-hash\fP), then you must use "process-key" clause to specify that <key> is a global variable, and "process-value" to specify that <value> is a global variable. If you do not, it will be assumed that <key> and/or <value> are allocated by Vely and your program will likely \fBerror out\fP.
+.RE
+
+If a <hash> was not created with "process-scope", then "process-key" and "process-data" have no effect.
 
 .SH EXAMPLES
 Writing data to hash:
@@ -51,6 +68,55 @@ write-hash h key "mykey" value "new data" status define st old-value define od
 if (st == VV_ERR_EXIST) {
     @Previous value for this key is <<p-out od>>
 }
+
+.EE
+.RE
+
+The following is a hash key/value server, where a process-scoped hash is created. It provides inserting, deleting and querying key/value pairs. Such a server process can run indefinitely and provide a key service:
+
+.RS 4
+.EX
+
+%% /hashsrv
+    out-header default
+
+    do-once 
+    new-hash define h size 1024 process-scope
+    end-do-once
+
+    // Get input parameters
+    task-param op
+    input-param key
+    input-param data
+
+    if-task "add" // Add data to hash, make a copy as input params are request-scoped
+        copy-string key to define c_key
+        copy-string data to define c_data
+        write-hash h key c_key value c_data old-value define old_data old-key define old_key status define st
+        if (st == VV_ERR_EXIST) {
+            delete-mem old_key
+            delete-mem old_data
+        }
+        @Added [<<p-out key>>]
+    else-task "delete" // Delete data and obtain the value deleted
+        read-hash h key (key) value define val old-key define okey delete status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found [<<p-out key>>]
+        } else {
+            // If found, then delete key and value
+            @Deleted [<<p-out val>>]
+            delete-mem val
+            delete-mem okey
+        }
+    else-task "query" // Query hash based on key value
+        read-hash h key (key) value define val status define st
+        if (st == VV_ERR_EXIST) {
+            @Not found, queried [<<p-out key>>]
+        } else {
+            @Value [<<p-out val>>]
+        }
+    end-task
+%%
 
 .EE
 .RE

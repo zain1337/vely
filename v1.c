@@ -45,6 +45,7 @@
 // No whitespace other than space can be used in commands!
 #define VV_KEYSIZE0 "size"
 #define VV_KEYSIZE "size "
+#define VV_KEYCUSTOMEVAL "custom-eval "
 #define VV_KEYWITHVALUE "with-value "
 #define VV_KEYREPLACE "replace"
 #define VV_KEYTOERROR "to-error"
@@ -54,6 +55,8 @@
 #define VV_KEYFROMREQUEST "from-request"
 #define VV_KEYCREATE "create "
 #define VV_KEYTYPE0 "type"
+#define VV_KEYPROCESSKEY "process-key"
+#define VV_KEYPROCESSVALUE "process-value"
 #define VV_KEYTYPE "type "
 #define VV_KEYONERRORCONTINUE "on-error-continue"
 #define VV_KEYONERROREXIT "on-error-exit"
@@ -68,8 +71,21 @@
 #define VV_KEYSET "set "
 #define VV_KEYBASE "base "
 #define VV_KEYKEY "key "
+#define VV_KEYGETLESSER "get-lesser"
+#define VV_KEYLESSER "lesser "
+#define VV_KEYLESSEREQUAL "lesser-equal "
+#define VV_KEYGETGREATER "get-greater"
+#define VV_KEYCURRENT "current"
+#define VV_KEYGREATER "greater "
+#define VV_KEYGREATEREQUAL "greater-equal "
+#define VV_KEYUPDATEVALUE "update-value "
+#define VV_KEYKEYAS "key-as "
+#define VV_KEYUNSORTED "unsorted"
+#define VV_KEYMAXKEY "max-key"
+#define VV_KEYMINKEY "min-key"
 #define VV_KEYKEYLIST "key-list "
 #define VV_KEYVALUE "value "
+#define VV_KEYNEWCURSOR "new-cursor "
 #define VV_KEYREWIND "rewind "
 #define VV_KEYPASSWORD "password "
 #define VV_KEYINPUTLENGTH "input-length "
@@ -98,6 +114,7 @@
 #define VV_KEYDIGEST "digest "
 #define VV_KEYSKIPDATA "skip-data"
 #define VV_KEYCRYPTO "crypto"
+#define VV_KEYPROCESSSCOPE "process-scope"
 #define VV_KEYIN "in "
 #define VV_KEYID "id "
 #define VV_KEYTO "to "
@@ -214,6 +231,8 @@
 #define VV_KEYOSNAME "os-name"
 #define VV_KEYOSVERSION "os-version"
 #define VV_KEYARGCOUNT "arg-count"
+#define VV_KEYCOUNT "count "
+#define VV_KEYHOPS "hops "
 #define VV_KEYARGVALUE "arg-value "
 #define VV_KEYINPUTCOUNT "input-count"
 #define VV_KEYINPUTVALUE "input-value "
@@ -240,6 +259,10 @@
 #define VV_DEFENCRYPT 15
 #define VV_DEFFILE 16
 #define VV_DEFFCGI 18
+#define VV_DEFTREE 19
+#define VV_DEFTREECURSOR 20
+#define VV_DEFHASHSTATIC 21
+#define VV_DEFTREESTATIC 22
 // maximum length of generated code line (in .c file, final line)
 #define VV_MAX_CODE_LINE 4096
 // error messages
@@ -370,6 +393,7 @@ typedef struct s_vely_db_parse {
 //
 //
 
+num wcurs = 0; // id of a tree cursor
 bool done_handler = false; // true if request-handler is found
 bool done_end_handler = false; // true if end-request-handler is found
 bool other_task_done[VV_MAX_OTHER_TASK+1] = {false};
@@ -473,9 +497,11 @@ char *opt_clause(char *clause, char *param, char *antiparam);
 void name_query (vely_gen_ctx *gen_ctx, vely_db_parse *vp);
 void free_query (char *qryname, bool skip_data);
 void convert_puts(char *oline);
-void do_numstr (char *to, char *len, char *num0, char *olen, char *base);
+void do_numstr (char *to, char *num0, char *olen, char *base);
 void setup_reqhash();
-
+void deprecated (char **old, char **new, char *oldkey, char *newkey);
+void _vely_report_warning (char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+void carve_stmt_obj (char **mtext, bool has_value);
 
 //
 //
@@ -483,6 +509,32 @@ void setup_reqhash();
 //
 //
 
+//
+// Check the result of parsing (after last carve_statement()), so that mtext is trimmed,
+// and if has_value is true, check that it's not empty
+//
+void carve_stmt_obj (char **mtext, bool has_value)
+{
+    // Make sure mtext is not empty, there has to be something
+    num ml = strlen (*mtext);
+    *mtext = vely_trim_ptr(*mtext,  &ml);
+    if (has_value && (*mtext)[0] == 0) _vely_report_error("Object argument following the statement name is missing");
+
+}
+
+
+//
+// Check if old and new clauses are used. oldkey and newkey are the keywords for them.  Direct user to what needs to be used.
+//
+void deprecated (char **old, char **new, char *oldkey, char *newkey)
+{
+    if (*old != NULL && *new == NULL) 
+    {
+        _vely_report_warning("Option [%s] is deprecated and will be removed. Use [%s] instead", oldkey, newkey);
+        *new = *old;
+    }
+    else if (*old != NULL && *new != NULL) _vely_report_error ("Cannot use both [%s] and [%s], use only [%s]", oldkey, newkey, newkey);
+}
 
 //
 // Generate code that loads pre-computed hash to memory. This hash allows near-instantaneous
@@ -521,7 +573,7 @@ void setup_reqhash()
         if (!done_count) 
         {
             done_count = true;
-            vely_create_hash (&vv_dispatch, atol (req), NULL); // create hash, first line is the
+            vely_create_hash (&vv_dispatch, atol (req), NULL, false); // create hash, first line is the
                                                           // number of elements in the hash
         }
         else
@@ -610,7 +662,7 @@ void setup_reqhash()
     }
     oprintf ("};\n");
     // generate create hash
-    oprintf ("vely_create_hash (&vv_dispatch_ptr, %lld, _vv_req_hash_ptr);\n", vv_dispatch->tot); 
+    oprintf ("vely_create_hash (&vv_dispatch_ptr, %lld, _vv_req_hash_ptr, false);\n", vv_dispatch->tot); 
     
 
     // hash is typically a fairly small structure. We do not delete it here, as it would just slow down processing.
@@ -619,33 +671,34 @@ void setup_reqhash()
 
 //
 // Print out a number or write it to a string. 'to' is a string where to write, can be NULL for printing out.
-// len is the length of 'to' buffer, or NULL if not specified, in which case 'to' is allocated (unless it's NULL).
+// 'to' is allocated (unless it's NULL, then it's printed out).
 // num0 is the number to convert to string. olen is the output len of this conversion, or if NULL nothing. base is
 // the base, 2-36, default 10.
 //
-void do_numstr (char *to, char *len, char *num0, char *olen, char *base)
+void do_numstr (char *to, char *num0, char *olen, char *base)
 {
-    // to == NULL means print it out. In this case, we supply "to" var, and output-length (unless supplied)
+    // to == NULL means print it out. 
     bool go_out = false;
-    static char lenbuf[5];
     if (to == NULL)
     {
-        // use single static num/buffer since num-string and p-num can never be used at the same time when outputting
-        // which happens one at a time going out in vely_puts() and vely constructs cannot be nested. This saves memory and
-        // works  in special cases like this where these are immediately consumed for output, otherwise for most cases it does NOT.
         go_out = true;
-        to = "vv_numstr_buff";
-        snprintf (lenbuf, sizeof(lenbuf), "%d", VV_NUMBER_LENGTH); // max length of 64 bit number in binary
-        len = lenbuf;
-        if (olen == NULL) 
+        oprintf ("{\nchar *_vv_numstr;\n");
+        if (olen == NULL)
         {
-            olen = "vv_numstr";
+            oprintf ("num _vv_numstr_l;\n");
+            olen = "_vv_numstr_l";
         }
+        to = "_vv_numstr";
     }
 
-    if (len == NULL) oprintf ("%s = ", to); // if not a fixed buffer, assign allocated result to memory point
-    oprintf ("vely_num2str (%s, %s, %s, %s%s%s, %s, %s);\n", num0, len!=NULL?to:"NULL", len!=NULL?len:"0", olen!=NULL?"&(":"", olen!=NULL?olen:"NULL", olen!=NULL?")":"", len!=NULL?"false":"true", base!=NULL?base:"10");
-    if (go_out) oprintf ("vely_puts (VV_NOENC, %s, %s);\n", to, olen);
+    oprintf ("%s=vely_num2str (%s, %s%s%s, %s);\n", to,num0, olen!=NULL?"&(":"", olen!=NULL?olen:"NULL", olen!=NULL?")":"", base!=NULL?base:"10");
+    if (go_out) 
+    {
+        oprintf ("vely_puts (VV_NOENC, %s, %s);\n", to, olen);
+        oprintf ("vely_free (%s);\n", to); // for printing, release memory right away
+
+        oprintf ("}\n");
+    }
 }
 
 //
@@ -1893,7 +1946,7 @@ void carve_statement (char **statement, char *statement_name, char *keyword, num
 // 'statement' is the pointer to the pointer to data associated with statement name, for example in 'get-time to define res year 1'
 // 'statement' could point to 'define res' and define it as a string
 // 'type is VV_DEFSTRING('char *') or VV_DEFNUM or VV_DEFVOIDPTRPTR or VV_DEFCHARPTRPTR
-// or VV_BROKEN or VV_DEFDBL or VV_DEFHASH or VV_DEFJSON or VV_DEFFIFO or VV_DEFVOID, or VV_DEFENCRYPT
+// or VV_BROKEN or VV_DEFDBL or VV_DEFHASH/STATIC or VV_DEFJSON or VV_DEFFIFO or VV_DEFVOID, or VV_DEFENCRYPT or VV_DEFTREE/STATIC or VV_DEFTREECURSOR
 // or VV_DEFFILE or VV_DEFFCGI
 // Returns 1 if there is a "define", 0 otherwise.
 //
@@ -1942,6 +1995,10 @@ num define_statement (char **statement, num type)
         else if (type == VV_DEFBROKEN) oprintf ("vely_split_str *%s = NULL;\n", *statement);
         else if (type == VV_DEFJSON) oprintf ("vely_json *%s = NULL;\n", *statement);
         else if (type == VV_DEFHASH) oprintf ("vely_hash *%s = NULL;\n", *statement);
+        else if (type == VV_DEFHASHSTATIC) oprintf ("static vely_hash *%s = NULL;\n", *statement);
+        else if (type == VV_DEFTREE) oprintf ("vely_tree *%s = NULL;\n", *statement);
+        else if (type == VV_DEFTREESTATIC) oprintf ("static vely_tree *%s = NULL;\n", *statement);
+        else if (type == VV_DEFTREECURSOR) oprintf ("vely_tree_cursor *%s = NULL;\n", *statement);
         else if (type == VV_DEFFIFO) oprintf ("vely_fifo *%s = NULL;\n", *statement);
         else if (type == VV_DEFENCRYPT) oprintf ("EVP_CIPHER_CTX *%s = NULL;\n", *statement);
         else if (type == VV_DEFFILE) oprintf ("vely_file *%s = NULL;\n", *statement);
@@ -2284,6 +2341,30 @@ void oprintf (char *format, ...)
 #define VV_COLOR_BLUE "\033[34m"
 #define VV_COLOR_NORMAL "\033[0;39m"
 #define VV_COLOR_BOLD "\033[0;1m"
+#define VV_COLOR_PINK "\033[35m"
+// 
+// Output warning to stdout. During the preprocessing with VELY.
+// There's a maximum length for it, and if it's more than that, ignore the rest.
+// If there is no dot at the end, put it there.
+// After that, continue program.
+//
+void _vely_report_warning (char *format, ...)
+{
+    char wrntext[VV_MAX_ERR_LEN + 1];
+
+    va_list args;
+    va_start (args, format);
+    vsnprintf (wrntext, sizeof(wrntext) - 1, format, args);
+    va_end (args);
+    fprintf (stdout, "%s%sWarning: %s", VV_COLOR_BOLD, VV_COLOR_PINK, wrntext);
+    if (src_file_name != NULL)
+    {
+        fprintf (stdout, ", reading file [%s], line [%lld]", src_file_name, lnum);
+    }
+    if (wrntext[0] != 0 && wrntext[strlen (wrntext) - 1] != '.')  fprintf(stdout, ".");
+    fprintf (stdout, "%s\n",VV_COLOR_NORMAL);
+}
+
 // 
 // Output error to stderr. The error means error during the preprocessing with VELY.
 // There's a maximum length for it, and if it's more than that, ignore the rest.
@@ -2664,8 +2745,15 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
     num regex_cache = 0; // used to cache regex compilation
 
 
+    num do_once = 0;
+    num do_once_line = 0;
+    bool do_once_open = false; // true if do-once open
     bool ccomm_open = false; // true if C comment opened in some line prior
     num ccomm_line = -1; // line where /* C comment opened
+
+
+    // Include vely.h so it's not necessary, doubles are prevented with ifdefs inside
+    oprintf("#include \"vely.h\"\n");
 
     // 
     // Main loop in which lines are read from the source file
@@ -2757,7 +2845,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
         num ccomm_pos = -1; // position of /* that starts multiline comment
         while (isspace (line[op_i])) op_i++; // find beginning of line (ignore whitespace)
         // if this is @ or !, all comments are ignore, this is whole-line output statement
-        if (memcmp(line+op_i, "@",1) && memcmp(line+op_i, "!",1)) 
+        if (ccomm_open || (memcmp(line+op_i, "@",1) && memcmp(line+op_i, "!",1))) 
         {
             // Check for /**/ comment
             // There can be multiple /**/ comments on a line, so this must be a loop
@@ -2959,6 +3047,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&onexit, "rollback-transaction", VV_KEYONERROREXIT, 0, 0);
                         carve_statement (&errt, "rollback-transaction", VV_KEYERRORTEXT, 0, 1);
                         carve_statement (&err, "rollback-transaction", VV_KEYERROR, 0, 1);
+                        carve_stmt_obj (&mtext, false);
                         define_statement (&errt, VV_DEFSTRING);
                         define_statement (&err, VV_DEFSTRING);
                         get_db_config (database);
@@ -3003,6 +3092,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&onexit, "commit-transaction", VV_KEYONERROREXIT, 0, 0);
                         carve_statement (&errt, "commit-transaction", VV_KEYERRORTEXT, 0, 1);
                         carve_statement (&err, "commit-transaction", VV_KEYERROR, 0, 1);
+                        carve_stmt_obj (&mtext, false);
                         define_statement (&errt, VV_DEFSTRING);
                         define_statement (&err, VV_DEFSTRING);
                         get_db_config (database);
@@ -3029,6 +3119,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&onexit, "begin-transaction", VV_KEYONERROREXIT, 0, 0);
                         carve_statement (&errt, "begin-transaction", VV_KEYERRORTEXT, 0, 1);
                         carve_statement (&err, "begin-transaction", VV_KEYERROR, 0, 1);
+                        carve_stmt_obj (&mtext, false);
                         define_statement (&errt, VV_DEFSTRING);
                         define_statement (&err, VV_DEFSTRING);
                         get_db_config (database);
@@ -3077,13 +3168,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         i = newI1;
                         char *skipd = find_keyword (mtext, VV_KEYSKIPDATA, 0);
                         carve_statement (&skipd, "delete-query", VV_KEYSKIPDATA, 0, 0);
-
-                        // trim query name, or generated code will be incorrect
-                        char *qname = vely_strdup(mtext);
-                        num lname = strlen (qname);
-                        vely_trim (qname, &lname);
+                        carve_stmt_obj (&mtext, true);
                         // free query generate code
-                        free_query (qname, skipd!=NULL?true:false);
+                        free_query (mtext, skipd!=NULL?true:false);
 
                         continue;
                     }
@@ -3240,6 +3327,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&length, "p-out", VV_KEYLENGTH, 0, 1);
                         carve_statement (&bytes, "p-out", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&bytes, VV_DEFNUM);
 
                         if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
@@ -3257,6 +3345,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
 
                         carve_statement (&bytes, "p-dbl", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&bytes, VV_DEFNUM);
 
                         if (bytes != NULL) oprintf ("%s = ", bytes);
@@ -3290,9 +3379,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *bytes = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
 
                         carve_statement (&bytes, "p-num", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&bytes, VV_DEFNUM);
 
-                        do_numstr (NULL, NULL, mtext, bytes, NULL);
+                        do_numstr (NULL, mtext, bytes, NULL);
 
                         continue;
                     }
@@ -3305,6 +3395,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&bytes, "p-url", VV_KEYBYTESWRITTEN, 0, 1);
                         carve_statement (&length, "p-url", VV_KEYLENGTH, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&bytes, VV_DEFNUM);
 
                         if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
@@ -3323,6 +3414,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&bytes, "p-web", VV_KEYBYTESWRITTEN, 0, 1);
                         carve_statement (&length, "p-web", VV_KEYLENGTH, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&bytes, VV_DEFNUM);
 
                         if (length == NULL) length = "VV_EMPTY_LONG_PLAIN_ZERO";
@@ -3400,6 +3492,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&out_file, "exec-program", VV_KEYOUTPUTFILE, 0, 1);
                         carve_statement (&err_file, "exec-program", VV_KEYERRORFILE, 0, 1);
                         carve_statement (&in_file, "exec-program", VV_KEYINPUTFILE, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&program_output, VV_DEFSTRING);
                         define_statement (&program_error, VV_DEFSTRING);
@@ -3423,7 +3516,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             // this is error-file. 
                             oprintf ("_vv_prg_err_file%lld = vely_fopen ((%s), \"w+\");\n", total_exec_programs, err_file);
                             // we set status to -8 if cannot open for writing
-                            //VERR is set in vely_fopen
+                            //VELY_ERR is set in vely_fopen
                             oprintf ("if (_vv_prg_err_file%lld == NULL) {_vv_prg_status%lld=VV_ERR_WRITE;} else { \n", total_exec_programs, total_exec_programs);
                         }
                         if (out_file != NULL)
@@ -3431,7 +3524,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             // this is output-file. We open file for writing, and we close it after we're done
                             oprintf ("_vv_prg_out_file%lld = vely_fopen ((%s), \"w+\");\n", total_exec_programs, out_file);
                             // we set status to -8 if cannot open for writing
-                            //VERR is set in vely_fopen
+                            //VELY_ERR is set in vely_fopen
                             oprintf ("if (_vv_prg_out_file%lld == NULL) {_vv_prg_status%lld=VV_ERR_WRITE;} else { \n", total_exec_programs, total_exec_programs);
                         }
 
@@ -3441,7 +3534,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             // this is input-file. We open it for reading, and close after we're done
                             oprintf ("_vv_prg_in_file%lld = vely_fopen ((%s), \"r\");\n", total_exec_programs, in_file);
                             // for status, we set it to -9 if cannot read
-                            //VERR is set in vely_fopen
+                            //VELY_ERR is set in vely_fopen
                             oprintf ("if (_vv_prg_in_file%lld == NULL) {_vv_prg_status%lld=VV_ERR_READ;} else {\n", total_exec_programs, total_exec_programs);
                         }
 
@@ -3492,6 +3585,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         //
                         char *header = find_keyword (mtext, VV_KEYHEADERS, 1);
                         carve_statement (&header, "send-file", VV_KEYHEADERS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         // if there's no header, by default:
                         char *temp_header = make_default_header(VV_HEADER_FILE, http_header_count, 0);
@@ -3520,6 +3614,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&id, "lock-file", VV_KEYID, 1, 1);
                         carve_statement (&status, "lock-file", VV_KEYSTATUS, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&id, VV_DEFNUM);
                         define_statement (&status, VV_DEFNUM);
@@ -3633,6 +3728,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&to, "count-substring", VV_KEYTO, 1, 1);
                         carve_statement (&in, "count-substring", VV_KEYIN, 1, 1);
                         carve_statement (&case_insensitive, "count-substring", VV_KEYCASEINSENSITIVE, 0, 2);
+                        carve_stmt_obj (&mtext, true);
 
                         char *case_insensitivec = opt_clause(case_insensitive, "0", "1");
 
@@ -3666,6 +3762,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&salt_len, "derive-key" , VV_KEYSALTLENGTH, 0, 1);
                         carve_statement (&iterations, "derive-key", VV_KEYITERATIONS, 0, 1);
                         carve_statement (&binary, "derive-key", VV_KEYBINARY, 0, 2);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&mtext, VV_DEFSTRING);
 
@@ -3690,6 +3787,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&digest, "hash-string", VV_KEYDIGEST, 0, 1);
                         carve_statement (&binary, "hash-string", VV_KEYBINARY, 0, 2);
                         carve_statement (&olen, "hash-string", VV_KEYOUTPUTLENGTH, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&olen, VV_DEFNUM);
@@ -3714,6 +3812,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&olen, "decode-base64", VV_KEYOUTPUTLENGTH, 0, 1);
                         carve_statement (&ilen, "decode-base64", VV_KEYINPUTLENGTH, 0, 1);
                         carve_statement (&to, "decode-base64", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&olen, VV_DEFNUM);
                         define_statement (&to, VV_DEFSTRING);
@@ -3736,6 +3835,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&olen, "encode-base64", VV_KEYOUTPUTLENGTH, 0, 1);
                         carve_statement (&ilen, "encode-base64", VV_KEYINPUTLENGTH, 0, 1);
                         carve_statement (&to, "encode-base64", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&olen, VV_DEFNUM);
                         define_statement (&to, VV_DEFSTRING);
@@ -3761,6 +3861,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&ilen, "encode-hex", VV_KEYINPUTLENGTH, 0, 1);
                         carve_statement (&pref, "encode-hex", VV_KEYPREFIX, 0, 1);
                         carve_statement (&to, "encode-hex", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&olen, VV_DEFNUM);
                         define_statement (&to, VV_DEFSTRING);
@@ -3781,6 +3882,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&olen, "decode-hex", VV_KEYOUTPUTLENGTH, 0, 1);
                         carve_statement (&ilen, "decode-hex", VV_KEYINPUTLENGTH, 0, 1);
                         carve_statement (&to, "decode-hex", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&olen, VV_DEFNUM);
                         define_statement (&to, VV_DEFSTRING);
@@ -3802,6 +3904,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&outlength, is_web==1?"decode-web":"decode-url", VV_KEYOUTPUTLENGTH, 0, 1);
                         carve_statement (&inlength, is_web==1?"decode-web":"decode-url", VV_KEYINPUTLENGTH, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&outlength, VV_DEFNUM);
                         if (inlength == NULL) inlength="-1";
@@ -3826,6 +3929,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&inlength, is_web==1?"encode-web":"encode-url", VV_KEYINPUTLENGTH, 0, 1);
                         carve_statement (&outlength, is_web==1?"encode-web":"encode-url", VV_KEYOUTPUTLENGTH, 0, 1);
                         carve_statement (&to, is_web==1?"encode-web":"encode-url", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&outlength, VV_DEFNUM);
                         define_statement (&to, VV_DEFSTRING);
@@ -3849,6 +3953,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&length, "trim-string", VV_KEYLENGTH, 0, 1);
                         carve_statement (&result, "trim-string", VV_KEYRESULT, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&length, VV_DEFNUM);
                         define_statement (&result, VV_DEFSTRING);
@@ -3903,6 +4008,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&digest, enc?"encrypt-data":"decrypt-data", VV_KEYDIGEST, 0, 1);
                         carve_statement (&cache, enc?"encrypt-data":"decrypt-data", VV_KEYCACHE, 0, 0);
                         carve_statement (&ccache, enc?"encrypt-data":"decrypt-data", VV_KEYCLEARCACHE, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&outlength, VV_DEFNUM);
@@ -3968,6 +4074,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&basename, "stat-file", VV_KEYNAME0, 0, 0);
                         carve_statement (&type, "stat-file", VV_KEYTYPE0, 0, 0);
                         carve_statement (&size, "stat-file", VV_KEYSIZE0, 0, 0);
+                        carve_stmt_obj (&mtext, true);
 
                         num tot_opt = (path!=NULL?1:0)+(basename!=NULL?1:0)+(type!=NULL?1:0)+(size!=NULL?1:0);
                         if (tot_opt != 1)
@@ -4028,6 +4135,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         }
                         carve_statement (&type, "read-json", VV_KEYTYPE, 0, 1);
                         carve_statement (&status, "read-json", VV_KEYSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
 
                         char key_var[100];
@@ -4077,13 +4185,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&status, "utf8-json", VV_KEYSTATUS, 0, 1);
                         carve_statement (&errt, "utf8-json", VV_KEYERRORTEXT, 0, 1);
                         carve_statement (&to, "utf8-json", VV_KEYTO, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&status, VV_DEFNUM);
                         define_statement (&errt, VV_DEFSTRING);
                         define_statement (&to, VV_DEFSTRING);
 
                         oprintf ("char *_vv_errt%lld = NULL;\n", code_json);
                         oprintf ("num _vv_res%lld = vely_utf8_to_json (%s, %s, &(%s), &_vv_errt%lld);\n", code_json, mtext, len == NULL ? "-1":len, to, code_json);
-                        if (status != NULL) oprintf ("if (_vv_res%lld == -1) {VERR0;%s=VV_ERR_UTF8;} else %s=_vv_res%lld;\n", code_json, status, status, code_json); else oprintf("VV_UNUSED(_vv_res%lld);\n", code_json);
+                        if (status != NULL) oprintf ("if (_vv_res%lld == -1) {VELY_ERR0;%s=VV_ERR_UTF8;} else %s=_vv_res%lld;\n", code_json, status, status, code_json); else oprintf("VV_UNUSED(_vv_res%lld);\n", code_json);
                         if (errt != NULL) oprintf ("%s = _vv_errt%lld;\n", errt, code_json); 
 
                         code_json++;
@@ -4099,12 +4208,13 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *errt = find_keyword (mtext, VV_KEYERRORTEXT, 1);
                         carve_statement (&status, "json-utf8", VV_KEYSTATUS, 0, 1);
                         carve_statement (&errt, "json-utf8", VV_KEYERRORTEXT, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&status, VV_DEFNUM);
                         define_statement (&errt, VV_DEFSTRING);
 
                         oprintf ("char *_vv_errt%lld = NULL;\n", code_json);
                         oprintf ("char *_vv_res%lld = vely_json_to_utf8 (%s, 0, &_vv_errt%lld, 1);\n", code_json, mtext, code_json);
-                        if (status != NULL) oprintf ("if (_vv_res%lld != NULL) %s=VV_OKAY; else {VERR0;%s=VV_ERR_UTF8;}\n", code_json, status, status); else oprintf("VV_UNUSED(_vv_res%lld);\n", code_json);
+                        if (status != NULL) oprintf ("if (_vv_res%lld != NULL) %s=VV_OKAY; else {VELY_ERR0;%s=VV_ERR_UTF8;}\n", code_json, status, status); else oprintf("VV_UNUSED(_vv_res%lld);\n", code_json);
                         if (errt != NULL) oprintf ("%s = _vv_errt%lld;\n", errt, code_json);
 
 
@@ -4145,6 +4255,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&len, "new-json", VV_KEYLENGTH, 0, 1);
                         carve_statement (&from, "new-json", VV_KEYFROM, 1, 1);
                         carve_statement (&maxhash, "new-json", VV_KEYMAXHASHSIZE, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&errt, VV_DEFSTRING);
                         define_statement (&status, VV_DEFNUM);
@@ -4158,7 +4269,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         oprintf ("num vely_json_status_%lld = %s%svely_json_new (%s, NULL, (%s), %s);\n", json_id, errp == NULL ? "":errp, errp == NULL ? "":"=", from, len == NULL ? "-1" : len, nodec == NULL?"1":"0");
                         if (status != NULL)
                         {
-                            oprintf ("VERR0; %s = (vely_json_status_%lld == -1 ? VV_OKAY : VV_ERR_JSON);\n", status, json_id);
+                            oprintf ("VELY_ERR0; %s = (vely_json_status_%lld == -1 ? VV_OKAY : VV_ERR_JSON);\n", status, json_id);
                         }
                         else
                         {
@@ -4183,6 +4294,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         carve_statement (&status, "rename-file", VV_KEYSTATUS, 0, 1);
                         carve_statement (&to, "rename-file", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&status, VV_DEFNUM);
 
@@ -4191,11 +4303,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         //
                         if (status == NULL)
                         {
-                            oprintf ("rename ((%s), (%s));VERR;\n", mtext, to);
+                            oprintf ("rename ((%s), (%s));VELY_ERR;\n", mtext, to);
                         }
                         else
                         {
-                            oprintf ("if (((%s) = rename ((%s), (%s))) != 0) {VERR;VV_TRACE (\"Cannot rename file [%%s] to [%%s], error [%%s]\",%s,%s,strerror(errno));%s=VV_ERR_RENAME;} else %s=VV_OKAY;\n", status, mtext, to, mtext,to, status, status);
+                            oprintf ("if (((%s) = rename ((%s), (%s))) != 0) {VELY_ERR;VV_TRACE (\"Cannot rename file [%%s] to [%%s], error [%%s]\",%s,%s,strerror(errno));%s=VV_ERR_RENAME;} else %s=VV_OKAY;\n", status, mtext, to, mtext,to, status, status);
                         }
 
 
@@ -4210,6 +4322,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
 
                         carve_statement (&status, "delete-file", VV_KEYSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&status, VV_DEFNUM);
 
@@ -4218,11 +4331,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         //
                         if (status == NULL)
                         {
-                            oprintf ("unlink (%s);VERR;\n", mtext);
+                            oprintf ("unlink (%s);VELY_ERR;\n", mtext);
                         }
                         else
                         {
-                            oprintf ("if (unlink (%s) != 0  && errno != ENOENT) {VERR;VV_TRACE (\"Cannot delete file [%%s], error [%%s]\",%s, strerror(errno)); %s=VV_ERR_DELETE;} else %s=VV_OKAY;\n", mtext,mtext, status, status);
+                            oprintf ("if (unlink (%s) != 0  && errno != ENOENT) {VELY_ERR;VV_TRACE (\"Cannot delete file [%%s], error [%%s]\",%s, strerror(errno)); %s=VV_ERR_DELETE;} else %s=VV_OKAY;\n", mtext,mtext, status, status);
                         }
 
 
@@ -4261,6 +4374,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&cert, "call-web", VV_KEYCERT, 0, 1);
                         carve_statement (&nocert, "call-web", VV_KEYNOCERT, 0, 0);
                         carve_statement (&cookiejar, "call-web", VV_KEYCOOKIEJAR, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         // process body clause after ward because it is done within a copy of carved out 'body' above
                         char *files = NULL;
@@ -4374,6 +4488,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&upay, "new-server", VV_KEYURLPAYLOAD, 0, 1);
                         carve_statement (&timeout, "new-server", VV_KEYTIMEOUT, 0, 1);
                         carve_statement (&env, "new-server", VV_KEYENVIRONMENT, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         // process body clause after ward because it is done within a copy of carved out 'body' above
                         char *ctype = NULL;
@@ -4431,6 +4546,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&rcode, "read-server", VV_KEYSTATUS, 0, 1);
                         carve_statement (&rmsg, "read-server", VV_KEYSTATUSTEXT, 0, 1);
                         carve_statement (&rstatus, "read-server", VV_KEYREQUESTSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         
                         define_statement (&data, VV_DEFSTRING);
                         define_statement (&error, VV_DEFSTRING);
@@ -4475,6 +4591,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&finok, "call-server", VV_KEYFINISHEDOKAY, 0, 1);
                         carve_statement (&count, "call-server", VV_KEYARRAYCOUNT, 0, 1);
                         carve_statement (&started, "call-server", VV_KEYSTARTED, 0, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&st, VV_DEFNUM);
                         define_statement (&finok, VV_DEFNUM);
@@ -4506,6 +4623,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         // for ALL of them
                         //
                         carve_statement (&temp, "uniq-file", VV_KEYTEMPORARY, 0, 0);
+                        carve_stmt_obj (&mtext, true);
 
                         //defines
                         define_statement (&mtext, VV_DEFSTRING);
@@ -4599,6 +4717,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&case_insensitive, "match-regex", VV_KEYCASEINSENSITIVE, 0, 2);
                         carve_statement (&utf8, "match-regex", VV_KEYUTF8, 0, 2);
                         carve_statement (&single_match, "match-regex", VV_KEYSINGLEMATCH, 0, 2);
+                        carve_stmt_obj (&mtext, true);
 
                         char *case_insensitivec = opt_clause(case_insensitive, "1", "0");
                         char *utf8c = opt_clause(utf8, "1", "0");
@@ -4847,22 +4966,23 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         i = newI;
 
                         char *to = find_keyword (mtext, VV_KEYTO, 1);
-                        char *len = find_keyword (mtext, VV_KEYLENGTH, 1);
                         char *olen = find_keyword (mtext, VV_KEYBYTESWRITTEN, 1);
                         char *base = find_keyword (mtext, VV_KEYBASE, 1);
 
                         carve_statement (&to, "num-string", VV_KEYTO, 0, 1); 
-                        carve_statement (&len, "num-string", VV_KEYLENGTH, 0, 1); 
                         carve_statement (&olen, "num-string", VV_KEYBYTESWRITTEN, 0, 1); 
                         carve_statement (&base, "num-string", VV_KEYBASE, 0, 1); 
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&olen, VV_DEFNUM);
 
+                        //Example for deprecation: length is old, buffer-size new
+                        //deprecated(&len, &buflen, old vv key, new vv key);
+
                         char *num0 = mtext; // number to convert, cannot use num for var name as it is a type
 
-                        if (to == NULL && len != NULL) _vely_report_error( "Cannot use 'length' without 'to' in num-string");
 
-                        do_numstr (to, len, num0, olen, base);
+                        do_numstr (to, num0, olen, base);
 
 
                         continue;
@@ -5037,6 +5157,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&to, "copy-string", VV_KEYTO, 1, 1);
                         carve_statement (&len, "copy-string", VV_KEYLENGTH, 0, 1);
                         carve_statement (&bwritten, "copy-string", VV_KEYBYTESWRITTEN, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&to, VV_DEFSTRING);
                         define_statement (&len, VV_DEFNUM);
                         define_statement (&bwritten, VV_DEFNUM);
@@ -5093,6 +5214,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&nohttponly, "set-cookie", VV_KEYNOHTTPONLY, 0, 2);
                         carve_statement (&secure, "set-cookie", VV_KEYSECURE, 0, 2); // may have data
                         carve_statement (&eq, "set-cookie", VV_KEYEQUALSHORT, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         char *secc = opt_clause(secure, "\"Secure; \"", "\"\"");
                         char *httpc = opt_clause(nohttponly, "\"\"", "\"HttpOnly; \"");
@@ -5134,6 +5256,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&secure, "delete-cookie", VV_KEYSECURE, 0, 2);
                         carve_statement (&path, "delete-cookie", VV_KEYPATH, 0, 1);
                         carve_statement (&st, "delete-cookie", VV_KEYSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&st, VV_DEFNUM);
 
                         char *secc = opt_clause(secure, "\"Secure; \"", "\"\"");
@@ -5149,18 +5272,14 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         i = newI;
                         char *len = find_keyword (mtext, VV_KEYLENGTH, 1);
                         carve_statement (&len, "request-body", VV_KEYLENGTH, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&len, VV_DEFNUM);
 
-                        char *var = NULL;
-                        VV_STRDUP (var, mtext); // must have a copy because vely_trim could ruin further parsing, 
-                                        // since we have 'i' up above already set to point in line
-                        num var_len = strlen (var);
-                        vely_trim (var, &var_len);
-                        if (vely_is_valid_param_name(var, false) != 1)
+                        if (vely_is_valid_param_name(mtext, false) != 1)
                         {
-                            _vely_report_error(VV_NAME_INVALID, var);
+                            _vely_report_error(VV_NAME_INVALID, mtext);
                         }
-                        oprintf("char *%.*s = vely_get_config()->ctx.req->body;\n", (int)var_len, var);
+                        oprintf("char *%s = vely_get_config()->ctx.req->body;\n", mtext);
                         if (len != NULL) oprintf("%s = vely_get_config()->ctx.req->body_len;\n", len);
 
                         continue;
@@ -5173,7 +5292,8 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *eq = find_keyword (mtext, VV_KEYEQUALSHORT, 0);
 
                         carve_statement (&eq, "set-input", VV_KEYEQUALSHORT, 1, 1);
-
+                        carve_stmt_obj (&mtext, true);
+ 
                         oprintf("vely_set_input (vely_get_config()->ctx.req, %s, %s);\n", mtext, eq);
 
                         continue;
@@ -5225,7 +5345,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         if (file_name[0] == '_')  _vely_report_error( "Non-request file [%s] (starting with underscore) cannot implement a request handler", file_name);
                         char *dot = strchr (file_name, '.');
                         if (dot == NULL)  _vely_report_error( "Source file name [%s] must have .vely extension", file_name);
-                        if (strncmp (reqname, file_name, dot - file_name)) _vely_report_error( "Source file name [%.*s] does not match request handler name [%s]", (int)(dot-file_name), file_name, reqname);
+                        *dot = 0; // cut file_name short for easy comparison
+                        if (strcmp (reqname, file_name)) _vely_report_error( "Source file name [%.*s] does not match request handler name [%s]", (int)(dot-file_name), file_name, reqname);
+                        *dot = '.'; //restore file_name
 
                         oprintf ("void %s () {\n", reqname);
                         continue;
@@ -5330,6 +5452,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             carve_statement (&with, "split-string", VV_KEYWITH, 1, 1);
                         }
                         if (del != NULL) carve_statement (&del, "split-string", VV_KEYDELETE, 0, 1);
+                        else carve_stmt_obj (&mtext, true);
 
                         if (to != NULL) define_statement (&to, VV_DEFBROKEN);
 
@@ -5367,8 +5490,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *key = find_keyword (mtext, VV_KEYKEY, 1);
                         char *value = find_keyword (mtext, VV_KEYVALUE, 1);
 
-                        carve_statement (&key, "fifo-list", VV_KEYKEY, 1, 1);
-                        carve_statement (&value, "fifo-list", VV_KEYVALUE, 1, 1);
+                        carve_statement (&key, "write-fifo", VV_KEYKEY, 1, 1);
+                        carve_statement (&value, "write-fifo", VV_KEYVALUE, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
 
                         oprintf ("vely_store (%s, %s, (void*)%s);\n", mtext, key, value);
@@ -5393,6 +5517,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         char *del = find_keyword (mtext, VV_KEYDELETE0, 1);
                         carve_statement (&del, "purge-fifo", VV_KEYDELETE0, 0, 0);
+                        carve_stmt_obj (&mtext, true);
                         oprintf ("vely_purge (&(%s), %s);\n", mtext, del!=NULL?"0":"1");
 
                         continue;
@@ -5406,8 +5531,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *key = find_keyword (mtext, VV_KEYKEY, 1);
                         char *value = find_keyword (mtext, VV_KEYVALUE, 1);
 
-                        carve_statement (&key, "fifo-list", VV_KEYKEY, 1, 1);
-                        carve_statement (&value, "fifo-list", VV_KEYVALUE, 1, 1);
+                        carve_statement (&key, "read-fifo", VV_KEYKEY, 1, 1);
+                        carve_statement (&value, "read-fifo", VV_KEYVALUE, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         define_statement (&key, VV_DEFSTRING);
                         define_statement (&value, VV_DEFSTRING);
@@ -5434,14 +5560,12 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&status, "write-file", VV_KEYSTATUS, 0, 1);
                         carve_statement (&pos, "write-file", VV_KEYPOSITION, 0, 1);
                         carve_statement (&fileid, "write-file", VV_KEYFILEID, 0, 1);
+                        if (fileid == NULL) carve_stmt_obj (&mtext, true); else carve_stmt_obj (&mtext, false); 
 
                         define_statement (&status, VV_DEFNUM);
 
                         char *appendc = opt_clause(append, "1", "0");
 
-                        // can trim mtext here because all is already carved, and it's just a ptr trim
-                        num lm = strlen (mtext);
-                        mtext = vely_trim_ptr(mtext,  &lm);
                         if (mtext[0] != 0 && fileid!=NULL) _vely_report_error( "you can specify either file name or file-id but not both in write-file statement");
 
                         if (append != NULL && pos!=NULL) _vely_report_error( "'append' and 'position' cannot both be in write-file statement");
@@ -5469,6 +5593,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&pos, "read-file", VV_KEYPOSITION, 0, 1);
                         carve_statement (&length, "read-file", VV_KEYLENGTH, 0, 1);
                         carve_statement (&fileid, "read-file", VV_KEYFILEID, 0, 1);
+                        if (fileid == NULL) carve_stmt_obj (&read_from, true); else carve_stmt_obj (&read_from, false);
 
                         define_statement (&status, VV_DEFNUM);
                         define_statement (&read_to, VV_DEFSTRING);
@@ -5493,15 +5618,18 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&size, "get-hash", VV_KEYSIZE, 0, 1);
                         carve_statement (&len, "get-hash", VV_KEYLENGTH, 0, 1);
                         carve_statement (&reads, "get-hash", VV_KEYAVERAGEREADS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&len, VV_DEFNUM);
                         define_statement (&size, VV_DEFNUM);
                         define_statement (&reads, VV_DEFDBL);
 
                         if (size == NULL && len == NULL && reads == NULL) _vely_report_error( "one of 'length', 'size' or 'average-reads' must be in get-hash statement");
 
+                        oprintf("vely_mem_process=(%s)->process;\n", mtext);
                         if (len !=NULL) oprintf("%s=vely_total_hash (%s);\n", len, mtext);
                         if (size !=NULL) oprintf("%s=vely_hash_size (%s);\n", size, mtext);
                         if (reads !=NULL) oprintf("%s=vely_hash_reads (%s);\n", reads, mtext);
+                        oprintf("vely_mem_process=false;\n");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "purge-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5511,7 +5639,10 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
 
                         char *del = find_keyword (mtext, VV_KEYDELETE0, 1);
                         carve_statement (&del, "purge-hash", VV_KEYDELETE0, 0, 0);
+                        carve_stmt_obj (&mtext, true);
+                        oprintf("vely_mem_process=(%s)->process;\n", mtext);
                         oprintf("vely_delete_hash (&(%s),%s);\n", mtext, del!=NULL?"0":"1");
+                        oprintf("vely_mem_process=false;\n");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "resize-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5521,8 +5652,15 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *size = find_keyword (mtext, VV_KEYSIZE, 1);
 
                         carve_statement (&size, "resize-hash", VV_KEYSIZE, 1, 1);
-
+                        carve_stmt_obj (&mtext, true);
+                        // for resize-hash, consider all key/data to be generic global data, since at this
+                        // point we don't know which one is Vely memory and which one other global data. We could keep
+                        // this information, but we don't have to (maybe we'll need in the future but not now). User can
+                        // know which key/data is which when they attempt to delete key/data.
+                        // vely_mem_process_key/data is only used if ->process is true
+                        oprintf("if ((vely_mem_process=(%s)->process) == true) {vely_mem_process_key=false; vely_mem_process_data=false;};\n", mtext);
                         oprintf("vely_resize_hash (&(%s), %s);\n", mtext, size);
+                        oprintf("vely_mem_process=false;\n");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "new-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5530,11 +5668,16 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         VV_GUARD
                         i = newI;
                         char *size = find_keyword (mtext, VV_KEYSIZE, 1);
+                        char *process = find_keyword (mtext, VV_KEYPROCESSSCOPE, 1);
 
                         carve_statement (&size, "new-hash", VV_KEYSIZE, 1, 1);
-                        define_statement (&mtext, VV_DEFHASH);
+                        carve_statement (&process, "new-hash", VV_KEYPROCESSSCOPE, 0, 0);
+                        carve_stmt_obj (&mtext, true);
+                        if (process) define_statement (&mtext, VV_DEFHASHSTATIC); else define_statement (&mtext, VV_DEFHASH);
 
-                        oprintf("vely_create_hash (&(%s), %s, NULL);\n", mtext, size);
+                        oprintf("vely_mem_process=%s;\n", process?"true":"false");
+                        oprintf("vely_create_hash (&(%s), %s, NULL, %s);\n", mtext, size, process?"true":"false");
+                        oprintf("vely_mem_process=false;\n");
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "write-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5546,17 +5689,26 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *oldd = find_keyword (mtext, VV_KEYOLDVALUE, 1);
                         char *oldk = find_keyword (mtext, VV_KEYOLDKEY, 1);
                         char *st = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *pkey = find_keyword (mtext, VV_KEYPROCESSKEY, 1);
+                        char *pdata = find_keyword (mtext, VV_KEYPROCESSVALUE, 1);
 
                         carve_statement (&key, "write-hash", VV_KEYKEY, 1, 1);
                         carve_statement (&val, "write-hash", VV_KEYVALUE, 1, 1);
                         carve_statement (&oldd, "write-hash", VV_KEYOLDVALUE, 0, 1);
                         carve_statement (&oldk, "write-hash", VV_KEYOLDKEY, 0, 1);
                         carve_statement (&st, "write-hash", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&pkey, "write-hash", VV_KEYPROCESSKEY, 0, 0);
+                        carve_statement (&pdata, "write-hash", VV_KEYPROCESSVALUE, 0, 0);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&oldd, VV_DEFSTRING);
                         define_statement (&oldk, VV_DEFSTRING);
                         define_statement (&st, VV_DEFNUM);
 
+                        oprintf("if ((vely_mem_process=(%s)->process) == true) {vely_mem_process_key=%s; vely_mem_process_data=%s; };\n", mtext, pkey?"true":"false", pdata?"true":"false");
                         oprintf("%s%svely_add_hash (%s, %s, NULL, %s, %s%s%s, %s%s%s);\n", oldd==NULL?"":oldd, oldd==NULL?"":"=",mtext, key, val, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
+                        oprintf("vely_mem_process=false;\n");
+                        // no need to set vely_mem_process_key/data to false, as only vely_add_hash (and a few other) functions
+                        // use this and nothing else. These are always set prior to those functions. Have no effect elsewhere.
                         continue;
                     }
                     else if ((newI=recog_statement(line, i, "read-hash", &mtext, &msize, 0, &vely_is_inline)) != 0)  
@@ -5600,6 +5752,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             carve_statement (&st, "read-hash", VV_KEYSTATUS, 0, 1);
                             carve_statement (&val, "read-hash", VV_KEYVALUE, 1, 1);
                         }
+                        carve_stmt_obj (&mtext, true);
 
                         char *delc = opt_clause(del, "1", "0");
 
@@ -5615,6 +5768,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         }
 
 
+                        oprintf("vely_mem_process=(%s)->process;\n", mtext);
                         if (trav == NULL)
                         {
                             oprintf("%s=vely_find_hash (%s, %s, NULL, %s, %s%s%s, %s%s%s);\n", val,mtext, key, delc, st==NULL?"":"&(", st==NULL?"NULL":st, st==NULL?"":")", oldk==NULL?"":"&(", oldk==NULL?"NULL":oldk, oldk==NULL?"":")");
@@ -5625,6 +5779,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                             if (beg != NULL) oprintf ("vely_rewind_hash(%s);\n", mtext);
                             if (key != NULL) oprintf("%s=vely_next_hash (%s, (void*)&(%s));\n", key, mtext, val);
                         }
+                        oprintf("vely_mem_process=false;\n");
                         vely_free(delc);
                         continue;
                     }
@@ -5658,6 +5813,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         i = newI;
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
                         carve_statement (&status, "delete-mem", VV_KEYSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&status, VV_DEFNUM);
                         oprintf("%s%svely_safe_free ((void*)(%s));\n", status==NULL?"":status, status==NULL?"":"=",mtext);
                         continue;
@@ -5672,6 +5828,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&size, "new-mem", VV_KEYSIZE, 1, 1);
                         carve_statement (&bsize, "new-mem", VV_KEYBLOCKSIZE, 0, 1);
                         carve_statement (&init, "new-mem", VV_KEYINIT, 0, 0);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&mtext, VV_DEFVOIDPTR);
 
                         if (bsize == NULL) 
@@ -5686,12 +5843,366 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         }
                         continue;
                     }
+                    else if ((newI=recog_statement(line, i, "new-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *eval = find_keyword (mtext, VV_KEYCUSTOMEVAL, 1);
+                        char *keyas = find_keyword (mtext, VV_KEYKEYAS, 1);
+                        char *unsorted = find_keyword (mtext, VV_KEYUNSORTED, 1);
+                        char *process = find_keyword (mtext, VV_KEYPROCESSSCOPE, 1);
+
+                        carve_statement (&eval, "new-tree", VV_KEYCUSTOMEVAL, 0, 1);
+                        carve_statement (&keyas, "new-tree", VV_KEYKEYAS, 0, 1);
+                        carve_statement (&unsorted, "new-tree", VV_KEYUNSORTED, 0, 0);
+                        carve_statement (&process, "new-hash", VV_KEYPROCESSSCOPE, 0, 0);
+                        carve_stmt_obj (&mtext, true);
+
+                        if (process) define_statement (&mtext, VV_DEFTREESTATIC); else define_statement (&mtext, VV_DEFTREE);
+                        if (keyas != NULL)
+                        {
+                            num lm = strlen (keyas);
+                            keyas = vely_trim_ptr(keyas,  &lm);
+                            if (!strcmp (keyas, "\"positive integer\""))
+                            {
+                                keyas = "VV_TREE_TYPE_NUM";
+                            }
+                            else vely_report_error ("Unknown key type [%s]", keyas);
+                        } else keyas = "VV_TREE_TYPE_STR";
+
+                        oprintf("vely_mem_process=%s;\n", process?"true":"false");
+                        oprintf("%s = vv_tree_create(%s, %s, %s, %s);\n", mtext, eval == NULL?"NULL":eval,keyas, unsorted==NULL?"true":"false", process?"true":"false");
+                        oprintf("vely_mem_process=false;\n");
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "get-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *count = find_keyword (mtext, VV_KEYCOUNT, 1);
+                        char *hops = find_keyword (mtext, VV_KEYHOPS, 1);
+                        char *to = find_keyword (mtext, VV_KEYTO, 1);
+
+                        carve_statement (&count, "get-tree", VV_KEYCOUNT, 0, 0);
+                        carve_statement (&hops, "get-tree", VV_KEYHOPS, 0, 0);
+                        carve_statement (&to, "get-tree", VV_KEYTO, 1, 1);
+                        carve_stmt_obj (&mtext, true);
+
+                        if (count != NULL || hops != NULL) 
+                        {
+                            define_statement (&to, VV_DEFNUM);
+                        }
+
+                        num opt = (count != NULL?1:0)+(hops != NULL?1:0);
+                        if (opt != 1) vely_report_error ("Must specify a single option");
+
+                        if (count != NULL) oprintf("%s = (%s)->count;\n", to, mtext);
+                        if (hops != NULL) oprintf("%s = (%s)->hops;\n", to, mtext);
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "purge-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        oprintf("vely_mem_process=(%s)->process;\n", mtext);
+                        oprintf("vv_tree_purge_f (%s);\n", mtext);
+                        oprintf("vely_mem_process=false;\n");
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "write-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        // TODO should add key-length to speed up write if length is known
+                        char *key = find_keyword (mtext, VV_KEYKEY, 1);
+                        char *value = find_keyword (mtext, VV_KEYVALUE, 1);
+                        char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *ccursor = find_keyword (mtext, VV_KEYNEWCURSOR, 1);
+                        char *pkey = find_keyword (mtext, VV_KEYPROCESSKEY, 1);
+                        char *pdata = find_keyword (mtext, VV_KEYPROCESSVALUE, 1);
+
+                        carve_statement (&key, "write-tree", VV_KEYKEY, 1, 1);
+                        carve_statement (&value, "write-tree", VV_KEYVALUE, 1, 1);
+                        carve_statement (&status, "write-tree", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&ccursor, "write-tree", VV_KEYNEWCURSOR, 0, 1);
+                        carve_statement (&pkey, "write-hash", VV_KEYPROCESSKEY, 0, 0);
+                        carve_statement (&pdata, "write-hash", VV_KEYPROCESSVALUE, 0, 0);
+                        carve_stmt_obj (&mtext, true);
+
+                        define_statement (&status, VV_DEFNUM);
+                        define_statement (&ccursor, VV_DEFTREECURSOR);
+
+                        char cname[100];
+                        oprintf ("vely_tree_cursor vv_tree_curs%lld;\n", wcurs);
+                        if (ccursor == NULL)
+                        {
+                            snprintf (cname, sizeof (cname), "_vv_tree_curs%lld", wcurs);
+                            oprintf ("vely_tree_cursor *_vv_tree_curs%lld;\n", wcurs);
+                            ccursor = cname;
+                        }
+                        oprintf ("%s = &vv_tree_curs%lld;\n", ccursor, wcurs);
+                        oprintf("if ((vely_mem_process=(%s)->process) == true) {vely_mem_process_key=%s; vely_mem_process_data=%s; };\n", mtext, pkey?"true":"false", pdata?"true":"false");
+                        oprintf ("vv_tree_insert_f (%s, %s, %s, -1, %s);\n", ccursor, mtext, key, value);
+                        oprintf("vely_mem_process=false;\n");
+                        if (status != NULL) oprintf ("%s = (%s)->status;\n", status, ccursor);
+
+                        wcurs++;
+                        continue;
+
+                    }
+                    else if ((newI=recog_statement(line, i, "read-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *key = find_keyword (mtext, VV_KEYKEY, 1);
+                        char *mink = find_keyword (mtext, VV_KEYMINKEY, 1);
+                        char *maxk = find_keyword (mtext, VV_KEYMAXKEY, 1);
+                        char *lkey = find_keyword (mtext, VV_KEYLESSER, 1);
+                        char *lekey = find_keyword (mtext, VV_KEYLESSEREQUAL, 1);
+                        char *gkey = find_keyword (mtext, VV_KEYGREATER, 1);
+                        char *gekey = find_keyword (mtext, VV_KEYGREATEREQUAL, 1);
+                        char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        char *ccursor = find_keyword (mtext, VV_KEYNEWCURSOR, 1);
+                        // Begin read-tree 
+                        char *getkey = find_keyword (mtext, VV_KEYOLDKEY, 1);
+                        char *value = find_keyword (mtext, VV_KEYVALUE, 1);
+                        char *pdata = find_keyword (mtext, VV_KEYPROCESSVALUE, 1);
+                        char *upd = find_keyword (mtext, VV_KEYUPDATEVALUE, 1);
+                        // End read-tree 
+
+                        carve_statement (&key, "read-tree", VV_KEYKEY, 0, 1);
+                        carve_statement (&lekey, "read-tree", VV_KEYLESSEREQUAL, 0, 1);
+                        carve_statement (&gekey, "read-tree", VV_KEYGREATEREQUAL, 0, 1);
+                        carve_statement (&lkey, "read-tree", VV_KEYLESSER, 0, 1);
+                        carve_statement (&gkey, "read-tree", VV_KEYGREATER, 0, 1);
+                        carve_statement (&mink, "read-tree", VV_KEYMINKEY, 0, 0);
+                        carve_statement (&maxk, "read-tree", VV_KEYMAXKEY, 0, 0);
+                        carve_statement (&status, "read-tree", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&ccursor, "read-tree", VV_KEYNEWCURSOR, 0, 1);
+                        // Begin read-tree
+                        carve_statement (&value, "read-tree", VV_KEYVALUE, 0, 1);
+                        carve_statement (&pdata, "write-hash", VV_KEYPROCESSVALUE, 0, 0);
+                        carve_statement (&upd, "read-tree", VV_KEYUPDATEVALUE, 0, 1);
+                        carve_statement (&getkey, "read-tree", VV_KEYOLDKEY, 0, 1);
+                        // End read-tree
+                        carve_stmt_obj (&mtext, true);
+
+                        if (upd == NULL && pdata != NULL) vely_report_error ("Cannot use process-value without update-value clause");
+
+                        define_statement (&ccursor, VV_DEFTREECURSOR);
+                        define_statement (&status, VV_DEFNUM);
+                        // Begin read-tree
+                        define_statement (&value, VV_DEFSTRING);
+                        define_statement (&getkey, VV_DEFSTRING);
+                        // End read-tree
+
+                        // for key accessing, only one of the following can be used
+                        num is_one = (key!=NULL?1:0)+(lekey!=NULL?1:0)+(gekey!=NULL?1:0)+(lkey!=NULL?1:0)+(gkey!=NULL?1:0)+(mink!=NULL?1:0)+(maxk!=NULL?1:0);
+                        if (is_one > 1) vely_report_error ("Can use only one of key, lesser, greater, lesser-equal, greater-equal, min-key or max-key clauses");
+                        if (is_one != 1) vely_report_error ("Must specify one of key, lesser, greater, lesser-equal, greater-equal, min-key or max-key clauses");
+
+
+                        char cname[100];
+                        if (ccursor == NULL) 
+                        {
+                            snprintf (cname, sizeof (cname), "_vv_tree_curs%lld", wcurs);
+                            oprintf ("vely_tree_cursor *_vv_tree_curs%lld;\n", wcurs);
+                            ccursor = cname;
+                        }
+                        oprintf ("vely_tree_cursor vv_tree_curs%lld;\n", wcurs);
+                        oprintf ("%s = &vv_tree_curs%lld;\n", ccursor, wcurs);
+                        // These each set ->current alone (no res or rkey)
+                        if (mink != NULL)
+                        {
+                            oprintf ("vv_tree_min_f (%s, %s);\n", ccursor, mtext);
+                        }
+                        else if (maxk != NULL)
+                        {
+                            oprintf ("vv_tree_max_f (%s, %s);\n", ccursor, mtext);
+                        }
+                        else if (lkey != NULL)
+                        {
+                            oprintf ("vv_tree_search_lesser_equal_f (%s, %s, false, %s, -1);\n",  ccursor, mtext, lkey);
+                        }
+                        else if (gkey != NULL)
+                        {
+                            oprintf ("vv_tree_search_greater_equal_f (%s, %s, false, %s, -1);\n",  ccursor, mtext, gkey);
+                        }
+                        else if (lekey != NULL)
+                        {
+                            oprintf ("vv_tree_search_lesser_equal_f (%s, %s, true, %s, -1);\n",  ccursor, mtext, lekey);
+                        }
+                        else if (gekey != NULL)
+                        {
+                            oprintf ("vv_tree_search_greater_equal_f (%s, %s, true, %s, -1);\n",  ccursor, mtext, gekey);
+                        }
+                        else if (key != NULL)
+                        {
+                            oprintf ("vv_tree_search_f (%s, %s, %s, -1);\n", ccursor , mtext, key);
+                        }
+                        else vely_report_error ("Unknown read-tree key");
+
+                        // after searching or deleting, get the result and the key affected, as well as status
+                        if (status != NULL) oprintf ("%s = (%s)->status;\n", status, ccursor);
+
+                        // Begin read-tree 
+                        oprintf ("if ((%s)->status == VV_OKAY) {\n", ccursor);
+                        if (value != NULL) oprintf ("%s = (%s)->current->data;\n", value, ccursor);
+                        if (getkey != NULL) oprintf ("%s = (%s)->current->key;\n", getkey, ccursor);
+                        if (upd != NULL) 
+                        {
+                            oprintf("if ((vely_mem_process=(%s)->process) == true) {if (!(%s)) _vely_mem_set_process (%s);};\n", mtext, pdata?"true":"false", upd);
+                            oprintf ("(%s)->current->data = %s;\n", ccursor, upd);
+                            oprintf("vely_mem_process=false;\n");
+                        }
+                        oprintf ("}\n");
+                        // End read-tree 
+                        wcurs++;
+                        continue;
+
+                    }
+                    else if ((newI=recog_statement(line, i, "delete-tree", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *key = find_keyword (mtext, VV_KEYKEY, 1);
+                        char *value = find_keyword (mtext, VV_KEYVALUE, 1);
+                        char *getkey = find_keyword (mtext, VV_KEYOLDKEY, 1);
+                        char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
+
+                        carve_statement (&key, "delete-tree", VV_KEYKEY, 1, 1);
+                        carve_statement (&status, "delete-tree", VV_KEYSTATUS, 0, 1);
+                        carve_statement (&getkey, "delete-tree", VV_KEYOLDKEY, 0, 1);
+                        carve_statement (&value, "delete-tree", VV_KEYVALUE, 0, 1);
+                        carve_stmt_obj (&mtext, true);
+
+                        define_statement (&status, VV_DEFNUM);
+                        define_statement (&value, VV_DEFSTRING);
+                        define_statement (&getkey, VV_DEFSTRING);
+
+                        oprintf ("vely_tree_cursor vv_tree_curs%lld;\n", wcurs);
+                        oprintf ("vely_tree_cursor *_vv_tree_curs%lld = &vv_tree_curs%lld;\n", wcurs, wcurs);
+                        oprintf("vely_mem_process=(%s)->process;\n", mtext);
+                        oprintf ("vv_tree_delete_f (_vv_tree_curs%lld, %s, %s, -1);\n", wcurs, mtext, key);
+                        oprintf("vely_mem_process=false;\n");
+
+                        // after searching or deleting, get the result and the key affected, as well as status
+                        if (status != NULL) oprintf ("%s = _vv_tree_curs%lld->status;\n", status, wcurs);
+                        if (value != NULL) oprintf ("if (_vv_tree_curs%lld->status == VV_OKAY) %s = _vv_tree_curs%lld->res;\n", wcurs, value, wcurs);
+                        if (getkey != NULL) oprintf ("if (_vv_tree_curs%lld->status == VV_OKAY) %s = _vv_tree_curs%lld->rkey;\n", wcurs, getkey, wcurs);
+                        wcurs++;
+                        continue;
+
+                    }
+                    else if ((newI=recog_statement(line, i, "use-cursor", &mtext, &msize, 0, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        char *cur = find_keyword (mtext, VV_KEYCURRENT, 1);
+                        char *lkey = find_keyword (mtext, VV_KEYGETLESSER, 1);
+                        char *gkey = find_keyword (mtext, VV_KEYGETGREATER, 1);
+                        char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
+                        // Begin read-tree 
+                        char *getkey = find_keyword (mtext, VV_KEYOLDKEY, 1);
+                        char *value = find_keyword (mtext, VV_KEYVALUE, 1);
+                        char *pdata = find_keyword (mtext, VV_KEYPROCESSVALUE, 1);
+                        char *upd = find_keyword (mtext, VV_KEYUPDATEVALUE, 1);
+                        // End read-tree 
+
+                        carve_statement (&cur, "use-cursor", VV_KEYCURRENT, 0, 0);
+                        carve_statement (&lkey, "use-cursor", VV_KEYGETLESSER, 0, 0);
+                        carve_statement (&gkey, "use-cursor", VV_KEYGETGREATER, 0, 0);
+                        carve_statement (&status, "use-cursor", VV_KEYSTATUS, 0, 1);
+                        // Begin read-tree
+                        carve_statement (&value, "use-tree", VV_KEYVALUE, 0, 1);
+                        carve_statement (&upd, "use-tree", VV_KEYUPDATEVALUE, 0, 1);
+                        carve_statement (&pdata, "write-hash", VV_KEYPROCESSVALUE, 0, 0);
+                        carve_statement (&getkey, "use-tree", VV_KEYOLDKEY, 0, 1);
+                        // End read-tree
+                        carve_stmt_obj (&mtext, true);
+
+                        define_statement (&status, VV_DEFNUM);
+                        // Begin read-tree
+                        define_statement (&value, VV_DEFSTRING);
+                        define_statement (&getkey, VV_DEFSTRING);
+                        // End read-tree
+
+                        char *ucursor = mtext;
+
+                        if (upd == NULL && pdata != NULL) vely_report_error ("Cannot use process-value without update-value clause");
+
+                        if (lkey != NULL)
+                        {
+                            oprintf ("if ((%s)->current != NULL) { if ((%s)->root->sorted) { if ((%s)->current->dlist[VV_TREE_LESSER_LIST]) { (%s)->current = (%s)->current->dlist[VV_TREE_LESSER_LIST]; (%s)->status = VV_OKAY; } else {(%s)->status = VV_ERR_EXIST;} } else { vv_tree_search_lesser_equal_f (%s, (%s)->root, false, (%s)->current->key, -1); } }\n", ucursor, ucursor,ucursor, ucursor, ucursor, ucursor, ucursor, ucursor, ucursor, ucursor);
+                        }
+                        else if (gkey != NULL)
+                        {
+                            oprintf ("if ((%s)->current != NULL) { if ((%s)->root->sorted) { if ((%s)->current->dlist[VV_TREE_GREATER_LIST]) { (%s)->current = (%s)->current->dlist[VV_TREE_GREATER_LIST]; (%s)->status = VV_OKAY; } else {(%s)->status = VV_ERR_EXIST;} } else { vv_tree_search_greater_equal_f (%s, (%s)->root, false, (%s)->current->key, -1); } }\n", ucursor, ucursor,ucursor, ucursor, ucursor, ucursor, ucursor, ucursor, ucursor, ucursor);
+                        }
+                        else if (cur != NULL)
+                        {
+                            ; // nothing
+                        }
+                        else vely_report_error ("Must use one of current, get-lesser or get-greater clauses");
+                        if (status != NULL) oprintf ("%s = (%s)->status;\n", status, ucursor);
+                        // Begin read-tree 
+                        oprintf ("if ((%s)->status == VV_OKAY) {\n", ucursor);
+                        if (value != NULL) oprintf ("%s = (%s)->current->data;\n", value, ucursor);
+                        if (getkey != NULL) oprintf ("%s = (%s)->current->key;\n", getkey, ucursor);
+                        if (upd != NULL) 
+                        {
+                            oprintf("if ((vely_mem_process=(%s)->root->process) == true) {if (!(%s)) _vely_mem_set_process (%s);};\n", ucursor, pdata?"true":"false", upd);
+                            oprintf ("(%s)->current->data = %s;\n", ucursor, upd);
+                            oprintf("vely_mem_process=false;\n");
+                        }
+                        oprintf ("}\n");
+                        // End read-tree 
+                        continue;
+
+                    }
+                    else if ((newI=recog_statement(line, i, "do-once", &mtext, &msize, 1, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+
+                        if (do_once_open) vely_report_error ("Cannot use do-once inside another do-once statement");
+                        do_once_open = true;
+                        do_once_line = lnum;
+
+
+                        oprintf ("static bool _vv_do_once_%lld = false;\n", do_once);
+                        oprintf ("if (_vv_do_once_%lld) goto _vv_end_do_once_%lld;\n", do_once, do_once);
+                        oprintf ("_vv_do_once_%lld = true;\n", do_once);
+
+                        continue;
+                    }
+                    else if ((newI=recog_statement(line, i, "end-do-once", &mtext, &msize, 1, &vely_is_inline)) != 0)  
+                    {
+                        VV_GUARD
+                        i = newI;
+                        do_once_open = false;
+
+                        oprintf ("_vv_end_do_once_%lld: ;\n",do_once); // must have empty ; statement
+                                                                       // to avoid syntax errors on older compilers
+
+                        do_once++;
+
+                        continue;
+                    }
                     else if ((newI=recog_statement(line, i, "resize-mem", &mtext, &msize, 0, &vely_is_inline)) != 0)  
                     {
                         VV_GUARD
                         i = newI;
                         char *size = find_keyword (mtext, VV_KEYSIZE, 1);
                         carve_statement (&size, "resize-mem", VV_KEYSIZE, 1, 1);
+                        carve_stmt_obj (&mtext, true);
 
                         oprintf("%s=(void*)_vely_realloc (%s, %s, 1);\n", mtext, mtext, size);
                         continue;
@@ -5704,6 +6215,7 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         char *status = find_keyword (mtext, VV_KEYSTATUS, 1);
                         carve_statement (&copy_to, "copy-file", VV_KEYTO, 1, 1);
                         carve_statement (&status, "copy-file", VV_KEYSTATUS, 0, 1);
+                        carve_stmt_obj (&mtext, true);
                         define_statement (&status, VV_DEFNUM);
                         char *copy_from = mtext;
                         oprintf("%s%svely_copy_file (%s, %s);\n", status!=NULL ? status:"",status!=NULL ?"=":"",copy_from, copy_to);
@@ -5786,11 +6298,12 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         carve_statement (&newt, "open-file", VV_KEYNEWTRUNCATE, 0, 0);
                         carve_statement (&fileid, "open-file", VV_KEYFILEID, 1, 1);
                         carve_statement (&st, "open-file", VV_KEYSTATUS, 0, 1);
+                        if (fileid == NULL) carve_stmt_obj (&mtext, true); else carve_stmt_obj (&mtext, false);
 
                         define_statement (&fileid, VV_DEFFILE);
                         define_statement (&st, VV_DEFNUM);
 
-                        //VERR is set in vely_fopen
+                        //VELY_ERR is set in vely_fopen
                         oprintf("%s = vely_calloc (1, sizeof(vely_file));\n", fileid); // this sets file pointer f to NULL
                         // need static FILE * so that its address points to valid memory anytime, including in vely_done()
                         // where any open file descriptors are at least checked, if not closed
@@ -5912,9 +6425,9 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
                         VV_GUARD
                         i = newI;
                         oprintf("}\n");
-                        oprintf ("if (!feof(vely_rl_%lld)) {VERR;*vely_rl_read_%lld = (num)VV_ERR_READ;} else {*vely_rl_read_%lld = (num)VV_OKAY;}\n", open_readline-1, open_readline-1, open_readline-1); // this is if there was an error, not end of file
+                        oprintf ("if (!feof(vely_rl_%lld)) {VELY_ERR;*vely_rl_read_%lld = (num)VV_ERR_READ;} else {*vely_rl_read_%lld = (num)VV_OKAY;}\n", open_readline-1, open_readline-1, open_readline-1); // this is if there was an error, not end of file
                         oprintf ("fclose (vely_rl_%lld);\n", open_readline-1); // open_readline was ++ after generating the code, so this is it
-                        oprintf("} else { VERR;*vely_rl_read_%lld = (num)VV_ERR_OPEN; }\n", open_readline-1);
+                        oprintf("} else { VELY_ERR;*vely_rl_read_%lld = (num)VV_ERR_OPEN; }\n", open_readline-1);
                         oprintf ("if (vely_rl_local_memptr_%lld!=NULL) vely_free (vely_rl_local_memptr_%lld);\n", open_readline-1, open_readline-1);
                         oprintf ("if (vely_rl_memptr_%lld != NULL) free(vely_rl_memptr_%lld);\n",  open_readline-1, open_readline-1);
                         oprintf("}\n");
@@ -5987,6 +6500,11 @@ void vely_gen_c_code (vely_gen_ctx *gen_ctx, char *file_name)
     
 
         if (feof (f)) break; // something read in, then EOF
+    }
+
+    if (do_once_open)
+    {
+        _vely_report_error( "do-once statement found open on line [%lld], but it was never closed", do_once_line);
     }
 
     if (ccomm_open)
@@ -6337,8 +6855,6 @@ int main (int argc, char* argv[])
         oprintf("static num vv_done_init=0;\n");
         oprintf("static vely_input_req *vv_req;\n");
         oprintf("static vely_config *vv_pc;\n");
-        oprintf("num vv_numstr;\n"); // temp for numstr (num-string, p-num)
-        oprintf("char vv_numstr_buff[%d];\n", VV_NUMBER_LENGTH); // 64 for longest 64 bit number in binary, minus sign and null trailer
 
         oprintf("int main (int argc, char *argv[])\n");
         oprintf("{\n");

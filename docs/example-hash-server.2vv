@@ -3,9 +3,9 @@
 example-hash-server \- Vely documentation (examples)
 .SH DESCRIPTION
 Hashed key/value server
-You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form. This is an extremely fast, single-process hash server.
+You will create your own hash server in this example. A REST API will enable end-user to add key/data pairs, query and delete them. The data is in memory-only; a more involved example could be constructed to persist the data in some form (such as with SQLite). This is an extremely fast, single-process hash server.
 
-In a nutshell:  web browser; Apache; REST API; Unix sockets; 3 source files, 54 lines of code.
+In a nutshell:  web browser; Apache; REST API; Unix sockets; 2 source files, 47 lines of code.
 
 .LP
 .B SETUP PREREQUISITES
@@ -392,66 +392,45 @@ Deleted [data_1]
 
 The following are the source files in this application:
 
-.B - Create hash server (_startup.vely)
-
-Hash itself (i.e. the fast-access structure used to store and search data based on a key) is created on process startup in a \fBstartup-handler\fP, which in this case allocates \fBnew-hash\fP using unmanaged memory (see \fBmemory-handling\fP). It means this hash will remain available across all the requests a process serves, which is exactly what a hash server needs.
-
-.RS 4
-.EX
-
-\[char35]include "vely.h"
-
-void _startup() {
-
-    // Create memory available for the life of process
-    manage-memory off
-    new-hash define h size 1024
-    manage-memory on
-
-    // Register hash as process-wide data
-    set-app process-data h   
-    
-}
-
-.EE
-.RE
-
-
 .B - Hash server (server.vely)
 
-This is the hash server. Because the data kept in hash needs to exist beyond a single request, we use unmanaged memory (see \fBmemory-handling\fP). This way hash data stays allocated and available for the life of the server process.
+This is the hash server. Because the data kept in hash needs to exist beyond a single request, you'd use "process-scope" clause (see \fBnew-hash\fP). This way hash data stays allocated and available for the life of the server process. The creation of a new hash is done within \fBdo-once\fP statement, so it executes only once for the life of the process.
 
-The first step is to obtain the \fBglobal-process-data\fP via \fBget-app\fP statement. This global process data is the pointer to the hash data, which has been set in \fBset-app\fP in the \fBstartup-handler\fP (_startup.vely).
-
-Next, you get the input parameters  (see \fBinput-param\fP); in this case "op" (operation requested), "key" (value of a key) and "data" (value of data). Then, depending on the operation requested, the data is added, deleted and retrieved (i.e. queried). Note that because input parameter values are automatically freed when the request is finished, they are copied before being stored in the hash.
+Next, you get the input parameters  (see \fBinput-param\fP); in this case \fBtask-param\fP "op" (operation requested), as well as "key" (value of a key) and "data" (value of data). Then, depending on the operation requested, the data is added, deleted and retrieved (i.e. queried). Note that because input parameter values are not allocated memory, they are copied into new memory before being stored in the hash; this way they survive for the life of the process - this is done automatically due to "process-scope" clause when hash was created.
 
 .RS 4
 .EX
 
-\[char35]include "vely.h"
-
-request-handler /server
+%% /server
     out-header default
 
-    // Unmanaged memory, i.e. not released at the end of the request
-    manage-memory off
-
-    // Get hash allocated in _startup.vely
-    vely_hash *h;
-    get-app process-data to h
+    do-once 
+    new-hash define h size 1024 process-scope
+    end-do-once
 
     // Get input parameters
     task-param op
     input-param key
     input-param data
 
-    if-task "add" // Add data to hash, make a copy as input params are request-scoped
+    if-task "add" // Add data to hash, 
+        // Make a copy of input params are they are request-scoped
         copy-string key to define c_key
         copy-string data to define c_data
-        write-hash h key c_key value c_data
+        write-hash h key c_key value c_data \\
+            old-value define old_data old-key define old_key \\
+            status define st
+        if (st == VV_ERR_EXIST) {
+            // delete old key/value if replaced by new
+            delete-mem old_key
+            delete-mem old_data
+        }
         @Added [<<p-out key>>]
     else-task "delete" // Delete data and obtain the value deleted
-        read-hash h key (key) value define val old-key define okey delete status define st
+        read-hash h key (key) value define val \\
+            old-key define okey \\
+            delete \\
+            status define st
         if (st == VV_ERR_EXIST) {
             @Not found [<<p-out key>>]
         } else {
@@ -468,7 +447,7 @@ request-handler /server
             @Value [<<p-out val>>]
         }
     end-task
-end-request-handler
+%%
 
 .EE
 .RE
@@ -540,6 +519,7 @@ echo "Hash server test successful"
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -548,6 +528,7 @@ echo "Hash server test successful"
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

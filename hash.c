@@ -17,11 +17,12 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
 
 //
 // Create new hash hres_ptr. size is the size of hash table. The actual object is created here, the caller handlers pointer only.
+// If process is true, then all memory allocated is process-scoped, and all key/data memory must be Vely memory.
 // If in_h is provided, then vely_hash hres_ptr is not allocated, and neither is its vely_hash_table (which is set to in_h).
 // Normally in_h is NULL; it's only non-NULL internally when building Vely internal hash values to find string values 
 // quickly with just initialization of the table (see setup_reqhash() in v1.c).
 //
-void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h)
+void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h, bool process)
 {
     VV_TRACE("");
     // get object
@@ -40,6 +41,7 @@ void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h)
     hres->tot = 0;
     hres->hits = 0;
     hres->reads = 0;
+    hres->process = process;
     vely_rewind_hash(hres);// start from beginning when rewinding, in general index from which to keep dumping 
 
 }
@@ -71,10 +73,11 @@ void vely_delete_hash (vely_hash **h, char recreate)
     num hits = (*h)->hits;
     num reads = (*h)->reads;
     num size = (*h)->num_buckets;
+    bool process = (*h)->process;
     vely_free (*h); // delete old hash structure
     if (recreate == 1)
     {
-        vely_create_hash (h, size, NULL); // create new hash
+        vely_create_hash (h, size, NULL, process); // create new hash
         // restore stats
         (*h)->hits = hits;
         (*h)->reads = reads;
@@ -117,8 +120,8 @@ void vely_del_hash_entry (vely_hash *h, vely_hash_table *todel, vely_hash_table 
 //
 // Search / delete. Search hash 'h' for key 'key' and return data (or NULL if not found).
 // If keylist!=NULL, then iterate over keylist array until NULL.
-// If 'del' is 1, delete this element and return data (data is only linked). 'found' is 1
-// if something was found (say if delete was done) (found can be NULL).
+// If 'del' is 1, delete this element and return data (data is only linked). 'found' is VV_OKAY
+// if something was found (say if delete was done), or VV_ERR_EXIST if not (found can be NULL).
 // oldkey is the same as with vely_add_hash, see comments there.
 //
 void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *found, char **oldkey)
@@ -173,7 +176,7 @@ void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *fo
     // if nothing here, not found, return NULL
     if (hresult == NULL) 
     { 
-        if (found != NULL) {VERR0; *found = VV_ERR_EXIST;}
+        if (found != NULL) {VELY_ERR0; *found = VV_ERR_EXIST;}
         if (oldkey != NULL) *oldkey = NULL; // no old key
         return NULL; // no old data
     }
@@ -200,7 +203,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
 
     // temp hash
     vely_hash *nh = NULL;
-    vely_create_hash (&nh, newsize, NULL);
+    vely_create_hash (&nh, newsize, NULL, (*h)->process);
 
     // copy data from old to new one using fast rewind
     vely_rewind_hash (*h);
@@ -219,6 +222,7 @@ void vely_resize_hash (vely_hash **h, num newsize)
     (*h)->hits = nh->hits;
     (*h)->reads = nh->reads;
     (*h)->num_buckets = nh->num_buckets;
+    (*h)->process = nh->process;
 
     vely_free (nh); // release temp hash
 }
@@ -317,6 +321,12 @@ char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *s
 
     // compute hash id for key
     num hashind = vely_compute_hash (key, keylist, h->num_buckets);
+    
+    // check if process-scope, and if so, set memory to process
+    // if process-key set, user guarantees key is process-scoped. Same for process-data
+    // h->process is the same as vely_mem_process (set in v1.c to be equal)
+    if (h->process && !vely_mem_process_key) _vely_mem_set_process (key);
+    if (h->process && !vely_mem_process_data) _vely_mem_set_process (data);
 
     if (h->table[hashind] == NULL) { // nothing here, just add first list element 
         h->table[hashind] = vely_new_hash_item (key, data);
@@ -337,7 +347,7 @@ char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *s
                 // match found
                 char *old = bucket->data;
                 bucket->data = data;
-                if (st != NULL) {VERR0; *st = VV_ERR_EXIST;}
+                if (st != NULL) {VELY_ERR0; *st = VV_ERR_EXIST;}
                 // no increase of h->tot because this is replacement
                 if (oldkey != NULL) *oldkey = bucket->key;
                 bucket->key = key; // setup new key, and old key is retrieved, if asked
@@ -373,7 +383,7 @@ char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *s
 // authors: fnvhash-mail@asthe.com
 //
 #define VV_FNVCOMP(h,c) h ^= (c); h *= VV_FNVPRIME;
-num vely_compute_hash (char* d, char **dlist, num size)
+inline num vely_compute_hash (char* d, char **dlist, num size)
 {
     VV_TRACE("");
     uint32_t h = VV_FNVOFFSETBASIS;

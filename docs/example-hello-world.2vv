@@ -234,16 +234,7 @@ vv -r --app='/hello-world' --req='/hello?' --method=GET --exec
 .EE
 .RE
 
-You can also omit "--exec" option to output the bash code that's executed. Note: to suppress output of HTTP headers, add this before running the above:
-
-.RS 4
-.EX
-
-export VV_SILENT_HEADER=yes
-
-.EE
-.RE
-
+You can also omit "--exec" option to output the bash code that's executed; you can then copy that code to your own script. Note: to suppress output of HTTP headers, add "--silent-header" option to the above.
 Note: if running your program as a command-line utility is all you want, you don't need to run an application server.
 
 .LP
@@ -459,6 +450,7 @@ In addition to this, learn more about \fBdebugging\fP Vely applications.
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -467,6 +459,7 @@ In addition to this, learn more about \fBdebugging\fP Vely applications.
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

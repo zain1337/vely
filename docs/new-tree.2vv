@@ -1,0 +1,139 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+new-tree \-  (tree-search)
+.SH PURPOSE
+Create new tree structure for fast key searching.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+new-tree [ define ] <tree> \\
+    [ custom-eval <eval function> ] \\
+    [ key-as "positive integer" ] \\
+    [ unsorted ]
+    [ process-scope ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+new-tree initializes new <tree> structure. <tree> is a pointer to type "vely_tree", and can be created with optional "define". 
+
+A Vely tree is a hierarchical balanced binary tree structure that allows data access in O(log N) time, meaning that at most approximately "log N" comparisons are needed to find a key in the tree. For instance, that would mean to find a key among 1,000,000 keys it would take at most about 20 comparisons. By default (if "unsorted" is omitted), finding the next lesser or greater key is O(1), meaning iterating in a sorted order is nearly instantaneous. A Vely tree is a hybrid tree structure (taking elements from both B and AVL varieties) optimized for in-memory access.
+
+Information in a tree can be inserted, updated or deleted in any order, and accessed in any order as well.
+
+Information in a tree is organized in nodes. Each node has a key and a value. A key is used to search for a node in a tree. By default (if "unsorted" is omitted), all nodes in a Vely tree are also connected in an ordered linked list, allowing for very fast range searches.
+
+.LP
+.B KEYS AND DATA
+.LP
+
+A node in a tree consists of a string key and a pointer to any kind of data (i.e. of type "void *"). There is no limit on the number of nodes in the tree, other than available memory. Each key in the tree must be unique. Keys should be as short as possible. Generally, longer keys take longer to search for, insert or delete. 
+
+.LP
+.B KEY COMPARISON
+.LP
+
+In order for any data tree structure to function, a key comparison must be performed certain number of times in order to find a specific key. By default, keys are compared using C's strcmp() function, meaning using ASCII lexicographic order.
+
+Use "custom-eval" clause to specify a custom key comparison function. If "custom-eval" clause is used, then <eval function> must be a function of "vely_tree_eval" type, with the following prototype:
+
+.RS 4
+.EX
+
+typedef int (*vely_tree_eval)(char *tree_key)
+
+.EE
+.RE
+
+This function takes "tree_key" as an input parameter, which is the key of a currently traversed tree node. The key being searched for, inserted or deleted is available in global variable "vely_cur_key", and its length in "vely_cur_key_len". Your implementation must return 0 if "vely_cur_key" and "tree_key" are equal, negative if "vely_cur_key" < "tree key" or positive if "vely_cur_key" > "tree key". The exact definition of what is "equal", "lesser" or "greater" is up to you, as long as two keys cannot be "equal" and "lesser" at the same time, or "greater" and "lesser" at the same time.
+
+.LP
+.B COMPOSITE KEYS
+.LP
+
+A custom <eval function> allows flexibility in ordering keys. It is often used to create composite keys, i.e. keys where multiple information pieces are concatenated in a way that allows their sorting based on some comparison scheme, which you can implement with "custom-eval" clause. If <eval function> is specified, Vely will call it instead of the built-in string comparison function.
+
+.LP
+.B NUMBER KEYS
+.LP
+
+"key-as" clause allows to treat a key as something other than a string when it comes to ordering. When "positive integer" value is used, it will treat a key as a string representation of a positive integer number. Such numbers must be zero or positive integers in the 64 bit range, and they must not contain leading zeros, spaces or other prefix (or suffix) characters. For example, key strings may be "0", "123" or "891347". With this clause, sorting these strings according to their converted numerical values is much faster than using schemes such as prefixing numbers with zeros or spaces.
+
+Note that when using "positive integer", you can use numbers in any base (from 2 to 36). In fact, numbers expressed in a higher base are generally faster to search for, because they are shorter in length.
+
+.LP
+.B ALLOCATED INTERNALS
+.LP
+
+<tree> is \fBallocated memory\fP along with additional internal memory, which can be released if \fBpurge-tree\fP is used with <tree>. 
+
+.LP
+.B UNSORTED TREE
+.LP
+
+If "unsorted" clause is used, <tree> will not be sorted in a double-linked list, which means that finding the next smaller or next greater node in repetition (i.e. range search) will be done by using the tree structure and not a linked list. This is slower, as each such search is generally done in O(log N) time. Regardless, you can perform range searches in either case (see \fBuse-cursor\fP).
+
+As a rule of thumb, if you do not need range searches or your memory is scarce, use "unsorted" as it will save 2 pointers (i.e. 16 bytes) per key and insertion/deletion will be a bit faster, but be aware that range searches will be slower. 
+
+If you need faster range searches or the extra memory is not an issue (it would be for instance extra 16MB per 1,0000,0000 keys), then do not use "unsorted", as your range searches will be faster. Note that in this case, insertion and deletion are a bit slower because they need to maintain double linked list, however in general the effect is minimized by faster range searches. 
+
+.LP
+.B SCOPE
+.LP
+
+A tree is accessible to the current process only, unless "process-scope" clause is used, in which case all requests served by the process can use it (see \fBdo-once\fP for a typical way to create an object with a process scope). If "process-scope" is used, then optional "define" will create <tree> that is static, meaning it will keep its value between requests in the same process (or in general between different invocations). If you do not use "define", then <tree> must be declared as a global or static variable.
+
+If "process-scope" is used, then keys and data writen to <tree> must be \fBallocated memory\fP produced by another Vely statement, or they must be some other kind of global variables (such as constants, static variables, global C variables, \fBunmanaged\fP heap memory etc.). See \fBwrite-tree\fP for an example of a process-scoped tree.
+
+.SH EXAMPLES
+Create a new tree:
+
+.RS 4
+.EX
+
+new-tree define my_tree
+
+.EE
+.RE
+
+Create a tree with a custom key evaluation function (in this case just a simple "strcmp" comparison as an example). Note usage of "vely_cur_key" variable, which holds the key being searched for, inserted or deleted (in this case it would point to the value of "some_key" variable):
+
+.RS 4
+.EX
+
+\[char35]include "vely.h"
+
+int mycmp (char *tree_key);
+
+int mycmp (char *tree_key) {
+    return strcmp (vely_cur_key, tree_key);
+}
+
+%% request-name
+    ...
+    new-tree my_tree custom-eval mycmp
+    ...
+    read-tree my_tree key some_key value define key_val
+    ...
+%%
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

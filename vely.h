@@ -18,7 +18,7 @@
 #endif
 
 // Version+Release. We use major plus minor plus release, as in 1.3.34,2.1.11,3.7.41... 
-#define VV_VERSION "18.4.0"
+#define VV_VERSION "19.0.0"
 
 // OS Name and Version
 #define VV_OS_NAME  VV_OSNAME
@@ -168,8 +168,8 @@ typedef void (*vely_request_handler)(); // request handler in vely dispatcher
 #define VV_MARIADB "mariadb"
 #define VV_POSTGRES "postgres"
 #define VV_SQLITE "sqlite"
-#define VERR vely_errno=errno // save errno at the point of error for further examination later, if desired
-#define VERR0 vely_errno=0 // no error, we caught it
+#define VELY_ERR vely_errno=errno // save errno at the point of error for further examination later, if desired
+#define VELY_ERR0 vely_errno=0 // no error, we caught it
 #define VV_DEFINE_STRING(x) char *x = VV_EMPTY_STRING // define string as empty for use with vely_malloc etc
 #define VV_INIT_STRING(x) x = VV_EMPTY_STRING // initialize existing string as empty for use with vely_malloc etc
 #define VV_TRACE_DIR "trace" // the name of trace directory is always 'trace'
@@ -608,6 +608,7 @@ typedef struct vely_s_hash
     num tot; // total how many elements in cache
     num hits; // total number of searches
     num reads; // total number of comparisons
+    bool process; // true if process-scoped, false if request-scoped
 } vely_hash;
 
 //
@@ -647,6 +648,46 @@ typedef struct vely_json_s
     vely_json_node_handler node_handler; // function user uses to handle incoming json data with node-handler
 } vely_json;
 
+//
+// Tree data structures
+//
+typedef struct vv_tree_node_s 
+{
+    void *data; 
+    // these are for tree implementation
+    struct vv_tree_node_s *lesser_node;
+    struct vv_tree_node_s *greater_node;
+    unsigned char height:7; // top bit is whether key is there or not
+    unsigned char key_present:1; 
+    char *key; // array of flexible keys
+    struct vv_tree_node_s *dlist[]; // flexible array when linked list is used
+    // double linked list - this is what's there (if used)
+    // struct vv_tree_node_s *lesser_list;
+    // struct vv_tree_node_s *greater_list;
+} vv_tree_node;
+typedef int (*vely_tree_eval)(char *k2); // typedef for eval
+typedef struct vely_tree_s
+{
+    vv_tree_node *root_node; // never used directly
+    vv_tree_node *tree;
+    vv_tree_node *min;
+    vv_tree_node *max;
+    num count;
+    num hops;
+    vely_tree_eval eval; // eval comparison function
+    char key_type;
+    bool sorted; // true if linked list allocated for
+    bool process; // true if process-wide memory used
+} vely_tree;
+typedef struct vely_tree_cursor_s {
+    vely_tree *root;
+    vv_tree_node *current;
+    char *key;
+    num key_len; // length of key
+    num status;
+    void *res;
+    char *rkey;
+} vely_tree_cursor;
 
 
 // 
@@ -679,6 +720,15 @@ typedef struct vely_json_s
 #define vely_free(x) _vely_free((x), 0)
 #define vely_strdup _vely_strdup
 #define vely_calloc _vely_calloc
+// Tree defines
+#define VV_TREE_TYPE_STR 's'
+#define VV_TREE_TYPE_NUM 'n'
+#define VV_TREE_LESSER 0
+#define VV_TREE_GREATER 1
+#define VV_TREE_LESSER_LIST 0
+#define VV_TREE_GREATER_LIST 1
+#define vely_cur_key_len (vv_cursor->key_len)
+#define vely_cur_key (vv_cursor->key)
 
 
 // 
@@ -722,6 +772,7 @@ void vely_memory_init ();
 VV_MEMINLINE void *_vely_malloc(size_t size);
 VV_MEMINLINE void *_vely_calloc(size_t nmemb, size_t size);
 VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe);
+VV_MEMINLINE void _vely_mem_set_process (void *ptr);
 VV_MEMINLINE bool _vely_free (void *ptr, char check);
 VV_MEMINLINE num vely_safe_free (void *ptr);
 VV_MEMINLINE char *_vely_strdup (char *s);
@@ -799,7 +850,7 @@ void vely_break_down (char *value, char *delim, vely_split_str **broken);
 void vely_delete_break_down (vely_split_str **broken_ptr);
 char * vely_get_tz ();
 vely_dbc *vely_execute_SQL (char *s,  num *rows, char **er, char **err_message, num returns_tuples, num user_check, char is_prep, void **prep, num paramcount, char **params, char erract);
-char *vely_num2str (num al, char *out_res, num in_len, num *res_len, bool alloc, int base);
+char *vely_num2str (num al, num *res_len, int base);
 char *vely_time (char *timezone, char *format, num year, num month, num day, num hour, num min, num sec);
 num vely_encode_base (num enc_type, char *v, num vLen, char **res, num allocate_new);
 void vely_make_random (char **rnd, num rnd_len, char type, bool crypto);
@@ -845,7 +896,7 @@ num vely_decode_utf8 (num32 u, unsigned char *r, char **e);
 num vely_encode_utf8 (char *r, num32 *u, char **e);
 num32 vely_make_from_utf8_surrogate (num32 u0, num32 u1);
 void vely_get_utf8_surrogate (num32 u, num32 *u0, num32 *u1);
-void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h);
+void vely_create_hash (vely_hash **hres_ptr, num size, vely_hash_table **in_h, bool process);
 void vely_delete_hash (vely_hash **h, char recreate);
 void *vely_find_hash (vely_hash *h, char *key, char **keylist, char del, num *found, char **oldkey);
 char *vely_add_hash (vely_hash *h, char *key, char **keylist, void *data, num *st, char **oldkey);
@@ -873,6 +924,19 @@ void vely_unmanaged();
 void vely_managed();
 void vely_mrestore();
 char vely_decorate_path (char *reqname, num reqname_len, char **p, num p_len, bool is_dash);
+
+
+num vv_tree_bal (vv_tree_node *tree);
+vely_tree *vv_tree_create(vely_tree_eval ef, char key_type, bool sorted, bool process);
+void vv_tree_insert_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len, void *data);
+void vv_tree_search_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len);
+void vv_tree_delete_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, char *key, num key_len);
+void vv_tree_search_greater_equal_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, bool equal, char *key, num key_len);
+void vv_tree_search_lesser_equal_f (vely_tree_cursor *lcurs, vely_tree *orig_tree, bool equal, char *key, num key_len);
+void vv_tree_max_f (vely_tree_cursor *lcurs, vely_tree *orig_tree);
+void vv_tree_min_f (vely_tree_cursor *lcurs, vely_tree *orig_tree);
+void vv_tree_purge_f (vely_tree *parent_tree);
+void vv_tree_create_root (vely_tree *res, bool sorted);
 
 #ifdef VV_INC_FCGI
 void vv_set_fcgi (vv_fc **callin, char *server, char *req_method, char *app_path, char *req, char *url_payload, char *ctype, char *body, int clen, int timeout, char **env);
@@ -968,9 +1032,11 @@ extern num vely_is_trace;
 extern int vely_errno;
 extern int vely_stmt_cached;
 extern bool vely_mem_os;
-extern num vv_numstr;
-extern char vv_numstr_buff[VV_NUMBER_LENGTH];
+extern bool vely_mem_process;
+extern bool vely_mem_process_key;
+extern bool vely_mem_process_data;
 extern vely_hash vv_dispatch;
+extern vely_tree_cursor *vv_cursor;
 
 
 // DO not include velyapp.h for Vely itself, only for applications at source build time

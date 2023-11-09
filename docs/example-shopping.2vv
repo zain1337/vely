@@ -8,29 +8,6 @@ This is a shopping web service REST API with basic functions: add customer, add 
 In a nutshell: PostgreSQL; web browser; Apache; REST API; Application path; Unix sockets; 12 source files, 203 lines of code.
 
 .LP
-.B SCREENSHOTS OF APPLICATION
-.LP
-
- Add a customer (named Diana Vega). "Customer ID" is the result JSON text (in this case "3"):
-(Image shopping_add_customer.png not available in man page, see web page documentation)
- Add two items ("chocolate bar" and "swiss cheese"). "Item ID" is the result JSON text for each:
-(Image shopping_add_items.png not available in man page, see web page documentation)
- Add an order for customer created by specifying "Customer ID" (in this case it's "3"):
-(Image shopping_add_order.png not available in man page, see web page documentation)
- Add two items to order created by specifying "Order ID" (in this case "5"). The two items are the ones created with "Item ID"s of "3" and "4", and quantities of items ordered are "2" and "1" respectively:
-(Image shopping_add_items_to_order.png not available in man page, see web page documentation)
- Update an order by specifying "Order ID" (in this case "5"). The items is specified with "Item ID" (in this case "4") and the quantity is updated to "3":
-(Image shopping_update_order.png not available in man page, see web page documentation)
- Delete an order with "Order ID" (in this case "3"). The result is JSON text specifying number of orders deleted (in this case "1"), and the number of items in it (in this case "0"):
-(Image shopping_delete_order.png not available in man page, see web page documentation)
- List a single order by using "Order ID" (in this case "5"). JSON response contains customer and items information:
-(Image shopping_list_order.png not available in man page, see web page documentation)
- List all orders. The JSON response contains customer and items information, and in this case there are two orders:
-(Image shopping_list_orders.png not available in man page, see web page documentation)
- Deletes a line item (i.e. all items of the same kind) in an order. In this case "Item ID" specifies the item ("4") in an order given by "Order ID" ("5"). The result is the number of line items deleted:
-(Image shopping_delete_item_from_order.png not available in man page, see web page documentation)
-
-.LP
 .B SETUP PREREQUISITES
 .LP
 
@@ -451,28 +428,6 @@ curl -X PUT "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/1?quanti
 
 The return value is a JSON document containing a single value, and that is the number of line items updated ("1" or "0"). Per REST methodology, this is an idemopotent operation, i.e. it can be repeated any number of times with the same result.
 
-To delete an item from order, use the following DELETE URL, and use <order ID> and <item ID> previously obtained:
-
-.RS 4
-.EX
-
-curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>/item-id/<item ID>"
-
-.EE
-.RE
-
-for example:
-
-.RS 4
-.EX
-
-curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/2"
-
-.EE
-.RE
-
-The return value is a JSON document containing a single value, and that is the number of line items delete ("1" or "0"). 
-
 To list all orders, use the following GET URL:
 
 .RS 4
@@ -506,6 +461,28 @@ curl -X GET "http://127.0.0.1/api/v1/shopping/orders/order-id/1"
 .RE
 
 The return value is a JSON document with a specific order, including customer information, as well as items, their descriptions and quantities.
+
+To delete an item from order, use the following DELETE URL, and use <order ID> and <item ID> previously obtained:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/<order ID>/item-id/<item ID>"
+
+.EE
+.RE
+
+for example:
+
+.RS 4
+.EX
+
+curl -X DELETE "http://127.0.0.1/api/v1/shopping/orders/order-id/1/item-id/2"
+
+.EE
+.RE
+
+The return value is a JSON document containing a single value, and that is the number of line items delete ("1" or "0"). 
 
 To delete a specific order, use the following DELETE URL:
 
@@ -880,6 +857,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -888,6 +866,7 @@ void _json_from_order (char *order_id, num curr_order, num order_count,
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

@@ -201,10 +201,13 @@ Execute your program:
 .RS 4
 .EX
 
+export CONTENT_TYPE=
+export CONTENT_LENGTH=
+export VV_SILENT_HEADER=yes
 export REQUEST_METHOD=GET
 export SCRIPT_NAME="/people_app"
 export PATH_INFO="/list_people"
-export VV_SILENT_HEADER="yes"
+export QUERY_STRING=""
 /var/lib/vv/bld/people_app/people_app
 
 .EE
@@ -230,7 +233,7 @@ Note the VV_SILENT_HEADER environment variable - it suppresses HTTP header outpu
 .B SETUP APACHE FOR WEB ACCESS
 .LP
 
-In this article, you will use Apache web server. Apache has FastCGI support, as most (if not all) major web servers do. Apache is very modular and so this support (like many of its features) has to be enabled. To do that, follow the \fBinstructions to setup Apache for Vely\fP access. Note that in Step 3, the <app path> and <app name> are both "people_app" (i.e. the same as application name), so the ProxyPass will be like this:
+In this article, you will use Apache web server. Apache has FastCGI support, as most (if not all) major web servers do. Apache is very modular and so this support (like many of its features) has to be enabled. To do that, follow the \fBinstructions to setup Apache for Vely\fP access. Note that in Step 2, the <app path> and <app name> are both "people_app" (i.e. the same as application name), so the ProxyPass will be like this:
 
 .RS 4
 .EX
@@ -287,6 +290,7 @@ Connecting to MariaDB/mySQL isn't difficult. This article explains how to do so 
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -295,6 +299,7 @@ Connecting to MariaDB/mySQL isn't difficult. This article explains how to do so 
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

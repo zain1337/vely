@@ -1,0 +1,77 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+use-cursor \-  (tree-search)
+.SH PURPOSE
+Iterate to a lesser or greater key in a tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+use-cursor <cursor> ( current | get-lesser | get-greater ) \\
+    [ old-key [ define ] <old key> ] \\
+    [ value [ define ] <value> ] \\
+    [ update-value <update value> [ process-value ] ] \\
+    [ status [ define ] <status> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+use-cursor uses <cursor> previously created (see \fBread-tree\fP, \fBwrite-tree\fP) for iteration to tree nodes with lesser or greater key values. It can also obtain keys and values for such nodes, as well as update their values.
+
+.LP
+.B CURRENT NODE
+.LP
+
+A <cursor> has a current node, which is first computed by using "current", "get-lesser" or "get-greater" clauses, and then any other clauses are applied to it (such as "old-key", "value" and "update-value"). 
+
+The computation of a current node is performed by using a <cursor>'s "previous current node", i.e. the current node just before use-cursor executes. If "current" clause is used, the current node remains the same as previous current node. If "get-lesser" clause is used, a node with a key that is the next lesser from the previous current will become the new current. If "get-greater" clause is used, a node with a key that is the next greater from the previous current will become the new current. 
+
+If the new current node can be found, then other use-cursor clauses are applied to it, such as to obtain an <old key> or <value>, or to <update value>. If, as a result of either of these clauses, the new current node cannot be found (for instance there is no lesser or greater key in the tree), the current node will be unchanged and the optional <status> (in "status" clause) will be VV_ERR_EXIST.
+
+.LP
+.B KEY, VALUE, UPDATING VALUE, STATUS
+.LP
+
+An optional "old-key" clause will obtain the key in a current node into <old key> string. The value of current node can be obtained in an optional <value> in "value" clause; <value> can be a pointer to any type. The value of current node can be updated to <update value> in an optional "update-value" clause; <update value> can be a pointer to any type. This update is performed after an optional <value> has been retrieved, allowing you to obtain the previous value in the same statement. If the tree is created with "process-scope" clause, then <update value> must be Vely \fBallocated memory\fP; otherwise, <update value> must be a global variable and "process-value" must be used to specify that (see scope discussion in \fBnew-tree\fP for more).
+
+Optional "status" clause can be used to obtain <status>, which is VV_ERR_EXIST if the new current node cannot be found, in which case the current node, <old key> and <value> are unchanged. Otherwise, <status> is VV_OKAY.
+
+Note that <old key>, <value> and <status> can be created with optional "define".
+
+.SH EXAMPLES
+The following will find a value with key "999", and then iterate in the tree to find all lesser values (in descending order):
+
+.RS 4
+.EX
+
+char *k = "999";
+read-tree mytree key k status define st \\
+    value define val new-cursor define cur
+while (1)
+{
+    if (st == VV_OKAY) {
+        @Value found is [<<p-out val>>] for key [<<p-out k>>]
+        use-cursor cur get-lesser status st value val old-key k
+    } else break;
+}
+
+.EE
+.RE
+
+For more examples, see \fBnew-tree\fP.
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

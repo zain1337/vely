@@ -1,0 +1,126 @@
+.TH VELY 2vv $VERSION $DATE Development Tools
+.SH NAME
+read-tree \-  (tree-search)
+.SH PURPOSE
+Search a tree.
+
+.SH SYNTAX
+
+.RS 4
+.EX
+
+read-tree <tree> \\
+    ( key <key> | lesser <key> | greater <key> | \\
+        lesser-equal <key> | greater-equal <key> | \\
+        min-key | max-key ) \\
+    [ value [ define ] <value> ] \\
+    [ update-value <update value> [ process-value ] ] \\
+    [ old-key [ define ] <old key> ] \\
+    [ status [ define ] <status> ] \\
+    [ new-cursor [ define ] <cursor> ]
+
+.EE
+.RE
+
+.SH DESCRIPTION
+read-tree will search <tree> (created with \fBnew-tree\fP) for a node with the key that is:
+
+.RS 4
+\[bu]    
+an exact key <key> ("key" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+lesser than <key> ("lesser" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+greater than <key> ("greater" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+lesser or equal than <key> ("lesser-equal" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+greater or equal than <key> ("greater-equal" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+a minimum key in the tree ("min-key" clause)
+
+.RE
+
+.RS 4
+\[bu]    
+a maximum key in the tree ("max-key" clause)
+.RE
+
+The <status> in optional "status" clause will be VV_OKAY if a key conforming to one of these criteria is found, and VV_ERR_EXIST if not. <status> can be created with optional "define".
+
+If a key is found, the value associated with the key can be obtained with optional "value" clause in <value>, which can be a pointer to any type; an existing key used to originally insert this value into the tree can be obtained with optional "old-key" clause in string <old key>. If a key is not found, both <value> and <old key> are unchanged. <value> and <old key> can be created with optional "define".
+
+You can update the value associated with a found key by using optional "update-value" clause by specifying <update value> pointer to any type. This update is performed after an optional <value> has been retrieved, allowing you to obtain the previous value in the same statement. If the tree is created with "process-scope" clause, then <update value> must be Vely \fBallocated memory\fP; otherwise, <update value> must be a global C variable and "process-value" must be used to specify that (see scope discussion in \fBnew-tree\fP for more).
+
+If you'd like to iterate the ordered list of keys in a tree, create a <cursor> by using optional "new-cursor" clause, in which case <cursor> will be positioned on a found tree node. A cursor is a pointer to type "vely_tree_cursor". See \fBuse-cursor\fP for more on using cursors. Cursors are useful in range searches; typically you'd find a key that is an upper or lower bound of a range and then keep iterating to a lesser or greater value until the opposite bound is found. Vely trees are by default constructed so that such iterations are O(1) in complexity, meaning each is a single tree node access (see \fBnew-tree\fP). Note that <cursor> can be created with optional "define".
+
+.SH EXAMPLES
+In this example, a million key/value pairs are inserted into a tree, and then each of them is searched for and then displayed back (see \fBwrite-tree\fP for more on inserting into a tree). The data is simply a numerical value of a key increased by 7:
+
+.RS 4
+.EX
+
+%% /tree-example
+
+    out-header default
+
+    new-tree define mytree key-as "positive integer" // create new tree
+
+    int i;
+    for (i = 0; i < 1000000; i ++ ) {
+        num-string i to define key
+        num-string i+7 to define data
+
+        write-tree mytree key (key) value data // insert key/data to the tree
+    }
+
+    for (i = 0; i < 1000000; i ++ ) {
+        num-string i to define key
+
+        // search tree for each key previously inserted
+        read-tree mytree key (key) status define st value define data
+        if (st != VV_OKAY){
+            @Could not find key <<p-out key>>
+        } else {
+            @Found data <<p-out data>> associated with key <<p-out key>>
+        }
+        delete-mem key
+    }
+%%
+
+.EE
+.RE
+
+.SH SEE ALSO
+ 
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP    
+See all 
+\fBdocumentation\fP

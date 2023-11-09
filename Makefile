@@ -118,7 +118,7 @@ ASAN=
 endif
 
 #C flags are as strict as we can do, in order to discover as many bugs as early on
-CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE) -DVV_OSNAME_ID=$(OSNAMEID) -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP) $(ASAN)
+CFLAGS=-std=gnu89 -Werror -Wall -Wextra -Wuninitialized -Wmissing-declarations -Wformat -Wno-format-zero-length -fsigned-char -fpic $(VV_MARIA_INCLUDE) $(VV_POSTGRES_INCLUDE) $(VV_FCGI_INCLUDE) -DVV_OSNAME_ID=$(OSNAMEID) -DVV_OSNAME="\"$(OSNAME)\"" -DVV_OSVERSION="\"$(OSVERSION)\"" -DVV_PKGVERSION="\"$(PACKAGE_VERSION)\"" $(OPTIM_COMP) $(ASAN)
 
 #linker flags include mariadb (LGPL), crypto (OpenSSL, permissive license). This is for building object code that's part 
 #this is for installation at customer's site where we link VELY with mariadb (LGPL), crypto (OpenSSL)
@@ -137,6 +137,7 @@ install:
 	install -D -m 0755 libvelylite.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelymys.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelysec.so -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0755 libvelytree.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelycurl.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelypcre2.so -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0755 libvelypcre2glibc.so -t $(DESTDIR)$(V_LIB)/
@@ -151,6 +152,7 @@ install:
 	install -D -m 0644 stub_fcgi.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_pcre2.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_curl.o -t $(DESTDIR)$(V_LIB)/
+	install -D -m 0644 stub_tree.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_crypto.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_before.o -t $(DESTDIR)$(V_LIB)/
 	install -D -m 0644 stub_after.o -t $(DESTDIR)$(V_LIB)/
@@ -213,7 +215,7 @@ binary:build
 	@;
 
 .PHONY: build
-build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so libvelypcre2.so libvelypcre2glibc.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_pcre2.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
+build: libfcgively.so libvelyfcli.so libvelyfsrv.so libvely.so libvelydb.so libvelysec.so libvelymys.so libvelylite.so libvelypg.so libvelycurl.so libvelytree.so libvelypcre2.so libvelypcre2glibc.so v1.o stub_sqlite.o stub_postgres.o stub_mariadb.o stub_gendb.o stub_curl.o stub_tree.o stub_pcre2.o stub_fcgi.o stub_crypto.o stub_after.o stub_before.o stub_startup.o vf 
 	@echo "Building version $(BUILDVER).$(BUILDREL)"
 	$(CC) -o v1 v1.o chandle.o velyrtc.o velymem.o hash.o $(LDFLAGS) 
 
@@ -278,6 +280,11 @@ libvelycurl.so: curl.o
 	$(CC) -shared -o libvelycurl.so $^ 
 	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelycurl.so ; fi
 
+libvelytree.so: tree.o 
+	rm -f libvelytree.so
+	$(CC) -shared -o libvelytree.so $^ 
+	if [ "$(DEBUGINFO)" != "1" ]; then strip --strip-unneeded libvelytree.so ; fi
+
 libvelypcre2.so: pcre2.o 
 	rm -f libvelypcre2.so
 	$(CC) -shared -o libvelypcre2.so $^ 
@@ -295,6 +302,9 @@ json.o: json.c vely.h
 	$(CC) -c -o $@ $< $(CFLAGS) 
 
 hash.o: hash.c vely.h
+	$(CC) -c -o $@ $< $(CFLAGS) 
+
+tree.o: tree.c vely.h
 	$(CC) -c -o $@ $< $(CFLAGS) 
 
 chandle.o: chandle.c vely.h
@@ -328,7 +338,10 @@ stub_crypto.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_CRYPTO $< $(CFLAGS) 
 
 stub_curl.o: stub.c vely.h
-	$(CC) -c -o $@ -DVV_CURL $< $(CFLAGS) 
+	$(CC) -c -o $@ -DVV_CURL $< $(CFLAGS)
+
+stub_tree.o: stub.c vely.h
+	$(CC) -c -o $@ -DVV_TREE $< $(CFLAGS) 
 
 stub_pcre2.o: stub.c vely.h
 	$(CC) -c -o $@ -DVV_PCRE2 $< $(CFLAGS) 

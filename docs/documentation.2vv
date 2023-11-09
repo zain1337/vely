@@ -120,6 +120,7 @@ ldx
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -128,6 +129,7 @@ ldx
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  
@@ -287,6 +289,7 @@ ldx
 ldx
 .B - Program flow
 
+\fBdo-once\fP  
 \fBexit-request\fP   
 .RE
 
@@ -324,7 +327,6 @@ ldx
 \fBafter-request-handler\fP  
 \fBbefore-request-handler\fP  
 \fBbuilding-URL\fP  
-\fBend-request-handler\fP  
 \fBgetting-URL\fP  
 \fBglobal-request-data\fP  
 \fBnon-request\fP  
@@ -375,6 +377,19 @@ ldx
 .B - Time
 
 \fBget-time\fP   
+.RE
+
+
+ldx
+.B - Tree search
+
+\fBdelete-tree\fP  
+\fBget-tree\fP  
+\fBnew-tree\fP  
+\fBpurge-tree\fP  
+\fBread-tree\fP  
+\fBuse-cursor\fP  
+\fBwrite-tree\fP   
 .RE
 
 

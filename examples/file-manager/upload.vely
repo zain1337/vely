@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: EPL-2.0
 // Copyright 2018 DaSoftver LLC.
-#include "vely.h" // must always be here
+#include "vely.h"
 
-// Upload the file
-request-handler /upload 
+request-handler /upload
    out-header default
 
-   // file description from the upload form
-   input-param filedesc
-   // file name
-   input-param file_filename
-   // the path to uploaded file
-   input-param file_location
-   // size in bytes
-   input-param file_size
-   // the file extension
-   input-param file_ext
-   VV_UNUSED (file_ext);
+   input-param filedesc      // file description from the upload form
+   input-param file_filename // file name
+   input-param file_location // the path to uploaded file
+   input-param file_size     // size in bytes
+   input-param file_ext      // the file extension
 
    @<h2>Uploading file</h2>
 
    // insert the information about the file into the database
-   run-query @db_file_manager="insert into files (fileName, localPath, extension, description, fileSize) values ('%s', '%s', '%s', '%s', '%s')": file_filename, file_location, file_ext, filedesc, file_size
+   run-query @db_file_manager= \
+        "insert into files (fileName, localPath, extension, description, fileSize) \
+            values ('%s', '%s', '%s', '%s', '%s')" \
+        input file_filename, file_location, file_ext, filedesc, file_size
    end-query
 
-   @File <<p-web file_filename>> of size <<p-web file_size>> is stored on server at <<p-web file_location>>. File description is <<p-web filedesc>>.<hr/>
+   @File <<p-web file_filename>> of size <<p-web file_size>> \
+        is stored on server at <<p-web file_location>>. \
+        File description is <<p-web filedesc>>.<hr/>
 end-request-handler
+
+

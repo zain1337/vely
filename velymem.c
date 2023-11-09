@@ -29,8 +29,14 @@
 // have much meaning anymore. So, basically, OS alloc remains very simple.
 bool vely_mem_os = false;
 
+bool vely_mem_process = false; // if set to true, memory is not released with request's end. Process memory.
+bool vely_mem_process_key = false; // if set to true, key in process-scope statements isn't vely but is process-scoped.
+bool vely_mem_process_data = false; // if set to true, data in process-scope statements isn't vely but is process-scoped.
+
 // functions
 VV_MEMINLINE num vely_get_memory (void *ptr);
+VV_MEMINLINE void _vely_set_free(num r);
+
 char *vely_out_mem_mess = "Out of memory for [%lld] bytes";
 
 // Common empty string constant, used for initialization
@@ -43,12 +49,14 @@ char *VV_EMPTY_STRING=NULL;
 
 #define VV_MEM_FREE 1
 #define VV_MEM_FILE 2
+#define VV_MEM_PROCESS 4
 
 // memory list
 typedef struct s_vml {
     void *ptr;
     char status; // has VV_MEM_FREE bit set if this is freed block, 0 if not. 
                  // has VV_MEM_FILE bit set if this is a file that eventually needs to close (unless closed already)
+                 // has VV_MEM_PROCESS bit set if this is process memory, i.e. not to be released at the end of request
     num next_free; // index to next freed block, could be anything by default
 } vml;
 
@@ -92,10 +100,6 @@ void vely_memory_init ()
     // is done here; vely_memory_init() is called at the end of any request.
     vely_done ();
 
-    vm = calloc (vm_tot = VELYMSIZE, sizeof (vml));
-    if (vm == NULL) vely_report_error ("Out of memory");
-    vm_curr = 0;
-    vm_first_free = -1;
 }
 
 //
@@ -149,6 +153,7 @@ VV_MEMINLINE num vely_add_mem (void *p)
     }
     vm[r].ptr = p;
     vm[r].status &= ~VV_MEM_FREE; // not a freed block
+    if (vely_mem_process) vm[r].status |= VV_MEM_PROCESS;
     return r;
 }
 
@@ -229,6 +234,35 @@ VV_MEMINLINE num vely_get_memory (void *ptr)
     return *(num*)((unsigned char*)ptr-VV_ALIGN);
 }
 
+//
+// Link new freed memory block r
+//
+void _vely_set_free(num r)
+{
+    vm[r].ptr = NULL;
+    vm[r].status |= VV_MEM_FREE; // freed
+    // Set memory marked as freed, would be -1 if there's no free blocks at this moment
+    vm[r].next_free = vm_first_free;
+    vm_first_free = r;
+}
+
+//
+// Set memory to be process-scoped. ptr is the memory alloc'd by Vely.
+//
+VV_MEMINLINE void _vely_mem_set_process (void *ptr)
+{
+    // Skip if OS memory used.
+    if (!vely_mem_os && vely_mem_process) 
+    {
+        num r = vely_get_memory(ptr);
+        if ((r < 0 || r >= vm_curr) || vm[r].ptr != ((unsigned char*)ptr-VV_ALIGN)) 
+        {
+            vely_report_error("Invalid memory attempted to be set as process-scope memory");
+        }
+        vm[r].status |= VV_MEM_PROCESS;
+    }
+    
+}
 
 // 
 // Input and return the same as for realloc()
@@ -263,7 +297,7 @@ VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe)
     {
         if ((r < 0 || r >= vm_curr) || vm[r].ptr != ((unsigned char*)ptr-VV_ALIGN)) vely_report_error("Invalid memory to realloc");
     }
-    vm[r].ptr = NULL;
+    _vely_set_free(r);
     void *p= realloc ((unsigned char*)ptr-VV_ALIGN, t=size + VV_ALIGN);
     if (p == NULL) 
     {
@@ -279,7 +313,7 @@ VV_MEMINLINE void *_vely_realloc(void *ptr, size_t size, char safe)
 VV_MEMINLINE num vely_safe_free (void *ptr)
 {
     // this check will either catch error or SIGSEGV
-    if (!_vely_free (ptr, 1)) {VERR0; return VV_ERR_MEMORY; } // memory not valid
+    if (!_vely_free (ptr, 1)) {VELY_ERR0; return VV_ERR_MEMORY; } // memory not valid
     return VV_OKAY;
 }
 
@@ -330,12 +364,8 @@ VV_MEMINLINE bool _vely_free (void *ptr, char check)
     if (vm[r].status & VV_MEM_FREE) return false;
 
     // free mem
-    vm[r].ptr = NULL;
-    vm[r].status |= VV_MEM_FREE; // freed
+    _vely_set_free(r);
     free ((unsigned char*)ptr-VV_ALIGN);
-    // Set memory marked as freed, would be -1 if there's no free blocks at this moment
-    vm[r].next_free = vm_first_free;
-    vm_first_free = r;
     //
     return true; // free succeeded
 }
@@ -364,6 +394,7 @@ VV_MEMINLINE char *_vely_strdup (char *s)
 //
 void vely_done ()
 {
+    bool keep_mem = false;
     if (vm != NULL)
     {
         num i;
@@ -382,15 +413,26 @@ void vely_done ()
                     if (*f != NULL) fclose (*f);
                     *f=NULL; // make sure it's NULL so the following request can use this file descriptor
                 }
-                else
+                else if ((vm[i].status & VV_MEM_PROCESS) != VV_MEM_PROCESS)
                 {
                     _vely_free ((unsigned char*)vm[i].ptr+VV_ALIGN, 0);
-                }
+                } else keep_mem = true;
             }
         }
         //VV_TRACE("Freeing vm");
-        free (vm);
-        vm = NULL;
+        if (!keep_mem) 
+        {
+            free (vm);
+            vm = NULL;
+        }
+    }
+    if (vm == NULL) 
+    {
+        // init memory if it's not there. Keep it if it has process-memory, but release all others
+        vm = calloc (vm_tot = VELYMSIZE, sizeof (vml));
+        if (vm == NULL) vely_report_error ("Out of memory");
+        vm_curr = 0;
+        vm_first_free = -1;
     }
 }
 

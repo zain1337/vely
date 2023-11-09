@@ -296,7 +296,7 @@ The following are the source files in this application:
 
 Usage of cookies is simple - \fBget-cookie\fP is used to obtain the cookie from a web client (i.e. a browser), and \fBset-cookie\fP to set the cookie in the browser when the response is sent back.
 
-Three sub\fBrequest\fPs (based on "action" input parameter) allow user to enter a value that is sent back to the server (see "enter_cookie" as the "action" parameter), which the server then sends back to the browser in response (see "save_cookie"), and finally with "query_cookie" this value can be obtained and displayed again. This demonstrates how server-side software uses cookies to manipulate and obtain the client state. 
+Three tasks (based on "action" task parameter) allow user to enter a value that is sent back to the server (see "enter_cookie" as the "action" parameter), which the server then sends back to the browser in response (see "save_cookie"), and finally with "query_cookie" this value can be obtained and displayed again. This demonstrates how server-side software uses cookies to manipulate and obtain the client state. 
 
 .RS 4
 .EX
@@ -358,6 +358,7 @@ end-request-handler
 \fBexample-client-API\fP  
 \fBexample-cookies\fP  
 \fBexample-create-table\fP  
+\fBexample-develop-web-applications-in-C-programming-language\fP  
 \fBexample-distributed-servers\fP  
 \fBexample-docker\fP  
 \fBexample-encryption\fP  
@@ -366,6 +367,7 @@ end-request-handler
 \fBexample-hash-server\fP  
 \fBexample-hello-world\fP  
 \fBexample-how-to-design-application\fP  
+\fBexample-how-to-use-regex\fP  
 \fBexample-json\fP  
 \fBexample-multitenant-SaaS\fP  
 \fBexample-postgres-transactions\fP  

@@ -11,6 +11,8 @@ Memory allocated by Vely statements (and internally by Vely) can be managed or u
 
 Managed memory used by Vely statements is tracked and always fully freed at the end of a request, even if you don't do it. In fact that is preferrable in most cases (more on this below). This is the default behavior. In this case, your program is in "managed memory mode". 
 
+Note that memory used for some constructs (see for instance "process-scope" clause in \fBnew-tree\fP or \fBnew-hash\fP) can stay allocated for the life of the process. Such memory is not released at the end of request, but rather it stays for all requests served by the process, unless it's manually deleted. These cases are clearly documented and serve a specific purpose.
+
 Unmanaged memory is rarely used; more on it further down.
 
 .LP
@@ -23,7 +25,7 @@ Some Vely statements allocate memory for their results. Each statement's documen
 .B MANAGED MEMORY
 .LP
 
-All such memory is automatically freed at the end of each \fBrequest\fP, so in general you may not need to free memory at all. If needed, you can free memory with \fBdelete-mem\fP or reallocate with \fBresize-mem\fP, or use statements that explicitly do that (such as \fBdelete-query\fP for instance). However, unless your program uses lots of memory for longer, it may make sense to not do that and let Vely release it at the end of the request. The reasons for this are:
+All managed memory is automatically freed at the end of each \fBrequest\fP, so in general you may not need to free memory at all. If needed, you can free memory with \fBdelete-mem\fP or reallocate with \fBresize-mem\fP, or use statements that explicitly do that (such as \fBdelete-query\fP for instance); however, unless your program uses lots of memory for longer, it may make sense to not do that and let Vely release it at the end of the request. The reasons for this are:
 
 .RS 4
 \[bu]    
@@ -33,20 +35,20 @@ releasing memory programmatically is in some cases error prone and may lead to m
 
 .RS 4
 \[bu]    
-releasing memory programmatically in some cases prolongs the duration of the request, making some of the allocated memory stay so for longer. Having requests of shorter duration and releasing memory all at once at the end may be preferable.
+releasing memory programmatically in some cases prolongs the duration of the request, making some of the allocated memory stay so for longer. Having requests of shorter duration and releasing memory all at once at the end may be preferable, due to how most OS memory allocators work.
 .RE
 
 In the end, it is up to you whether to release memory explicitly, let Vely do it, or a bit of both. 
 
 Managed memory is freed even if it is no longer accessible to the program, thus preventing memory leaks; this is important for stability of long-running processes. 
 
-Note that managed memory is not the same as "garbage collector", which can consume considerable resources. Vely's managed memory is very light because it only tracks memory used by Vely statements and such memory is simply released at the end of a request; there is nothing more to it - no scanning of the heap, tracking of objects, counting references, compacting memory etc. Hence "managed memory" is managed so lightly to have virtually no impact on performance.
+Note that managed memory is not the same as "garbage collector", which can consume considerable resources. Vely's managed memory is very light because it only tracks memory used by Vely statements and such memory is simply released at the end of a request; there is nothing more to it - no scanning of the heap, tracking of objects, counting references, compacting memory etc. Hence "managed memory" is managed so lightly to have virtually no impact on performance. This is in part made possible by the fact that Vely does not use multithreaded computing; rather parallelism is achieved by using resident stay-in-memory processes which are single-threaded.
 
 .LP
 .B INTERNAL PROCESS MEMORY
 .LP
 
-Memory needed for cross-request purposes, such as prepared database statements or process configuration data, is kept for the life of the process.
+Memory needed for cross-request purposes, such as prepared database statements or process configuration data, is kept for the life of the process. This memory is used and managed internally by Vely.
 
 .LP
 .B MEMORY REUSE

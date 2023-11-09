@@ -4,7 +4,7 @@
 #On the web https://vely.dev/ - this file is part of Vely framework.
 
 Name:   vely    
-Version:    18.4.0
+Version:    19.0.0
 Release:    1%{?dist}
 Summary:    Framework for C programming language. Rapid development of web and command-line applications.
 Vendor:     Dasoftver LLC
@@ -128,6 +128,7 @@ exit 0
 %{_libdir}/vely/libvelypg.so
 %{_libdir}/vely/libvelymys.so
 %{_libdir}/vely/libvelysec.so
+%{_libdir}/vely/libvelytree.so
 %{_libdir}/vely/libvelypcre2.so
 %{_libdir}/vely/libvelypcre2glibc.so
 %{_libdir}/vely/libvelycurl.so
@@ -142,6 +143,7 @@ exit 0
 %{_libdir}/vely/stub_postgres.o
 %{_libdir}/vely/stub_sqlite.o
 %{_libdir}/vely/stub_fcgi.o
+%{_libdir}/vely/stub_tree.o
 %{_libdir}/vely/vmakefile
 %{_libdir}/vely/vdiag
 %{_libdir}/vely/v.vim

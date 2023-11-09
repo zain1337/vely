@@ -149,6 +149,123 @@ syn region vv_r_construct_resize_mem start="^[[:space:]]*resize-mem" skip="\\[[:
     hi def link vv_h_clause_resize_mem    velyClause
     hi def link vv_h_construct_resize_mem    velyConstruct
     hi def link vv_h_print_inline_resize_mem    velyConstruct
+syn region vv_r_construct_end_do_once start="^[[:space:]]*end-do-once" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_end_do_once,vv_r_inline_end_do_once,vv_r_at
+    syn match vv_h_construct_end_do_once "^[[:space:]]*end-do-once" contained containedin=vv_r_construct_end_do_once
+    syn match vv_h_clause_end_do_once "[=]\@<=define \@=" contained containedin=vv_r_construct_end_do_once
+    syn match vv_h_clause_end_do_once " define \@=" contained containedin=vv_r_construct_end_do_once
+    hi def link vv_h_clause_end_do_once    velyClause
+    hi def link vv_h_construct_end_do_once    velyConstruct
+    hi def link vv_h_print_inline_end_do_once    velyConstruct
+syn region vv_r_construct_do_once start="^[[:space:]]*do-once" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_do_once,vv_r_inline_do_once,vv_r_at
+    syn match vv_h_construct_do_once "^[[:space:]]*do-once" contained containedin=vv_r_construct_do_once
+    syn match vv_h_clause_do_once "[=]\@<=define \@=" contained containedin=vv_r_construct_do_once
+    syn match vv_h_clause_do_once " define \@=" contained containedin=vv_r_construct_do_once
+    hi def link vv_h_clause_do_once    velyClause
+    hi def link vv_h_construct_do_once    velyConstruct
+    hi def link vv_h_print_inline_do_once    velyConstruct
+syn region vv_r_construct_use_cursor start="^[[:space:]]*use-cursor" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_use_cursor,vv_r_inline_use_cursor,vv_r_at
+    syn match vv_h_construct_use_cursor "^[[:space:]]*use-cursor" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " current \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " current$" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " get-greater \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " get-greater$" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " get-lesser \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " get-lesser$" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " old-key \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " status \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " update-value \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " value \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor "[=]\@<=define \@=" contained containedin=vv_r_construct_use_cursor
+    syn match vv_h_clause_use_cursor " define \@=" contained containedin=vv_r_construct_use_cursor
+    hi def link vv_h_clause_use_cursor    velyClause
+    hi def link vv_h_construct_use_cursor    velyConstruct
+    hi def link vv_h_print_inline_use_cursor    velyConstruct
+syn region vv_r_construct_delete_tree start="^[[:space:]]*delete-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_delete_tree,vv_r_inline_delete_tree,vv_r_at
+    syn match vv_h_construct_delete_tree "^[[:space:]]*delete-tree" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree " key \@=" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree " old-key \@=" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree " status \@=" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree " value \@=" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_delete_tree
+    syn match vv_h_clause_delete_tree " define \@=" contained containedin=vv_r_construct_delete_tree
+    hi def link vv_h_clause_delete_tree    velyClause
+    hi def link vv_h_construct_delete_tree    velyConstruct
+    hi def link vv_h_print_inline_delete_tree    velyConstruct
+syn region vv_r_construct_read_tree start="^[[:space:]]*read-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_read_tree,vv_r_inline_read_tree,vv_r_at
+    syn match vv_h_construct_read_tree "^[[:space:]]*read-tree" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " greater \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " greater-equal \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " key \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " lesser \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " lesser-equal \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " max-key \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " max-key$" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " min-key \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " min-key$" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " new-cursor \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " old-key \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " status \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " update-value \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " value \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_read_tree
+    syn match vv_h_clause_read_tree " define \@=" contained containedin=vv_r_construct_read_tree
+    hi def link vv_h_clause_read_tree    velyClause
+    hi def link vv_h_construct_read_tree    velyConstruct
+    hi def link vv_h_print_inline_read_tree    velyConstruct
+syn region vv_r_construct_write_tree start="^[[:space:]]*write-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_write_tree,vv_r_inline_write_tree,vv_r_at
+    syn match vv_h_construct_write_tree "^[[:space:]]*write-tree" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " key \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " new-cursor \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " process-key \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " process-key$" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " process-value \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " process-value$" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " status \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " value \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_write_tree
+    syn match vv_h_clause_write_tree " define \@=" contained containedin=vv_r_construct_write_tree
+    hi def link vv_h_clause_write_tree    velyClause
+    hi def link vv_h_construct_write_tree    velyConstruct
+    hi def link vv_h_print_inline_write_tree    velyConstruct
+syn region vv_r_construct_purge_tree start="^[[:space:]]*purge-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_purge_tree,vv_r_inline_purge_tree,vv_r_at
+    syn match vv_h_construct_purge_tree "^[[:space:]]*purge-tree" contained containedin=vv_r_construct_purge_tree
+    syn match vv_h_clause_purge_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_purge_tree
+    syn match vv_h_clause_purge_tree " define \@=" contained containedin=vv_r_construct_purge_tree
+    hi def link vv_h_clause_purge_tree    velyClause
+    hi def link vv_h_construct_purge_tree    velyConstruct
+    hi def link vv_h_print_inline_purge_tree    velyConstruct
+syn region vv_r_construct_get_tree start="^[[:space:]]*get-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_get_tree,vv_r_inline_get_tree,vv_r_at
+    syn match vv_h_construct_get_tree "^[[:space:]]*get-tree" contained containedin=vv_r_construct_get_tree
+    syn match vv_h_clause_get_tree " count \@=" contained containedin=vv_r_construct_get_tree
+    syn match vv_h_clause_get_tree " hops \@=" contained containedin=vv_r_construct_get_tree
+    syn match vv_h_clause_get_tree " to \@=" contained containedin=vv_r_construct_get_tree
+    syn match vv_h_clause_get_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_get_tree
+    syn match vv_h_clause_get_tree " define \@=" contained containedin=vv_r_construct_get_tree
+    hi def link vv_h_clause_get_tree    velyClause
+    hi def link vv_h_construct_get_tree    velyConstruct
+    hi def link vv_h_print_inline_get_tree    velyConstruct
+syn region vv_r_construct_new_tree start="^[[:space:]]*new-tree" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
+    syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_new_tree,vv_r_inline_new_tree,vv_r_at
+    syn match vv_h_construct_new_tree "^[[:space:]]*new-tree" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " custom-eval \@=" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " key-as \@=" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " process-scope \@=" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " process-scope$" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " unsorted \@=" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " unsorted$" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree "[=]\@<=define \@=" contained containedin=vv_r_construct_new_tree
+    syn match vv_h_clause_new_tree " define \@=" contained containedin=vv_r_construct_new_tree
+    hi def link vv_h_clause_new_tree    velyClause
+    hi def link vv_h_construct_new_tree    velyConstruct
+    hi def link vv_h_print_inline_new_tree    velyConstruct
 syn region vv_r_construct_new_mem start="^[[:space:]]*new-mem" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_new_mem,vv_r_inline_new_mem,vv_r_at
     syn match vv_h_construct_new_mem "^[[:space:]]*new-mem" contained containedin=vv_r_construct_new_mem
@@ -206,6 +323,10 @@ syn region vv_r_construct_write_hash start="^[[:space:]]*write-hash" skip="\\[[:
     syn match vv_h_clause_write_hash " key \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " old-key \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " old-value \@=" contained containedin=vv_r_construct_write_hash
+    syn match vv_h_clause_write_hash " process-key \@=" contained containedin=vv_r_construct_write_hash
+    syn match vv_h_clause_write_hash " process-key$" contained containedin=vv_r_construct_write_hash
+    syn match vv_h_clause_write_hash " process-value \@=" contained containedin=vv_r_construct_write_hash
+    syn match vv_h_clause_write_hash " process-value$" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " status \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash " value \@=" contained containedin=vv_r_construct_write_hash
     syn match vv_h_clause_write_hash "[=]\@<=define \@=" contained containedin=vv_r_construct_write_hash
@@ -216,6 +337,8 @@ syn region vv_r_construct_write_hash start="^[[:space:]]*write-hash" skip="\\[[:
 syn region vv_r_construct_new_hash start="^[[:space:]]*new-hash" skip="\\[[:space:]]*$" end="$" contains=cString,cNumbers,cOperator,cType,cConstant,cFormat,cComment,cCommentL keepend
     syn match vv_h_other '[a-zA-Z0-9]\+' contained containedin=vv_r_construct_new_hash,vv_r_inline_new_hash,vv_r_at
     syn match vv_h_construct_new_hash "^[[:space:]]*new-hash" contained containedin=vv_r_construct_new_hash
+    syn match vv_h_clause_new_hash " process-scope \@=" contained containedin=vv_r_construct_new_hash
+    syn match vv_h_clause_new_hash " process-scope$" contained containedin=vv_r_construct_new_hash
     syn match vv_h_clause_new_hash " size \@=" contained containedin=vv_r_construct_new_hash
     syn match vv_h_clause_new_hash "[=]\@<=define \@=" contained containedin=vv_r_construct_new_hash
     syn match vv_h_clause_new_hash " define \@=" contained containedin=vv_r_construct_new_hash
@@ -619,7 +742,6 @@ syn region vv_r_construct_num_string start="^[[:space:]]*num-string" skip="\\[[:
     syn match vv_h_construct_num_string "^[[:space:]]*num-string" contained containedin=vv_r_construct_num_string
     syn match vv_h_clause_num_string " base \@=" contained containedin=vv_r_construct_num_string
     syn match vv_h_clause_num_string " bytes-written \@=" contained containedin=vv_r_construct_num_string
-    syn match vv_h_clause_num_string " length \@=" contained containedin=vv_r_construct_num_string
     syn match vv_h_clause_num_string " to \@=" contained containedin=vv_r_construct_num_string
     syn match vv_h_clause_num_string "[=]\@<=define \@=" contained containedin=vv_r_construct_num_string
     syn match vv_h_clause_num_string " define \@=" contained containedin=vv_r_construct_num_string

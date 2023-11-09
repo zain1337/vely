@@ -35,7 +35,7 @@ static char tb;
 // this node, l is the list of nodes (normalized name). 'n' here is calculated if needed, which isn't needed if no-hash is used.
 // So no-hash performs ultra-fast JSON parsing, with virtually no memory allocated.
 // A node after the last has empty name.
-#define VV_ADD_JSON(j_tp, j_str, lc, l) if (jloc->usehash) { vely_add_json(); char *n = vely_json_fullname (l, lc); if (n == NULL) { ec = *i; goto endj; } nodes[node_c].name = n; nodes[node_c].type = j_tp; nodes[node_c].str =  j_str; node_c++; }; if (jloc->node_handler != NULL) { l[lc].name = NULL; if ((*jloc->node_handler)(lc, l, j_str, j_tp) != VV_OKAY) { ec=*i; VERR0; errm = VV_ERR_JSON_INTERRUPTED; goto endj;} }
+#define VV_ADD_JSON(j_tp, j_str, lc, l) if (jloc->usehash) { vely_add_json(); char *n = vely_json_fullname (l, lc); if (n == NULL) { ec = *i; goto endj; } nodes[node_c].name = n; nodes[node_c].type = j_tp; nodes[node_c].str =  j_str; node_c++; }; if (jloc->node_handler != NULL) { l[lc].name = NULL; if ((*jloc->node_handler)(lc, l, j_str, j_tp) != VV_OKAY) { ec=*i; VELY_ERR0; errm = VV_ERR_JSON_INTERRUPTED; goto endj;} }
 
 // Prototypes
 static char *vely_json_fullname (json_node *list, num list_c);
@@ -189,7 +189,7 @@ num vely_read_json (vely_json *j, char *key, char **keylist, char **to, num *typ
                                              //
     num st;
     vely_jsonn *n = (vely_jsonn*)vely_find_hash (j->hash, key, keylist, 0, &st, NULL);
-    if (st == VV_ERR_EXIST) return VV_ERR_EXIST; // VERR0 done in vely_find_hash
+    if (st == VV_ERR_EXIST) return VV_ERR_EXIST; // VELY_ERR0 done in vely_find_hash
     else 
     {
         *to = n->str;
@@ -218,7 +218,7 @@ num vely_next_json (vely_json *j, char **key, char **to, num *type)
 
     if (!j->usehash) return VV_ERR_EXIST; // no hash, no data
                                              //
-    if (j->dnext >= j->node_c) {VERR0;return VV_ERR_EXIST;}
+    if (j->dnext >= j->node_c) {VELY_ERR0;return VV_ERR_EXIST;}
     *key = j->nodes[j->dnext].name;
     *to = j->nodes[j->dnext].str;
     if (type != NULL) *type = j->nodes[j->dnext].type;
@@ -235,7 +235,7 @@ void vely_add_json_hash (vely_json *j)
     VV_TRACE("");
     num st;
     // create hash to add keys to, size it to match the document size, so close to 1 hit to get the key/value
-    if (j->usehash) vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c, NULL);
+    if (j->usehash) vely_create_hash (&(j->hash), j->node_c > j->maxhash ? j->maxhash : j->node_c, NULL, false);
     // go through all and add to hash
     num i;
     for (i = 0; i < j->node_c; i++)
@@ -326,7 +326,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
 
     // check if too many nested
     depth ++;
-    if (depth >= VV_JSON_MAX_NESTED) { ec = *i; VERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
+    if (depth >= VV_JSON_MAX_NESTED) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
     
     // various flags for checking the validity of JSON doc, mostly what's expected to be found at any point
     char expected_comma_or_end_array = 0;
@@ -344,7 +344,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
     list_c++; // every time value is about to be found, go one level up (and when found, one down)
     // the limit for list_c is VV_JSON_MAX_NESTED -1 so there is always one empty after the last with empty name
     // to mark the end if key-count in read-json isn't used
-    if (list_c >= VV_JSON_MAX_NESTED - 1) { ec = *i; VERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
+    if (list_c >= VV_JSON_MAX_NESTED - 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_DEPTH; goto endj; }
 
     char nchar = 0;
     while (*i < len) // initial value of i is determined at the beginning of this function, which is recursive
@@ -354,10 +354,10 @@ num vely_json_new (char *val, num *curr, num len, char dec)
         {
             // begin object, zero or more name:value inside separated by commas. Names should be unique.
             case '{':
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
                 expected_name = 1;
                 isobj = 1;
                 (*i)++;
@@ -365,9 +365,9 @@ num vely_json_new (char *val, num *curr, num len, char dec)
 
             // end object
             case '}':
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 expected_comma_or_end_object = 0;
                 isobj = 0;
                 list_c --; 
@@ -378,10 +378,10 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // begin array, zero or more values inside separated by commas. Values can be of different types.
             case '[':
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 isarr = 1;
                 (*i)++; // get passed [ to find the value that follows
                 // use previous element because array applies to it
@@ -395,9 +395,9 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // end array
             case ']':
                 expected_comma_or_end_array = 0;
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 isarr = 0;
                 (*i)++; // get passed ] to find the value that follows
                 list[list_c].index = -1; // no longer array at this level
@@ -410,9 +410,9 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             case ':': 
             {
                 expected_colon = 0;
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 (*i)++; // get passed : to find the value that follows
                 if (vely_json_new (val, i, len ,dec) != -1) { goto endj; }  // return value if failed
                 // no incrementing *i because it's done in vely_json()
@@ -423,16 +423,16 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // value separator
             case ',':
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
                 expected_comma_or_end_array = 0;
                 expected_comma_or_end_object = 0;
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 (*i)++; // get passed : to find the value that follows
                 // must be within object or array
                 if (isobj ==1) { expected_name = 1; continue;} // if we're in name:value list of pairs, continue to next name
                 // if we're in array of values, find the next value
                 else if (isarr == 1) list[list_c].index++; // this is next array element, advance the index
-                else { ec = *i; VERR0; errm = VV_ERR_JSON_UNRECOGNIZED; goto endj; }
+                else { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_UNRECOGNIZED; goto endj; }
                 if (vely_json_new (val, i, len ,dec) != -1) { goto endj; }  // return value if failed
                 // no incrementing *i because it's done in vely_json_new()
                 if (isobj == 1) expected_comma_or_end_object = 1;
@@ -451,9 +451,9 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // string
             case '"': 
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
                 char *end;
                 // get length of string
                 end=vely_json_to_utf8 (val+*i, 1, &errm, dec);
@@ -488,10 +488,10 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // number
             case '-':
             case '0' ... '9': 
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
                 num rv;
                 char *r = vely_json_num (val+*i, &rv);
                 if (r == NULL) { ec = *i; goto endj; } // errm set in vely_json_num()
@@ -508,7 +508,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
                     //set node with value
                     VV_ADD_JSON(VV_JSON_TYPE_NUMBER, str, list_c, list);
                 }
-                else { { ec = *i; VERR0; errm = VV_ERR_JSON_NUMBER; goto endj; }}
+                else { { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NUMBER; goto endj; }}
                 (*i) += (r - val-*i); 
                 list_c --; 
                 { goto endj; }
@@ -518,11 +518,11 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // true
             case 't': 
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
-                if (strncmp (val+*i, "true", sizeof("true")-1)) { ec = *i; VERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (strncmp (val+*i, "true", sizeof("true")-1)) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
                 char *str = val+*i;
                 BINDV(val+*i+strlen("true")); // put 0 at the end
                 nulled = tb;
@@ -538,11 +538,11 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // false
             case 'f':
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
-                if (strncmp (val+*i, "false", sizeof("false")-1)) { ec = *i; VERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (strncmp (val+*i, "false", sizeof("false")-1)) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
                 char *str = val+*i;
                 BINDV(val+*i+strlen("false")); // put 0 at the end
                 nulled = tb;
@@ -557,11 +557,11 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             // null
             case 'n':
             {
-                if (expected_colon == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
-                if (expected_comma_or_end_array == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
-                if (expected_comma_or_end_object == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
-                if (expected_name == 1) { ec = *i; VERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
-                if (strncmp (val+*i, "null", sizeof("null")-1)) { ec = *i; VERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
+                if (expected_colon == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COLON_EXPECTED; goto endj; }
+                if (expected_comma_or_end_array == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_ARRAY_EXPECTED; goto endj; }
+                if (expected_comma_or_end_object == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_COMMA_END_OBJECT_EXPECTED; goto endj; }
+                if (expected_name == 1) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_NAME_EXPECTED; goto endj; }
+                if (strncmp (val+*i, "null", sizeof("null")-1)) { ec = *i; VELY_ERR0; errm = VV_ERR_JSON_UNKNOWN; goto endj; }
                 char *str = val+*i;
                 BINDV(val+*i+strlen("null")); // put 0 at the end
                 nulled = tb;
@@ -576,7 +576,7 @@ num vely_json_new (char *val, num *curr, num len, char dec)
             
             default:
             {
-                ec = *i; VERR0; errm = VV_ERR_JSON_UNRECOGNIZED; goto endj; // unrecognized token
+                ec = *i; VELY_ERR0; errm = VV_ERR_JSON_UNRECOGNIZED; goto endj; // unrecognized token
             }
         }
     }
@@ -600,7 +600,7 @@ endj:
         // check if there's something extra not processed, but only if error not already set
         if (ec == -1 && *i < len)
         {
-            ec = *i; VERR0; errm = VV_ERR_JSON_SYNTAX;
+            ec = *i; VELY_ERR0; errm = VV_ERR_JSON_SYNTAX;
         }
     }
     return ec;
@@ -626,8 +626,8 @@ char *vely_json_num(char *val, num *rv)
     num dig = i;
     while (isdigit(val[i])) i++;
     num edig = i;
-    if (!isdigit(val[dig])) { VERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
-    if (val[dig] == '0' && edig != dig+1) { VERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
+    if (!isdigit(val[dig])) { VELY_ERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
+    if (val[dig] == '0' && edig != dig+1) { VELY_ERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
 
     // get the decimal point
     if (val[edig] == '.')
@@ -636,7 +636,7 @@ char *vely_json_num(char *val, num *rv)
         // fraction start with dot to easily convert to double
         while (isdigit(val[i])) i++;
         // check there's at least one digit after dot
-        if (!isdigit(val[edig+1])) { VERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
+        if (!isdigit(val[edig+1])) { VELY_ERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
         isdbl = 1;
     }
 
@@ -650,7 +650,7 @@ char *vely_json_num(char *val, num *rv)
         exp = i;
         while (isdigit(val[i])) i++;
         // check there's at least one digit in exponent
-        if (!isdigit(val[exp])) { VERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
+        if (!isdigit(val[exp])) { VELY_ERR0; errm = VV_ERR_JSON_NUMBER; return NULL;}
         isdbl = 1;
     }
 
@@ -759,7 +759,7 @@ char *vely_json_to_utf8 (char *val, char quoted, char **o_errm, char enc)
                             c+=4; // get passed XXXX\u
                             if (val[c] != '\\' || val[c+1] != 'u')
                             {
-                                VERR0;
+                                VELY_ERR0;
                                 *o_errm = VV_ERR_JSON_SURROGATE; return NULL;
                             }
                             num r1 = vely_get_hex (val + c + 2 , o_errm); // c+2 to skip \u
@@ -774,7 +774,7 @@ char *vely_json_to_utf8 (char *val, char quoted, char **o_errm, char enc)
                         
                         break;
                     }
-                    default: { VERR0; *o_errm = VV_ERR_JSON_BADESCAPE; return NULL;} // unknown escape sequence
+                    default: { VELY_ERR0; *o_errm = VV_ERR_JSON_BADESCAPE; return NULL;} // unknown escape sequence
                 }
                 i++; // to account for \, ", /, b, f, u etc.
             }
@@ -790,7 +790,7 @@ char *vely_json_to_utf8 (char *val, char quoted, char **o_errm, char enc)
     {
         val[i-pull] = 0; // if pulled whole string back, finish it with 0
     }
-    if (val[i] == 0 && quoted == 1) { VERR0; *o_errm = VV_ERR_JSON_NOQUOTE; return NULL;} // must have double quote at the end if quoted set
+    if (val[i] == 0 && quoted == 1) { VELY_ERR0; *o_errm = VV_ERR_JSON_NOQUOTE; return NULL;} // must have double quote at the end if quoted set
     return val+i; // return where the end is
 }
 
